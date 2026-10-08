@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Liczożerca</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000;
+    --panel: #05052a;
+    --wall: #2b5cff;
+    --yellow: #ffd800;
+    --green: #3dff6e;
+    --red: #ff3b3b;
+    --pink: #ff8bd0;
+    --cyan: #4ff3ff;
+    --text: #f2f2f2;
+    --dim: #7a7aa8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Tiny5", "Courier New", monospace;
+    font-size: 16px;
+    line-height: 1.6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 16px;
+    image-rendering: pixelated;
+  }
+  /* CRT scanlines */
+  body::after {
+    content: "";
+    pointer-events: none;
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.22) 2px 3px);
+    z-index: 100;
+  }
+  .wrap { display: flex; flex-direction: column; gap: 14px; max-width: 100%; }
+  h1 {
+    margin: 0; text-align: center; font-size: 40px; letter-spacing: 3px; line-height: 1.1;
+    color: var(--yellow);
+    text-shadow: 3px 3px 0 #c43c00, 6px 6px 0 #4a1100;
+  }
+  .hud {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 10px 12px; border: 4px solid var(--wall); background: var(--panel);
+    box-shadow: 0 0 0 4px #000, 0 0 0 8px #0b0b5a;
+  }
+  .hud .label { color: var(--dim); font-size: 13px; display: block; }
+  .hud .val { font-size: 22px; }
+  #score { color: var(--yellow); }
+  #time  { color: var(--cyan); }
+  #mode  { color: var(--pink); }
+  #lives { display: flex; gap: 6px; min-height: 18px; align-items: center; }
+  #lives svg { width: 21px; height: 18px; }
+  .main { display: flex; gap: 16px; align-items: flex-start; }
+  .board {
+    position: relative; border: 4px solid var(--wall); background: #000; line-height: 0;
+    box-shadow: 0 0 0 4px #000, 0 0 0 8px #0b0b5a;
+  }
+  canvas {
+    display: block; width: 608px; max-width: 100%; height: auto;
+    image-rendering: pixelated; image-rendering: crisp-edges;
+  }
+  .overlay {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px; text-align: center;
+    background: rgba(0,0,0,.82); line-height: 1.8; padding: 16px; overflow-y: auto;
+  }
+  .overlay.hidden { display: none; }
+  .overlay .big { font-size: 36px; }
+  .overlay .blink { animation: blink 1s steps(1) infinite; color: var(--yellow); }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* menu */
+  .menu-title { color: var(--pink); font-size: 18px; }
+  .ops { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 440px; }
+  .levels { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; max-width: 440px; }
+  .opt {
+    font-family: inherit; color: var(--text); background: #12123f; cursor: pointer;
+    border: 3px solid #2a2a6a; padding: 10px 6px; font-size: 15px; line-height: 1.4;
+    box-shadow: 3px 3px 0 #000;
+  }
+  .opt .sym { display: block; font-size: 30px; line-height: 1; color: var(--yellow); margin-bottom: 4px; }
+  .opt:hover { border-color: var(--wall); }
+  .opt.sel { border-color: var(--yellow); background: #3a2f00; }
+  .opt.lvl { font-size: 22px; padding: 8px 0; }
+  .menu-hint { font-size: 14px; color: var(--cyan); }
+  .btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+  .side {
+    width: 270px; padding: 14px; border: 4px solid var(--wall); background: var(--panel);
+    box-shadow: 0 0 0 4px #000, 0 0 0 8px #0b0b5a;
+  }
+  .side h2 { margin: 0 0 12px; font-size: 20px; color: var(--pink); }
+  #equations { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  #equations li { display: flex; align-items: center; gap: 10px; font-size: 20px; white-space: nowrap; }
+  #equations li.empty { color: var(--dim); font-size: 14px; white-space: normal; }
+  #equations .box {
+    width: 14px; height: 14px; border: 3px solid var(--dim); flex: none;
+  }
+  #equations li.solved { color: var(--green); }
+  #equations li.solved .box { border-color: var(--green); background: var(--green); box-shadow: inset 0 0 0 2px #000; }
+  #equations li.missed { color: var(--red); }
+  #equations li.missed .box { border-color: var(--red); }
+  .rules { margin-top: 16px; font-size: 13px; color: var(--dim); line-height: 1.7; }
+  .rules b { color: var(--text); font-weight: normal; }
+  button.main-btn {
+    font-family: inherit; font-size: 18px; color: #000; background: var(--yellow);
+    border: none; padding: 10px 14px; cursor: pointer;
+    box-shadow: 4px 4px 0 #c43c00;
+  }
+  button.main-btn.alt { background: #2a2a6a; color: var(--text); box-shadow: 4px 4px 0 #000; }
+  button.main-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #c43c00; }
+  .btn-small {
+    font-family: inherit; font-size: 14px; padding: 6px 10px; background: #2a2a6a; color: var(--text);
+    border: none; cursor: pointer; box-shadow: 3px 3px 0 #000;
+  }
+  .row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .overlay { justify-content: safe center; }
+
+  /* hall of fame */
+  .hof-link {
+    font-family: inherit; font-size: 15px; color: var(--yellow); background: none; border: none;
+    cursor: pointer; text-decoration: underline; text-underline-offset: 4px; padding: 4px;
+  }
+  .hof-link:hover { color: #fff; }
+  .tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; max-width: 480px; }
+  .tabs .opt { padding: 6px 2px; font-size: 12px; }
+  .tabs .opt .sym { font-size: 20px; }
+  table.hof { border-collapse: collapse; width: 100%; max-width: 480px; font-size: 16px; line-height: 1.5; }
+  table.hof th { color: var(--dim); font-size: 12px; font-weight: normal; text-align: left; padding: 2px 6px; border-bottom: 3px solid #2a2a6a; }
+  table.hof td { padding: 2px 6px; text-align: left; white-space: nowrap; }
+  table.hof .num { text-align: right; }
+  table.hof .name { max-width: 170px; overflow: hidden; text-overflow: ellipsis; }
+  table.hof tr:nth-child(even) td { background: rgba(43, 92, 255, .08); }
+  table.hof tr.empty td { color: #3a3a6a; }
+  table.hof tr.gold td   { color: var(--yellow); }
+  table.hof tr.silver td { color: #d8d8f0; }
+  table.hof tr.bronze td { color: #ffab6b; }
+  table.hof tr.me td { background: #3a2f00; animation: blink 1s steps(1) infinite; }
+  #nameForm { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+  #nameInput {
+    font-family: inherit; font-size: 26px; text-transform: uppercase; text-align: center;
+    width: 300px; max-width: 100%; padding: 8px 10px; color: var(--yellow); background: #000;
+    border: 4px solid var(--yellow); outline: none; caret-color: var(--yellow);
+  }
+
+  @media (max-width: 960px) {
+    .main { flex-direction: column; align-items: stretch; }
+    .side { width: auto; }
+    canvas { width: 100%; }
+    #equations { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    #equations li { font-size: 16px; }
+  }
+  @media (max-width: 480px) {
+    body { font-size: 14px; padding: 16px; }
+    h1 { font-size: 26px; }
+    .hud { flex-wrap: wrap; }
+    .hud .val { font-size: 16px; }
+    #equations { grid-template-columns: 1fr; }
+    .overlay { gap: 8px; padding: 8px; }
+    .overlay .big { font-size: 26px; }
+    .opt { font-size: 12px; padding: 6px 4px; }
+    .opt .sym { display: inline; font-size: 18px; margin: 0 6px 0 0; vertical-align: -2px; }
+    .menu-hint { display: none; }
+    .ops { gap: 6px; }
+    .opt.lvl { font-size: 16px; padding: 6px 0; }
+    .levels { gap: 6px; }
+    table.hof { font-size: 12px; line-height: 1.2; }
+    table.hof th { font-size: 10px; padding: 2px 3px; }
+    table.hof td { padding: 1px 3px; }
+    table.hof .name { max-width: 110px; }
+    .tabs .tname { display: none; }
+    .tabs .opt .sym { font-size: 22px; margin: 0; }
+    #nameInput { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>LICZOŻERCA</h1>
+  <div class="hud">
+    <div><span class="label">PUNKTY</span><span class="val" id="score">0</span></div>
+    <div><span class="label">CZAS</span><span class="val" id="time">00:00</span></div>
+    <div><span class="label">TRYB</span><span class="val" id="mode">-</span></div>
+    <div><span class="label">ŻYCIA</span><div id="lives"></div></div>
+  </div>
+  <div class="main">
+    <div class="board">
+      <canvas id="game"></canvas>
+      <div class="overlay" id="overlay"></div>
+    </div>
+    <div class="side">
+      <h2>ROZWIĄŻ I ZJEDZ!</h2>
+      <ul id="equations"></ul>
+      <div class="rules">
+        <b>STRZAŁKI/WSAD</b> RUCH<br>
+        <b>P</b> PAUZA &nbsp; <b>M</b> DŹWIĘK<br>
+        KROPKA = 1 PKT<br>
+        DOBRY WYNIK = 5 PKT<br>
+        ZŁA LICZBA = -1 ŻYCIE<br>
+        POZIOM W &lt; 2:00 = +10 PKT<br>
+        POZIOM W &lt; 1:00 = +20 PKT<br>
+        POZIOM W &lt; 0:40 = +30 PKT
+      </div>
+      <div class="row">
+        <button class="btn-small" id="btnMenu">MENU</button>
+        <button class="btn-small" id="btnSound">DŹWIĘK: WŁ.</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  // ---------- Config ----------
+  const MAP_SRC = [
+    "###################",
+    "#........#........#",
+    "#.##.###.#.###.##.#",
+    "#.................#",
+    "#.##.#.#####.#.##.#",
+    "#....#...#...#....#",
+    "####.### # ###.####",
+    "   #.#       #.#   ",
+    "####.# ##-## #.####",
+    "    .  #   #  .    ",
+    "####.# ##### #.####",
+    "   #.#       #.#   ",
+    "####.# ##### #.####",
+    "#........#........#",
+    "#.##.###.#.###.##.#",
+    "#..#.....P.....#..#",
+    "##.#.#.#####.#.#.##",
+    "#....#...#...#....#",
+    "#.######.#.######.#",
+    "#.................#",
+    "###################",
+  ];
+  const COLS = MAP_SRC[0].length, ROWS = MAP_SRC.length, T = 16;
+  const SPEED = 5;              // tiles per second
+  const NUM_EQUATIONS = 6;
+  const NUM_DECOYS = 8;
+  const LIVES = 3;
+  // Extra points for clearing a level fast: [under this many seconds, points] - the best one that applies.
+  const TIME_BONUSES = [[40, 30], [60, 20], [120, 10]];
+  const timeBonus = secs => (TIME_BONUSES.find(([limit]) => secs < limit) || [0, 0])[1];
+  const NUM_LEVELS = 10;        // level N => results up to N * 10
+
+  const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const shuffle = arr => { for (let i = arr.length - 1; i > 0; i--) { const j = rnd(0, i); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+
+  // Each operation generates one equation {a, b, r} whose result r is in [min, max].
+  const OPS = {
+    add: {
+      name: "DODAWANIE", sym: "+", min: () => 2,
+      gen(max) { const r = rnd(2, max), a = rnd(1, r - 1); return { a, b: r - a, r }; },
+    },
+    sub: {
+      name: "ODEJMOWANIE", sym: "-", min: () => 1,
+      gen(max) { const r = rnd(1, max - 1), a = rnd(r + 1, max); return { a, b: a - r, r }; },
+    },
+    mul: {
+      name: "MNOŻENIE", sym: "×", min: () => 1,
+      // results are picked as a set (see pickMulResults) so that small levels still have 6 distinct products
+      gen(max, r) {
+        const pairs = [];
+        for (let a = 2; a * 2 <= r; a++) if (r % a === 0) pairs.push([a, r / a]);
+        const [a, b] = pairs.length ? pairs[rnd(0, pairs.length - 1)] : (Math.random() < 0.5 ? [1, r] : [r, 1]);
+        return { a, b, r };
+      },
+    },
+    div: {
+      name: "DZIELENIE", sym: ":", min: () => 1,
+      gen(max) { const r = rnd(1, max), b = rnd(2, 9); return { a: r * b, b, r }; },
+    },
+  };
+
+  function pickMulResults(max) {
+    const composite = [], prime = [];
+    for (let n = 1; n <= max; n++) {
+      let hasPair = false;
+      for (let a = 2; a * a <= n; a++) if (n % a === 0) { hasPair = true; break; }
+      (hasPair ? composite : prime).push(n);
+    }
+    // prefer "real" multiplications (no ×1); fall back to ×1 only if there aren't enough
+    const picked = shuffle(composite).slice(0, NUM_EQUATIONS);
+    shuffle(prime);
+    while (picked.length < NUM_EQUATIONS) picked.push(prime.pop());
+    return picked;
+  }
+
+  const DIRS = {
+    left:  { dx: -1, dy: 0, a: Math.PI },
+    right: { dx: 1,  dy: 0, a: 0 },
+    up:    { dx: 0,  dy: -1, a: -Math.PI / 2 },
+    down:  { dx: 0,  dy: 1, a: Math.PI / 2 },
+  };
+  const OPP = { left: "right", right: "left", up: "down", down: "up" };
+
+  // 3x5 pixel digits
+  const FONT = {
+    0: ["111","101","101","101","111"], 1: ["010","110","010","010","111"],
+    2: ["111","001","111","100","111"], 3: ["111","001","111","001","111"],
+    4: ["101","101","111","001","001"], 5: ["111","100","111","001","111"],
+    6: ["111","100","111","101","111"], 7: ["111","001","001","001","001"],
+    8: ["111","101","111","101","111"], 9: ["111","101","111","001","111"],
+  };
+
+  // ---------- DOM ----------
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  canvas.width = COLS * T;
+  canvas.height = ROWS * T;
+  ctx.imageSmoothingEnabled = false;
+  const elScore = document.getElementById("score");
+  const elTime = document.getElementById("time");
+  const elMode = document.getElementById("mode");
+  const elLives = document.getElementById("lives");
+  const elEq = document.getElementById("equations");
+  const overlay = document.getElementById("overlay");
+  const btnSound = document.getElementById("btnSound");
+
+  // ---------- Remembered settings ----------
+  let settings = { op: "add", level: 1 };
+  try {
+    const saved = JSON.parse(localStorage.getItem("liczozerca-settings") || "null");
+    if (saved && OPS[saved.op] && saved.level >= 1 && saved.level <= NUM_LEVELS) settings = saved;
+  } catch (e) { /* storage unavailable */ }
+  function saveSettings() {
+    try { localStorage.setItem("liczozerca-settings", JSON.stringify(settings)); } catch (e) { /* ignore */ }
+  }
+
+  // ---------- Hall of fame (shared by everyone - the gry API, /api/sala_slawy/liczozerca/) ----------
+  // Opened straight from a file there's no /api next to the page, so it goes to the server by name.
+  const HOF_URL = (location.protocol === "file:" ? "https://gry.billy.local" : "") + "/api/sala_slawy/liczozerca/";
+  const HOF_SIZE = 10;
+  let hof = null;          // { add: [...], sub: [...], ... } as last fetched; null until then
+  let hofRequest = 0;      // so a slow response can't redraw a screen the player already left
+  // Same order as the API: higher score first, then the faster time (none = slowest), then the older entry.
+  const hofTime = e => e.time ?? Infinity;
+  const hofCompare = (a, b) => b.score - a.score || hofTime(a) - hofTime(b) || a.id - b.id;
+  async function hofLoad() {
+    const res = await fetch(HOF_URL + "?limit=" + HOF_SIZE, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    hof = Object.fromEntries(Object.keys(OPS).map(k => [k, data.categories?.[k] ?? []]));
+  }
+  async function hofPost(entry) {      // -> { entry, rank }
+    const res = await fetch(HOF_URL, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(entry),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "HTTP " + res.status);
+    return data;
+  }
+  function hofRank(op, scoreVal, timeVal) {          // 1-based place this result would take, or 0
+    if (scoreVal <= 0 || !hof) return 0;
+    const list = hof[op];
+    let rank = list.findIndex(e => hofCompare({ score: scoreVal, time: timeVal, id: Infinity }, e) < 0);
+    if (rank === -1) rank = list.length;
+    return rank < HOF_SIZE ? rank + 1 : 0;
+  }
+  let lastName = "";
+  try { lastName = localStorage.getItem("liczozerca-name") || ""; } catch (e) { /* ignore */ }
+  const escapeHtml = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  // ---------- Sound (tiny chiptune blips) ----------
+  let audio = null, soundOn = true;
+  function beep(freq, dur, type = "square", vol = 0.06, slideTo = null, delay = 0) {
+    if (!soundOn) return;
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const t0 = audio.currentTime + delay;
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, t0);
+      if (slideTo) o.frequency.linearRampToValueAtTime(slideTo, t0 + dur);
+      g.gain.setValueAtTime(vol, t0);
+      g.gain.linearRampToValueAtTime(0, t0 + dur);
+      o.connect(g).connect(audio.destination);
+      o.start(t0); o.stop(t0 + dur + 0.02);
+    } catch (e) { /* audio unavailable */ }
+  }
+  let wakaFlip = false;
+  const sfx = {
+    dot()   { wakaFlip = !wakaFlip; beep(wakaFlip ? 420 : 320, 0.06, "square", 0.035); },
+    good()  { [523, 659, 784, 1046].forEach((f, i) => beep(f, 0.08, "square", 0.06, null, i * 0.06)); },
+    bad()   { beep(300, 0.45, "sawtooth", 0.08, 60); },
+    win()   { [523, 659, 784, 659, 784, 1046].forEach((f, i) => beep(f, 0.12, "square", 0.06, null, i * 0.11)); },
+    lose()  { [392, 330, 262, 196].forEach((f, i) => beep(f, 0.2, "triangle", 0.1, null, i * 0.18)); },
+    start() { [262, 330, 392, 523].forEach((f, i) => beep(f, 0.09, "square", 0.05, null, i * 0.08)); },
+    click() { beep(660, 0.04, "square", 0.04); },
+  };
+
+  // ---------- Helpers ----------
+  const wrapX = x => (x + COLS) % COLS;
+  const isWallCh = c => c === "#" || c === "-";
+  const walkable = (x, y) => y >= 0 && y < ROWS && !isWallCh(MAP_SRC[y][wrapX(x)]);
+  const key = (x, y) => y * COLS + x;
+  const fmtTime = s => {
+    const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+    return String(m).padStart(2, "0") + ":" + String(sec).padStart(2, "0");
+  };
+  const levelMax = lvl => lvl * 10;
+
+  function heartSVG(filled) {
+    const rows = [".XX.XX.", "XXXXXXX", "XXXXXXX", ".XXXXX.", "..XXX..", "...X..."];
+    let rects = "";
+    rows.forEach((r, y) => [...r].forEach((c, x) => {
+      if (c === "X") rects += `<rect x="${x}" y="${y}" width="1" height="1"/>`;
+    }));
+    return `<svg viewBox="0 0 7 6" shape-rendering="crispEdges" fill="${filled ? "#ff3b3b" : "#2a2a5a"}">${rects}</svg>`;
+  }
+
+  // ---------- Game state ----------
+  let state, player, dots, numbers, equations, score, lives, elapsed, floaters, flashT, shakeT, freezeT, totalDots;
+  let reachable, distFromStart, start;
+  let levelsDone = 0, runStartLevel = settings.level;
+  let levelStart = 0;        // run time (elapsed) when the current level began
+  let levelClear = null;     // { time, bonus } of the level just cleared
+  let runResult = null, hofBack = null;
+
+  function computeReachable() {
+    for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (MAP_SRC[y][x] === "P") start = { x, y };
+    reachable = new Set(); distFromStart = new Map();
+    const q = [start]; reachable.add(key(start.x, start.y)); distFromStart.set(key(start.x, start.y), 0);
+    while (q.length) {
+      const c = q.shift();
+      for (const d of Object.values(DIRS)) {
+        const nx = wrapX(c.x + d.dx), ny = c.y + d.dy;
+        if (!walkable(nx, ny)) continue;
+        const k = key(nx, ny);
+        if (reachable.has(k)) continue;
+        reachable.add(k); distFromStart.set(k, distFromStart.get(key(c.x, c.y)) + 1);
+        q.push({ x: nx, y: ny });
+      }
+    }
+  }
+
+  function generateEquations(opKey, level) {
+    const op = OPS[opKey], max = levelMax(level);
+    if (opKey === "mul") return pickMulResults(max).map(r => ({ ...op.gen(max, r), solved: false }));
+    const results = new Set(), eqs = [];
+    let guard = 0;
+    while (eqs.length < NUM_EQUATIONS && guard++ < 5000) {
+      const e = op.gen(max);
+      if (results.has(e.r)) continue;
+      results.add(e.r);
+      eqs.push({ ...e, solved: false });
+    }
+    return eqs;
+  }
+
+  function generateDecoys(results, opKey, level) {
+    const lo = OPS[opKey].min(), max = levelMax(level);
+    const ok = n => n >= lo && n <= max && !results.has(n);
+    const pool = [];
+    for (let n = lo; n <= max; n++) if (ok(n)) pool.push(n);
+    const decoys = new Set();
+    // half of the decoys are "close calls" (off by 1-3 from a real answer)
+    let guard = 0;
+    const res = [...results];
+    while (decoys.size < NUM_DECOYS / 2 && guard++ < 500) {
+      const n = res[rnd(0, res.length - 1)] + (Math.random() < 0.5 ? -1 : 1) * rnd(1, 3);
+      if (ok(n)) decoys.add(n);
+    }
+    for (const n of shuffle(pool)) {
+      if (decoys.size >= NUM_DECOYS) break;
+      decoys.add(n);
+    }
+    // On low levels there may not be enough distinct wrong values — repeat some.
+    const list = [...decoys];
+    let i = 0;
+    while (list.length < NUM_DECOYS && list.length > 0) list.push(list[i++]);
+    return list;
+  }
+
+  function placeNumbers(values) {
+    const candidates = shuffle([...reachable].filter(k => distFromStart.get(k) >= 4));
+    const placed = new Map();
+    const tooClose = k => {
+      const x = k % COLS, y = Math.floor(k / COLS);
+      for (const p of placed.keys()) {
+        const px = p % COLS, py = Math.floor(p / COLS);
+        if (Math.abs(px - x) + Math.abs(py - y) < 3) return true;
+      }
+      return false;
+    };
+    let vi = 0;
+    for (const k of candidates) {
+      if (vi >= values.length) break;
+      if (tooClose(k)) continue;
+      placed.set(k, values[vi++]);
+    }
+    for (const k of candidates) {   // fallback if spacing was too strict
+      if (vi >= values.length) break;
+      if (!placed.has(k)) placed.set(k, values[vi++]);
+    }
+    return placed;
+  }
+
+  // carry = true when continuing to the next level: score, lives and time carry over
+  function setupGame(carry = false) {
+    equations = generateEquations(settings.op, settings.level);
+    const results = new Set(equations.map(e => e.r));
+    const decoys = generateDecoys(results, settings.op, settings.level);
+    const values = shuffle([
+      ...equations.map(e => ({ value: e.r, valid: true })),
+      ...decoys.map(v => ({ value: v, valid: false })),
+    ]);
+    numbers = placeNumbers(values);
+
+    dots = new Set();
+    for (const k of reachable) {
+      const x = k % COLS, y = Math.floor(k / COLS);
+      if (MAP_SRC[y][x] === "." && !numbers.has(k)) dots.add(k);
+    }
+    totalDots = dots.size;
+
+    player = { tx: start.x, ty: start.y, prog: 0, dir: null, next: null, mouth: 0, face: "left" };
+    if (!carry) { score = 0; lives = LIVES; elapsed = 0; levelsDone = 0; }
+    levelStart = elapsed;
+    floaters = []; flashT = 0; shakeT = 0; freezeT = 0;
+  }
+
+  // Fresh run starting from the level chosen in the menu
+  function newGame() {
+    settings.level = runStartLevel;
+    beginLevel(false);
+  }
+
+  function beginLevel(carry) {
+    setupGame(carry);
+    state = "ready";
+    renderEquations(); updateHUD();
+    showOverlay(`
+      <div class="big" style="color:var(--yellow)">${carry ? `POZIOM ${settings.level}` : "GOTOWY?"}</div>
+      <div>${OPS[settings.op].name}<br>POZIOM ${settings.level}/${NUM_LEVELS} · WYNIK DO ${levelMax(settings.level)}</div>
+      ${carry ? `<div>PUNKTY <span style="color:var(--yellow)">${score}</span> · ŻYCIA <span style="color:var(--red)">${lives}</span></div>` : ""}
+      <div>ZJADAJ WYNIKI DZIAŁAŃ.<br><span style="color:var(--red)">UNIKAJ ZŁYCH LICZB!</span></div>
+      <div class="blink">NACIŚNIJ STRZAŁKĘ</div>
+      <button class="main-btn" id="btnStart">START</button>`);
+    document.getElementById("btnStart").onclick = startPlaying;
+  }
+
+  function startPlaying() {
+    if (state !== "ready") return;
+    state = "playing";
+    hideOverlay();
+    sfx.start();
+  }
+
+  // ---------- Menu ----------
+  function showMenu() {
+    runResult = null;
+    settings.level = runStartLevel;   // menu shows the level the run started at
+    state = "menu";
+    elEq.innerHTML = `<li class="empty">WYBIERZ DZIAŁANIE I POZIOM, ABY ZOBACZYĆ RÓWNANIA.</li>`;
+    elMode.textContent = "-";
+    const opBtns = Object.entries(OPS).map(([k, o]) =>
+      `<button class="opt${settings.op === k ? " sel" : ""}" data-op="${k}"><span class="sym">${o.sym}</span>${o.name}</button>`).join("");
+    const lvlBtns = Array.from({ length: NUM_LEVELS }, (_, i) =>
+      `<button class="opt lvl${settings.level === i + 1 ? " sel" : ""}" data-lvl="${i + 1}">${i + 1}</button>`).join("");
+    showOverlay(`
+      <div class="menu-title">WYBIERZ DZIAŁANIE</div>
+      <div class="ops">${opBtns}</div>
+      <div class="menu-title">WYBIERZ POZIOM</div>
+      <div class="levels">${lvlBtns}</div>
+      <div class="menu-hint">WYNIK MAKSYMALNIE ${levelMax(settings.level)}</div>
+      <button class="main-btn" id="btnPlay">GRAJ!</button>
+      <button class="hof-link" id="btnHof">SALA SŁAWY</button>`);
+    document.getElementById("btnHof").onclick = () => showHallOfFame(settings.op, null, showMenu);
+    overlay.querySelectorAll("[data-op]").forEach(b => b.onclick = () => { settings.op = b.dataset.op; sfx.click(); saveSettings(); showMenu(); });
+    overlay.querySelectorAll("[data-lvl]").forEach(b => b.onclick = () => { settings.level = runStartLevel = +b.dataset.lvl; sfx.click(); saveSettings(); showMenu(); });
+    document.getElementById("btnPlay").onclick = newGame;
+  }
+
+  // ---------- UI ----------
+  function renderEquations(reveal = false) {
+    const sym = OPS[settings.op].sym;
+    elEq.innerHTML = equations.map(e => {
+      const cls = e.solved ? "solved" : (reveal ? "missed" : "");
+      const ans = e.solved || reveal ? e.r : "?";
+      return `<li class="${cls}"><span class="box"></span><span>${e.a} ${sym} ${e.b} = ${ans}</span></li>`;
+    }).join("");
+  }
+  function updateHUD() {
+    elScore.textContent = score;
+    elTime.textContent = fmtTime(elapsed);
+    elMode.textContent = `${OPS[settings.op].sym} POZ.${settings.level}`;
+    elLives.innerHTML = Array.from({ length: LIVES }, (_, i) => heartSVG(i < lives)).join("");
+  }
+  function showOverlay(html) { overlay.innerHTML = html; overlay.classList.remove("hidden"); }
+  function hideOverlay() { overlay.classList.add("hidden"); }
+
+  // won = level cleared. Losing all lives, or clearing the last level, ends the run.
+  function endGame(won) {
+    levelClear = null;
+    if (won) {
+      levelsDone++;
+      const time = elapsed - levelStart, bonus = timeBonus(time);
+      score += bonus;
+      levelClear = { time, bonus };
+    }
+    const canNext = won && settings.level < NUM_LEVELS;
+    state = canNext ? "won" : "over";
+    renderEquations(!won);
+    updateHUD();
+    if (won) sfx.win(); else sfx.lose();
+    if (!canNext) {
+      runResult = { op: settings.op, score, time: Math.floor(elapsed), level: settings.level, levelsDone,
+                    allDone: won, levelClear, entry: null, hofError: false };
+      // Ask for a name only if the score makes the current top 10 - so fetch it first.
+      state = "loading";
+      showOverlay(`<div class="big" style="color:${won ? "var(--green)" : "var(--red)"}">KONIEC GRY</div>
+        <div class="blink">ŁADOWANIE SALI SŁAWY...</div>`);
+      const r = runResult;
+      hofLoad()
+        .then(() => { if (runResult === r) (hofRank(r.op, r.score, r.time) ? showNameEntry() : showRunOver()); })
+        .catch(() => { if (runResult === r) { r.hofError = true; showRunOver(); } });
+      return;
+    }
+    const solved = equations.filter(e => e.solved).length;
+    showOverlay(`
+      <div class="big" style="color:var(--green)">POZIOM ${settings.level} UKOŃCZONY!</div>
+      ${bonusLine(levelClear)}
+      <div>PUNKTY <span style="color:var(--yellow)">${score}</span><br>
+      CZAS <span style="color:var(--cyan)">${fmtTime(elapsed)}</span><br>
+      ŻYCIA <span style="color:var(--red)">${lives}/${LIVES}</span><br>
+      ROZWIĄZANE ${solved}/${equations.length}</div>
+      <div class="blink">ENTER = NASTĘPNY POZIOM</div>
+      <div class="btns">
+        <button class="main-btn" id="btnNext">NASTĘPNY POZIOM</button>
+        <button class="main-btn alt" id="btnToMenu">MENU</button>
+      </div>`);
+    document.getElementById("btnToMenu").onclick = showMenu;
+    document.getElementById("btnNext").onclick = nextLevel;
+  }
+
+  // "CZAS POZIOMU 00:48 · BONUS +20" for the level just cleared (nothing if none was)
+  function bonusLine(clear) {
+    if (!clear) return "";
+    return `<div>CZAS POZIOMU <span style="color:var(--cyan)">${fmtTime(clear.time)}</span> · ${clear.bonus
+      ? `<span style="color:var(--green)">BONUS ZA CZAS +${clear.bonus} PKT</span>`
+      : `<span style="color:var(--dim)">BEZ BONUSU (PONIŻEJ 2:00 = +10)</span>`}</div>`;
+  }
+
+  // Final screen of a run (lost all lives, or finished the last level)
+  function showRunOver() {
+    state = "over";
+    const r = runResult;
+    showOverlay(`
+      <div class="big" style="color:${r.allDone ? "var(--green)" : "var(--red)"}">KONIEC GRY</div>
+      ${r.allDone ? `<div style="color:var(--yellow)">UKOŃCZONO WSZYSTKIE POZIOMY!</div>` : ""}
+      ${bonusLine(r.levelClear)}
+      <div>PUNKTY <span style="color:var(--yellow)">${r.score}</span><br>
+      CZAS <span style="color:var(--cyan)">${fmtTime(r.time)}</span><br>
+      UKOŃCZONE POZIOMY ${r.levelsDone}</div>
+      ${r.hofError ? `<div style="color:var(--red)">SALA SŁAWY NIEDOSTĘPNA - BRAK POŁĄCZENIA Z SERWEREM</div>` : ""}
+      <div class="blink">ENTER = ZAGRAJ PONOWNIE</div>
+      <div class="btns">
+        <button class="main-btn" id="btnAgain">ZAGRAJ PONOWNIE</button>
+        <button class="main-btn alt" id="btnToMenu">MENU</button>
+      </div>
+      <button class="hof-link" id="btnHof">SALA SŁAWY</button>`);
+    document.getElementById("btnAgain").onclick = newGame;
+    document.getElementById("btnToMenu").onclick = showMenu;
+    document.getElementById("btnHof").onclick = () => showHallOfFame(r.op, r.entry, showRunOver);
+  }
+
+  function showNameEntry() {
+    state = "entry";
+    const r = runResult, rank = hofRank(r.op, r.score, r.time);
+    showOverlay(`
+      <div class="big" style="color:var(--yellow)">NOWY REKORD!</div>
+      ${bonusLine(r.levelClear)}
+      <div>${r.allDone ? `<span style="color:var(--green)">UKOŃCZONO WSZYSTKIE POZIOMY!</span><br>` : ""}
+      ${OPS[r.op].name} · MIEJSCE <span style="color:var(--yellow)">#${rank}</span><br>
+      PUNKTY <span style="color:var(--yellow)">${r.score}</span> · CZAS <span style="color:var(--cyan)">${fmtTime(r.time)}</span></div>
+      <form id="nameForm" autocomplete="off">
+        <label for="nameInput">WPISZ SWOJE IMIĘ:</label>
+        <input id="nameInput" maxlength="12" spellcheck="false" value="${escapeHtml(lastName)}">
+        <button class="main-btn" type="submit">ZAPISZ</button>
+        <div id="nameError" style="color:var(--red)"></div>
+        <button class="main-btn alt" type="button" id="btnSkip" hidden>POMIŃ</button>
+      </form>`);
+    const input = document.getElementById("nameInput");
+    setTimeout(() => { input.focus(); input.select(); }, 0);
+    const form = document.getElementById("nameForm");
+    form.onsubmit = async e => {
+      e.preventDefault();
+      const name = input.value.trim().toUpperCase().slice(0, 12) || "GRACZ";
+      lastName = name;
+      try { localStorage.setItem("liczozerca-name", name); } catch (err) { /* ignore */ }
+      const saveBtn = form.querySelector("[type=submit]"), errorEl = document.getElementById("nameError");
+      saveBtn.disabled = true; saveBtn.textContent = "ZAPISYWANIE...";
+      try {
+        const saved = await hofPost({ name, score: r.score, category: r.op, time: r.time, level: r.level, completed: r.allDone });
+        r.entry = saved.entry;
+      } catch (err) {
+        saveBtn.disabled = false; saveBtn.textContent = "SPRÓBUJ PONOWNIE";
+        errorEl.textContent = "NIE UDAŁO SIĘ ZAPISAĆ (" + err.message + ")";
+        document.getElementById("btnSkip").hidden = false;
+        return;
+      }
+      if (state !== "entry") return;
+      sfx.good();
+      showHallOfFame(r.op, r.entry, showRunOver);
+    };
+    document.getElementById("btnSkip").onclick = showRunOver;
+  }
+
+  // Top 10 table with a tab per operation. `onBack` re-opens the screen we came from.
+  // Fetches the latest entries first; switching tabs reuses them.
+  function showHallOfFame(op, highlight, onBack, fetchFirst = true) {
+    state = "hof";
+    hofBack = onBack;
+    const fromRun = onBack === showRunOver;
+    const buttons = `<div class="btns">
+        ${fromRun ? `<button class="main-btn" id="btnAgain">ZAGRAJ PONOWNIE</button>
+                     <button class="main-btn alt" id="btnToMenu">MENU</button>`
+                  : `<button class="main-btn" id="btnBack">WRÓĆ</button>`}
+      </div>`;
+    const wireButtons = () => {
+      if (fromRun) {
+        document.getElementById("btnAgain").onclick = newGame;
+        document.getElementById("btnToMenu").onclick = showMenu;
+      } else {
+        document.getElementById("btnBack").onclick = onBack;
+      }
+    };
+    if (fetchFirst) {
+      const req = ++hofRequest;
+      showOverlay(`<div class="big" style="color:var(--yellow)">SALA SŁAWY</div>
+        <div class="blink">ŁADOWANIE...</div>${buttons}`);
+      wireButtons();
+      const stillHere = () => req === hofRequest && state === "hof";
+      hofLoad()
+        .then(() => { if (stillHere()) showHallOfFame(op, highlight, onBack, false); })
+        .catch(err => {
+          if (!stillHere()) return;
+          showOverlay(`<div class="big" style="color:var(--yellow)">SALA SŁAWY</div>
+            <div style="color:var(--red)">BRAK POŁĄCZENIA Z SERWEREM<br>(${escapeHtml(err.message)})</div>${buttons}`);
+          wireButtons();
+        });
+      return;
+    }
+    const tabs = Object.entries(OPS).map(([k, o]) =>
+      `<button class="opt${k === op ? " sel" : ""}" data-hof="${k}" title="${o.name}"><span class="sym">${o.sym}</span><span class="tname">${o.name}</span></button>`).join("");
+    const medal = ["gold", "silver", "bronze"];
+    const rows = Array.from({ length: HOF_SIZE }, (_, i) => {
+      const e = hof[op][i];
+      if (!e) return `<tr class="empty"><td class="num">${i + 1}.</td><td class="name">---</td><td class="num">-</td><td class="num">--:--</td><td class="num">-</td></tr>`;
+      const cls = [medal[i] || "", highlight && e.id === highlight.id ? "me" : ""].join(" ");
+      return `<tr class="${cls}"><td class="num">${i + 1}.</td><td class="name">${escapeHtml(e.name)}</td>
+        <td class="num">${e.score}</td><td class="num">${e.time == null ? "--:--" : fmtTime(e.time)}</td><td class="num">${e.level ?? "-"}</td></tr>`;
+    }).join("");
+    showOverlay(`
+      <div class="big" style="color:var(--yellow)">SALA SŁAWY</div>
+      <div class="tabs">${tabs}</div>
+      <div class="menu-title">${OPS[op].name}</div>
+      <table class="hof">
+        <tr><th class="num">#</th><th>IMIĘ</th><th class="num">PKT</th><th class="num">CZAS</th><th class="num">POZ.</th></tr>
+        ${rows}
+      </table>
+      ${buttons}`);
+    overlay.querySelectorAll("[data-hof]").forEach(b => b.onclick = () => { sfx.click(); showHallOfFame(b.dataset.hof, highlight, onBack, false); });
+    wireButtons();
+  }
+
+  function nextLevel() {
+    settings.level = Math.min(NUM_LEVELS, settings.level + 1);
+    beginLevel(true);
+  }
+
+  function togglePause() {
+    if (state === "playing") {
+      state = "paused";
+      showOverlay(`<div class="big" style="color:var(--cyan)">PAUZA</div><div class="blink">NACIŚNIJ P</div>`);
+    } else if (state === "paused") {
+      state = "playing";
+      hideOverlay();
+    }
+  }
+
+  // ---------- Logic ----------
+  function addFloater(tx, ty, text, color) {
+    floaters.push({ x: tx * T + T / 2, y: ty * T, text, color, t: 0 });
+  }
+
+  function eatAt(x, y) {
+    const k = key(x, y);
+    if (dots.has(k)) {
+      dots.delete(k);
+      score += 1;
+      sfx.dot();
+    }
+    if (numbers.has(k)) {
+      const n = numbers.get(k);
+      numbers.delete(k);
+      if (n.valid) {
+        score += 5;
+        const eq = equations.find(e => e.r === n.value && !e.solved);
+        if (eq) eq.solved = true;
+        addFloater(x, y, "+5", "#3dff6e");
+        sfx.good();
+        renderEquations();
+        if (equations.every(e => e.solved)) { updateHUD(); endGame(true); return; }
+      } else {
+        lives -= 1;
+        flashT = 0.35; shakeT = 0.35; freezeT = 0.6;
+        addFloater(x, y, "AŁA!", "#ff3b3b");
+        sfx.bad();
+        if (lives <= 0) { updateHUD(); endGame(false); return; }
+      }
+    }
+    updateHUD();
+  }
+
+  function canGo(x, y, dirName) {
+    const d = DIRS[dirName];
+    return walkable(x + d.dx, y + d.dy);
+  }
+
+  function updatePlayer(dt) {
+    const p = player;
+    // instant reverse mid-tile
+    if (p.dir && p.next === OPP[p.dir] && p.prog > 0) {
+      const d = DIRS[p.dir];
+      p.tx = wrapX(p.tx + d.dx); p.ty += d.dy;
+      p.prog = 1 - p.prog;
+      p.dir = p.next;
+    }
+    let rem = SPEED * dt;
+    let moved = false;
+    while (rem > 0) {
+      if (p.prog === 0) {
+        if (p.next && canGo(p.tx, p.ty, p.next)) p.dir = p.next;
+        if (!p.dir || !canGo(p.tx, p.ty, p.dir)) break;
+      }
+      const step = Math.min(rem, 1 - p.prog);
+      p.prog += step; rem -= step; moved = true;
+      if (p.prog >= 1 - 1e-9) {
+        const d = DIRS[p.dir];
+        p.tx = wrapX(p.tx + d.dx); p.ty += d.dy; p.prog = 0;
+        eatAt(p.tx, p.ty);
+        if (state !== "playing" || freezeT > 0) break;
+      }
+    }
+    if (p.dir) p.face = p.dir;
+    if (moved) p.mouth += dt * 14;
+  }
+
+  function update(dt) {
+    floaters.forEach(f => f.t += dt);
+    floaters = floaters.filter(f => f.t < 0.9);
+    flashT = Math.max(0, flashT - dt);
+    shakeT = Math.max(0, shakeT - dt);
+    if (state !== "playing") return;
+    elapsed += dt;
+    elTime.textContent = fmtTime(elapsed);
+    if (freezeT > 0) { freezeT -= dt; return; }
+    updatePlayer(dt);
+  }
+
+  // ---------- Rendering (all pixel-based) ----------
+  function px(x, y, w, h, c) { ctx.fillStyle = c; ctx.fillRect(x | 0, y | 0, w, h); }
+
+  function pixelDisc(cx, cy, r, color, mouth = 0, angle = 0) {
+    ctx.fillStyle = color;
+    for (let j = -r; j < r; j++) {
+      for (let i = -r; i < r; i++) {
+        const fx = i + 0.5, fy = j + 0.5;
+        if (fx * fx + fy * fy > r * r) continue;
+        if (mouth > 0) {
+          let diff = Math.atan2(fy, fx) - angle;
+          diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+          if (Math.abs(diff) < mouth) continue;
+        }
+        ctx.fillRect(Math.round(cx + i), Math.round(cy + j), 1, 1);
+      }
+    }
+  }
+
+  function drawNumber(n, cx, cy, color) {
+    const s = String(n);
+    const sx = s.length >= 3 ? 1 : 2, sy = 2;   // 3-digit numbers use narrow digits to fit the tile
+    const w = s.length * 3 * sx + (s.length - 1) * sx;
+    let x0 = Math.round(cx - w / 2);
+    const y0 = Math.round(cy - 5 * sy / 2);
+    ctx.fillStyle = color;
+    for (const ch of s) {
+      FONT[ch].forEach((row, ry) => [...row].forEach((bit, rx) => {
+        if (bit === "1") ctx.fillRect(x0 + rx * sx, y0 + ry * sy, sx, sy);
+      }));
+      x0 += 4 * sx;
+    }
+  }
+
+  // Pre-render walls once to an offscreen canvas
+  const wallLayer = document.createElement("canvas");
+  function buildWalls() {
+    wallLayer.width = canvas.width; wallLayer.height = canvas.height;
+    const w = wallLayer.getContext("2d");
+    const isWall = (x, y) => x >= 0 && x < COLS && y >= 0 && y < ROWS && isWallCh(MAP_SRC[y][x]);
+    const inside = (nx, ny) => nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS;
+    for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+      const c = MAP_SRC[y][x];
+      if (!isWallCh(c)) continue;
+      const X = x * T, Y = y * T;
+      if (c === "-") {
+        w.fillStyle = "#ff8bd0"; w.fillRect(X, Y + 6, T, 3);
+        continue;
+      }
+      w.fillStyle = "#0b0b5a"; w.fillRect(X, Y, T, T);
+      w.fillStyle = "#2b5cff";
+      if (inside(x, y - 1) && !isWall(x, y - 1)) w.fillRect(X, Y, T, 2);
+      if (inside(x, y + 1) && !isWall(x, y + 1)) w.fillRect(X, Y + T - 2, T, 2);
+      if (inside(x - 1, y) && !isWall(x - 1, y)) w.fillRect(X, Y, 2, T);
+      if (inside(x + 1, y) && !isWall(x + 1, y)) w.fillRect(X + T - 2, Y, 2, T);
+      w.fillStyle = "#1a2a9a";
+      if ((x + y) % 2 === 0) w.fillRect(X + 7, Y + 7, 2, 2);
+    }
+  }
+
+  let blinkT = 0;
+  function draw() {
+    ctx.save();
+    ctx.fillStyle = "#000"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (shakeT > 0) ctx.translate(rnd(-2, 2), rnd(-2, 2));
+    ctx.drawImage(wallLayer, 0, 0);
+
+    for (const k of dots) {
+      const x = k % COLS, y = Math.floor(k / COLS);
+      px(x * T + 7, y * T + 7, 2, 2, "#ffd800");
+    }
+
+    // numbers (all look the same — no hints!)
+    if (state !== "menu") {
+      const pulse = Math.floor(blinkT * 3) % 2 === 0;
+      for (const [k, n] of numbers) {
+        const x = k % COLS, y = Math.floor(k / COLS);
+        const X = x * T, Y = y * T, edge = pulse ? "#ff8bd0" : "#c45aa0";
+        px(X + 1, Y, T - 2, T, edge);          // square badge with clipped corners
+        px(X, Y + 1, T, T - 2, edge);
+        px(X + 1, Y + 1, T - 2, T - 2, "#2a0a3a");
+        drawNumber(n.value, X + T / 2, Y + T / 2, "#ffffff");
+      }
+    }
+
+    const p = player, d = p.dir ? DIRS[p.dir] : { dx: 0, dy: 0 };
+    const pxX = (p.tx + d.dx * p.prog) * T + T / 2;
+    const pxY = (p.ty + d.dy * p.prog) * T + T / 2;
+    const mouth = state === "ready" || state === "menu" ? 0.5 : 0.08 + Math.abs(Math.sin(p.mouth)) * 0.75;
+    const ang = DIRS[p.face].a;
+    pixelDisc(pxX, pxY, 7, "#ffd800", mouth, ang);
+    if (pxX < T / 2) pixelDisc(pxX + COLS * T, pxY, 7, "#ffd800", mouth, ang);
+    if (pxX > COLS * T - T / 2) pixelDisc(pxX - COLS * T, pxY, 7, "#ffd800", mouth, ang);
+
+    ctx.font = '11px "Tiny5", monospace';
+    ctx.textAlign = "center";
+    for (const f of floaters) {
+      ctx.globalAlpha = 1 - f.t / 0.9;
+      ctx.fillStyle = "#000"; ctx.fillText(f.text, f.x + 1, f.y - f.t * 18 + 1);
+      ctx.fillStyle = f.color; ctx.fillText(f.text, f.x, f.y - f.t * 18);
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+
+    if (flashT > 0) {
+      ctx.fillStyle = `rgba(255,30,30,${(flashT / 0.35) * 0.45})`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  // ---------- Loop ----------
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    blinkT += dt;
+    update(dt);
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  // ---------- Input ----------
+  const KEYMAP = {
+    ArrowLeft: "left", ArrowRight: "right", ArrowUp: "up", ArrowDown: "down",
+    a: "left", d: "right", w: "up", s: "down", A: "left", D: "right", W: "up", S: "down",
+  };
+  window.addEventListener("keydown", e => {
+    if (e.target instanceof HTMLInputElement) return;   // typing a name
+    const dir = KEYMAP[e.key];
+    if (dir || e.key === " " || e.key === "Enter") e.preventDefault();
+    if (e.key === "Enter" || e.key === " ") {
+      if (state === "menu") newGame();
+      else if (state === "ready") startPlaying();
+      else if (state === "won") nextLevel();
+      else if (state === "over") newGame();
+      else if (state === "hof") (hofBack === showRunOver ? newGame : hofBack)();
+      return;
+    }
+    if (e.key === "p" || e.key === "P" || e.key === "Escape") { togglePause(); return; }
+    if (e.key === "m" || e.key === "M") { toggleSound(); return; }
+    if (dir) {
+      if (state === "ready") startPlaying();
+      if (state === "playing") player.next = dir;
+    }
+  });
+
+  // swipe controls for touch screens
+  let touchStart = null;
+  canvas.addEventListener("touchstart", e => { const t = e.touches[0]; touchStart = { x: t.clientX, y: t.clientY }; }, { passive: true });
+  canvas.addEventListener("touchmove", e => e.preventDefault(), { passive: false });
+  canvas.addEventListener("touchend", e => {
+    if (!touchStart) return;
+    const t = e.changedTouches[0], dx = t.clientX - touchStart.x, dy = t.clientY - touchStart.y;
+    touchStart = null;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < 20) return;
+    const dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up");
+    if (state === "ready") startPlaying();
+    if (state === "playing") player.next = dir;
+  });
+
+  function toggleSound() {
+    soundOn = !soundOn;
+    btnSound.textContent = "DŹWIĘK: " + (soundOn ? "WŁ." : "WYŁ.");
+  }
+  btnSound.onclick = e => { toggleSound(); e.currentTarget.blur(); };
+  document.getElementById("btnMenu").onclick = e => { e.currentTarget.blur(); showMenu(); };
+
+  // ---------- Boot ----------
+  computeReachable();
+  buildWalls();
+  setupGame();      // board shown behind the menu
+  updateHUD();
+  showMenu();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

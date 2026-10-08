@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tajne Laboratorium</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000;
+    --panel: #05052a;
+    --wall: #2b5cff;
+    --yellow: #ffd800;
+    --green: #3dff6e;
+    --red: #ff3b3b;
+    --pink: #ff8bd0;
+    --cyan: #4ff3ff;
+    --text: #f2f2f2;
+    --dim: #7a7aa8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Tiny5", "Courier New", monospace;
+    font-size: 16px;
+    line-height: 1.6;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 16px;
+  }
+  /* CRT scanlines */
+  body::after {
+    content: "";
+    pointer-events: none;
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.22) 2px 3px);
+    z-index: 100;
+  }
+  .wrap {
+    display: flex; flex-direction: column; gap: 14px; align-items: stretch;
+    width: min(960px, 100%, calc((100vh - 250px) * 5 / 3 + 16px));
+    min-width: min(100%, 320px);
+    margin: auto 0;
+  }
+  h1 {
+    margin: 0; text-align: center; font-size: 40px; letter-spacing: 3px; line-height: 1.1;
+    color: var(--green);
+    text-shadow: 3px 3px 0 #0e6a2c, 6px 6px 0 #04260f;
+  }
+  .frame {
+    border: 4px solid var(--wall); background: var(--panel);
+    box-shadow: 0 0 0 4px #000, 0 0 0 8px #0b0b5a;
+  }
+  .hud {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 8px 12px;
+  }
+  .hud .label { color: var(--dim); font-size: 13px; display: block; line-height: 1.2; }
+  .hud .val { font-size: 22px; line-height: 1.3; }
+  #hudLevel { color: var(--pink); }
+  #hudTime  { color: var(--cyan); }
+  #hudTasks { color: var(--yellow); }
+  #hudKeys { display: flex; gap: 6px; min-height: 29px; align-items: center; }
+  #hudKeys img { width: 28px; height: 18px; image-rendering: pixelated; }
+  #hudKeys img.missing { opacity: .22; filter: grayscale(1); }
+  #hudKeys .none { color: var(--dim); font-size: 14px; }
+
+  .board { position: relative; background: #000; line-height: 0; }
+  canvas#game {
+    display: block; width: 100%; height: auto; aspect-ratio: 5 / 3;
+    image-rendering: pixelated; image-rendering: crisp-edges;
+  }
+  .overlay {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px; text-align: center;
+    background: rgba(0,0,0,.8); line-height: 1.5; padding: 12px; overflow-y: auto;
+    font-size: clamp(13px, 2.2vw, 18px);
+  }
+  .overlay .big { font-size: clamp(22px, 4.5vw, 38px); line-height: 1.1; color: var(--yellow); }
+  .overlay .sub { color: var(--cyan); }
+  .overlay .dim { color: var(--dim); font-size: .85em; }
+  .hidden { display: none !important; }
+  .toast {
+    position: absolute; left: 50%; top: 5%; transform: translateX(-50%);
+    max-width: 92%; padding: 6px 12px; line-height: 1.3; text-align: center;
+    font-size: clamp(12px, 2vw, 17px); color: var(--text);
+    background: rgba(5,5,42,.92); border: 3px solid var(--yellow); box-shadow: 3px 3px 0 #000;
+    pointer-events: none;
+  }
+  .toast.good { border-color: var(--green); color: var(--green); }
+  .toast.bad { border-color: var(--red); }
+
+  .below { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .help { color: var(--dim); font-size: 13px; line-height: 1.6; flex: 1 1 300px; }
+  .help b { color: var(--text); font-weight: normal; }
+  .row { display: flex; gap: 8px; }
+
+  button { font-family: inherit; cursor: pointer; }
+  button.main-btn {
+    font-size: 18px; color: #000; background: var(--yellow);
+    border: none; padding: 10px 16px;
+    box-shadow: 4px 4px 0 #c43c00;
+  }
+  button.main-btn.alt { background: #2a2a6a; color: var(--text); box-shadow: 4px 4px 0 #000; }
+  button.main-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #c43c00; }
+  .btn-small {
+    font-size: 14px; color: var(--text); background: #12123f;
+    border: 3px solid #2a2a6a; padding: 4px 10px; box-shadow: 3px 3px 0 #000;
+  }
+  .btn-small:hover { border-color: var(--wall); }
+  .btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+
+  /* menu and character screens */
+  .screen { padding: 18px; display: flex; flex-direction: column; gap: 16px; align-items: center; text-align: center; }
+  .menu-title { color: var(--pink); font-size: 20px; }
+  .menu-top { display: flex; gap: 20px; align-items: center; text-align: left; max-width: 640px; }
+  .menu-top p { margin: 0; font-size: 15px; line-height: 1.7; }
+  .menu-top p b { color: var(--yellow); font-weight: normal; }
+  canvas.hero { width: 84px; height: 144px; image-rendering: pixelated; flex: none; }
+  .levels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; max-width: 520px; }
+  .opt {
+    font-family: inherit; color: var(--text); background: #12123f; cursor: pointer;
+    border: 3px solid #2a2a6a; padding: 8px 6px; font-size: 15px; line-height: 1.3;
+    box-shadow: 3px 3px 0 #000;
+  }
+  .opt b { display: block; font-size: 24px; font-weight: normal; color: var(--yellow); }
+  .opt:hover { border-color: var(--wall); }
+  .opt.sel { border-color: var(--yellow); background: #3a2f00; }
+  .menu-hint { font-size: 13px; color: var(--dim); line-height: 1.7; max-width: 640px; }
+  .menu-hint b { color: var(--cyan); font-weight: normal; }
+
+  .creator { display: flex; gap: 24px; align-items: flex-start; justify-content: center; flex-wrap: wrap; width: 100%; }
+  .preview {
+    padding: 14px 20px 0; background: #141a2e; border: 3px solid #2a2a6a;
+    border-bottom: 10px solid #4a5578; line-height: 0;
+  }
+  .preview canvas { width: 140px; height: 240px; image-rendering: pixelated; }
+  .opts { display: flex; flex-direction: column; gap: 12px; text-align: left; flex: 1 1 320px; max-width: 560px; }
+  .opts .label { display: block; color: var(--cyan); font-size: 14px; margin-bottom: 4px; }
+  .choices { display: flex; flex-wrap: wrap; gap: 8px; }
+  .choices .opt { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 8px; font-size: 13px; }
+  .choices canvas { width: 28px; height: 48px; image-rendering: pixelated; }
+  .swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+  .swatch { width: 34px; height: 34px; border: 3px solid #2a2a6a; box-shadow: 3px 3px 0 #000; padding: 0; }
+  .swatch.sel { border-color: var(--yellow); outline: 3px solid #000; outline-offset: -6px; }
+
+  /* touch controls */
+  .touch { display: none; justify-content: space-between; gap: 12px; user-select: none; -webkit-user-select: none; }
+  .touch .pad { display: flex; gap: 10px; }
+  .touch button {
+    width: 68px; height: 58px; font-size: 15px; color: var(--text); background: #12123f;
+    border: 3px solid #2a2a6a; box-shadow: 3px 3px 0 #000; touch-action: none;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .touch button.on { border-color: var(--yellow); background: #3a2f00; }
+  .touch svg { width: 26px; height: 26px; fill: currentColor; }
+  @media (pointer: coarse) {
+    body.in-game .touch { display: flex; }
+    .help .keys-only { display: none; }
+  }
+
+  /* computer terminal */
+  .modal {
+    position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,.6); padding: 16px;
+  }
+  .monitor {
+    width: min(520px, 100%); background: #cfc8ab; padding: 18px 18px 10px;
+    border: 4px solid #8a846e; box-shadow: inset 4px 4px 0 #ece6cc, inset -4px -4px 0 #a39c80, 8px 8px 0 #000;
+  }
+  .monitor.shake { animation: shake .35s steps(6); }
+  @keyframes shake { 0%,100% { transform: none; } 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(6px); } }
+  .crt {
+    position: relative; background: #031a0c; color: var(--green); padding: 14px 16px;
+    border: 4px solid #2b2a22; box-shadow: inset 0 0 30px rgba(61,255,110,.15);
+    text-shadow: 0 0 6px rgba(61,255,110,.6); line-height: 1.5; overflow: hidden;
+  }
+  .crt::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.3) 2px 3px);
+  }
+  .t-head { display: flex; justify-content: space-between; gap: 8px; color: #031a0c; background: var(--green); padding: 0 6px; margin-bottom: 8px; text-shadow: none; }
+  .t-line { font-size: 15px; }
+  .t-q { font-size: clamp(30px, 8vw, 44px); text-align: center; margin: 6px 0; color: #b6ffc8; }
+  .t-in { display: flex; align-items: center; gap: 8px; font-size: 26px; }
+  .t-in input {
+    width: 4.2em; font-family: inherit; font-size: 26px; color: var(--green); background: #062a13;
+    border: 2px solid var(--green); padding: 0 8px; caret-color: var(--green); outline: none;
+    text-shadow: inherit;
+  }
+  .t-msg { min-height: 1.5em; font-size: 16px; margin-top: 4px; }
+  .t-msg.bad { color: var(--red); text-shadow: 0 0 6px rgba(255,59,59,.6); }
+  .t-msg.good { color: var(--yellow); text-shadow: 0 0 6px rgba(255,216,0,.6); }
+  .keypad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 8px; }
+  .keypad button {
+    font-size: 20px; padding: 6px 0; color: var(--green); background: #062a13;
+    border: 2px solid #1d7a3a; text-shadow: inherit;
+  }
+  .keypad button:hover { border-color: var(--green); }
+  .keypad button.wide { grid-column: span 2; font-size: 16px; }
+  .keypad button.ok { grid-column: span 3; }
+  .bezel { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px; color: #6b6550; font-size: 14px; }
+  .bezel button { font-size: 14px; color: #2b2a22; background: #b8b194; border: 3px solid #8a846e; padding: 2px 10px; box-shadow: 2px 2px 0 #6b6550; }
+  .led { width: 10px; height: 10px; background: var(--green); box-shadow: 0 0 6px var(--green); display: inline-block; }
+
+  @media (max-width: 720px) {
+    h1 { font-size: 28px; }
+    .hud .val { font-size: 18px; }
+    .hud .label { font-size: 11px; }
+    #hudKeys img { width: 21px; height: 14px; }
+    .menu-top { flex-direction: column; text-align: center; }
+    .screen { padding: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>TAJNE LABORATORIUM</h1>
+
+  <section class="screen frame" id="menu">
+    <div class="menu-top">
+      <canvas class="hero" id="menuHero" width="14" height="24"></canvas>
+      <p>WŁAMUJESZ SIĘ DO <b>TAJNEGO LABORATORIUM</b>! ZBIERAJ <b>KOLOROWE KLUCZE</b> - OTWIERAJĄ DRZWI W TYM SAMYM KOLORZE. PODCHODŹ DO <b>KOMPUTERÓW</b> I ROZWIĄZUJ ZADANIA. GDY ROZWIĄŻESZ WSZYSTKIE, OTWORZY SIĘ <b>WYJŚCIE</b>.</p>
+    </div>
+    <div class="menu-title">WYBIERZ POZIOM</div>
+    <div class="levels" id="levelBtns"></div>
+    <div class="btns">
+      <button class="main-btn" id="btnPlay">GRAJ</button>
+      <button class="main-btn alt" id="btnCreator">ZMIEŃ POSTAĆ</button>
+    </div>
+    <div class="menu-hint">
+      <b>STRZAŁKI / A D</b> CHODZENIE &nbsp; <b>STRZAŁKA W GÓRĘ / W / SPACJA</b> SKOK<br>
+      <b>E / STRZAŁKA W DÓŁ / ENTER</b> UŻYJ KOMPUTERA &nbsp; <b>P</b> PAUZA &nbsp; <b>M</b> DŹWIĘK
+    </div>
+  </section>
+
+  <section class="screen frame hidden" id="creator">
+    <div class="menu-title">STWÓRZ SWOJĄ POSTAĆ</div>
+    <div class="creator">
+      <div class="preview"><canvas id="preview" width="14" height="24"></canvas></div>
+      <div class="opts">
+        <div><span class="label">POSTAĆ</span><div class="choices" id="optGender"></div></div>
+        <div><span class="label">FRYZURA</span><div class="choices" id="optHair"></div></div>
+        <div><span class="label">KOLOR WŁOSÓW</span><div class="swatches" id="optHairColor"></div></div>
+        <div><span class="label">KOLOR KOSZULKI</span><div class="swatches" id="optShirt"></div></div>
+        <div><span class="label">KOLOR SPODNI</span><div class="swatches" id="optPants"></div></div>
+      </div>
+    </div>
+    <div class="btns">
+      <button class="main-btn alt" id="btnRandom">LOSUJ</button>
+      <button class="main-btn" id="btnDone">GOTOWE</button>
+    </div>
+  </section>
+
+  <div class="hud frame hidden" id="hud">
+    <div><span class="label">POZIOM</span><span class="val" id="hudLevel">1</span></div>
+    <div><span class="label">CZAS</span><span class="val" id="hudTime">00:00</span></div>
+    <div><span class="label">ZADANIA</span><span class="val" id="hudTasks">0/0</span></div>
+    <div><span class="label">KLUCZE</span><div id="hudKeys"></div></div>
+  </div>
+  <div class="board frame hidden" id="board">
+    <canvas id="game" width="320" height="192"></canvas>
+    <div class="toast hidden" id="toast"></div>
+    <div class="overlay hidden" id="overlay"></div>
+  </div>
+  <div class="touch" id="touch">
+    <div class="pad">
+      <button data-hold="left" aria-label="W lewo"><svg viewBox="0 0 10 10"><path d="M7 1v8L2 5z"/></svg></button>
+      <button data-hold="right" aria-label="W prawo"><svg viewBox="0 0 10 10"><path d="M3 1v8l5-4z"/></svg></button>
+    </div>
+    <div class="pad">
+      <button data-hold="use">UŻYJ</button>
+      <button data-hold="jump">SKOK</button>
+    </div>
+  </div>
+  <div class="below hidden" id="below">
+    <div class="help"><span class="keys-only"><b>STRZAŁKI / A D</b> CHODZENIE · <b>GÓRA / W / SPACJA</b> SKOK · <b>E / DÓŁ / ENTER</b> UŻYJ · <b>P</b> PAUZA · <b>M</b> DŹWIĘK</span></div>
+    <div class="row">
+      <button class="btn-small" id="btnPause">PAUZA</button>
+      <button class="btn-small" id="btnSound">DŹWIĘK: WŁ.</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal hidden" id="terminal" role="dialog" aria-modal="true" aria-label="Komputer">
+  <div class="monitor" id="monitor">
+    <div class="crt">
+      <div class="t-head"><span>LAB-OS 3.1</span><span id="tNum">TERMINAL 1/1</span></div>
+      <div class="t-line">&gt; SYSTEM ZABLOKOWANY.</div>
+      <div class="t-line">&gt; PODAJ WYNIK, ABY GO ODBLOKOWAĆ:</div>
+      <div class="t-q" id="tQuestion">?</div>
+      <div class="t-in">&gt; <input id="tInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" aria-label="Wynik"></div>
+      <div class="t-msg" id="tMsg">&nbsp;</div>
+      <div class="keypad" id="keypad"></div>
+    </div>
+    <div class="bezel"><span><span class="led"></span> BILLY-TRON 486</span><button id="tClose">ZAMKNIJ (ESC)</button></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  // ---------- Settings ----------
+  const TILE = 16;
+  const VIEW_W = 320, VIEW_H = 192;     // canvas pixels: 20 x 12 tiles
+  const STEP = 1 / 120;                 // physics step (s)
+  const RUN_SPEED = 96;                 // px/s
+  const GRAVITY = 1300;                 // px/s²
+  const JUMP_SPEED = 390;               // a full jump is ~3.6 tiles high
+  const JUMP_CUT = 150;                 // letting go of jump early caps the rise to this speed
+  const MAX_FALL = 460;
+  const COYOTE = 0.09;                  // can still jump this long after walking off a ledge
+  const JUMP_BUFFER = 0.12;             // a jump pressed this long before landing still counts
+  const PW = 10, PH = 22;               // player hitbox
+  const MAX_SUM = 100;                  // computer tasks: "a + b = ?" with a + b <= MAX_SUM
+
+  // Maps: # wall, x crate, = girder (jump up through it, stand on it),
+  // P start, C computer, r/g/b/y key, R/G/B/Y door of that colour
+  // (2 tiles high), E exit (2 tiles high, on the edge of the map).
+  // Decoration only: l lamp, m monitor, v vent, w warning sign, p pipe,
+  // f lab table, s server rack, t tank. Every map is at least 20 x 12.
+  const LEVELS = [
+    { name: "WEJŚCIE", map: [
+      "########################################",
+      "#...l................l..l.....#.l......#",
+      "#.......w.p...................#........#",
+      "#.........p...................#........#",
+      "#.........p.......v......m....#........#",
+      "#..w......p...................#........#",
+      "#.........pw...........r......#........#",
+      "#.........p.........=====.....#........#",
+      "#.........p.....C.............#........#",
+      "#.........p..======...w.......#........#",
+      "#...........s.................R........E",
+      "#.P....fC...x......t..........R...Cs...E",
+      "########################################",
+    ] },
+    { name: "MAGAZYN", map: [
+      "################################################",
+      "#............l...........................#.....#",
+      "#.......m................................#.....#",
+      "#.............v.............................v..#",
+      "#...v..............................w..w........#",
+      "#...................................x..........E",
+      "#..........f..........x.......C.....x..........E",
+      "#.====m.########################################",
+      "#.......l.#.l.....................l..l.........#",
+      "#.........#...................r................#",
+      "#..====...#..............m..=====..............#",
+      "#.........R....................................#",
+      "#.........R.........C..t...f...t...............#",
+      "######################################=========#",
+      "#.l..........l....b.......#.l..................#",
+      "#......m........=====.....#....................#",
+      "#.........................#.............====w..#",
+      "#..............f..........B....................#",
+      "#.P.....C.....xx..........B.......C......t.....#",
+      "################################################",
+    ] },
+    { name: "REAKTOR", map: [
+      "########################################################",
+      "#......................l................#..............#",
+      "#..................w....m..v............#..............#",
+      "#.......................................B..........w...#",
+      "#.................x.........C..t...s....B.......g......#",
+      "#=======##########################################....##",
+      "#.........l..............l....................l........#",
+      "#......................................................#",
+      "#.=====........................m...............v.......#",
+      "#......................................................#",
+      "#...................bf....x.........C..................#",
+      "##...#########################################=========#",
+      "#............l...l............#...........l............#",
+      "#.............................#........................#",
+      "#...w...........v..........w..#...............v.====...#",
+      "#.............................R........................#",
+      "#.....r.f....................sR.........C..........t...#",
+      "############...#========################################",
+      "#.......................#........l.....l..........l....#",
+      "#.......................#.......m..............w.......#",
+      "#.................=====w#.......................v......#",
+      "#.......................G......x.......................E",
+      "#.P.........C...........G.....xx..s.....C...........s..E",
+      "########################################################",
+    ] },
+    { name: "SERWEROWNIA", map: [
+      "################################################################",
+      "#....l.......l...........l..............#...................l..#",
+      "#..............m........................#.w....................#",
+      "#.....m....................v............#......................#",
+      "#.......................................#.m....................#",
+      "#........................x..............G......................#",
+      "#.................s.....xx..............G.........C.....y......#",
+      "#=======##################################################.v..##",
+      "#..............................l....#...l..........l...........#",
+      "#.v..................m..............#..........................#",
+      "#..====.............................#........v.................#",
+      "#...................................B...............w..........#",
+      "#s....t..f........C.......g.........B.f.....C..................#",
+      "##################################################...#=========#",
+      "#.......l...............#...........l.............w............#",
+      "#....v..................#........................m..........w..#",
+      "#.......................#...............................====...#",
+      "#.......................R......................................#",
+      "#.............C..s......R..t....f.xf........b..................#",
+      "#======#####################################...#################",
+      "#......l...................................l....#.......l......#",
+      "#...............................................#.............v#",
+      "#.====..................m......w.........r......#........m.....#",
+      "#........................................x......Y..............E",
+      "#....s..C.......................P.......xx......Y.......C......E",
+      "################################################################",
+    ] },
+  ];
+
+  const KEY_INFO = {
+    r: { name: "CZERWONY", doors: "CZERWONE", main: "#e83b3b", light: "#ff9a8a", dark: "#7c1414" },
+    b: { name: "NIEBIESKI", doors: "NIEBIESKIE", main: "#3b74f0", light: "#9ec0ff", dark: "#142a7c" },
+    g: { name: "ZIELONY", doors: "ZIELONE", main: "#2fc45a", light: "#9dffb8", dark: "#0e5a24" },
+    y: { name: "ŻÓŁTY", doors: "ŻÓŁTE", main: "#f2c81a", light: "#fff2a0", dark: "#7a5a00" },
+  };
+
+  // ---------- Computer tasks ----------
+  const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const TASKS = {
+    add() {
+      const sum = randInt(2, MAX_SUM), a = randInt(1, sum - 1);
+      return { text: `${a} + ${sum - a} = ?`, answer: sum };
+    },
+  };
+  function newTask(used) {
+    let t = TASKS.add();
+    for (let i = 0; i < 50 && used.has(t.text); i++) t = TASKS.add();
+    used.add(t.text);
+    return t;
+  }
+
+  // ---------- Character ----------
+  const HAIR_COLORS = [["CZARNE", "#23222b"], ["BRĄZOWE", "#6e3f1c"], ["BLOND", "#f0c75a"], ["RUDE", "#d4581f"],
+                       ["SIWE", "#d9dbe6"], ["NIEBIESKIE", "#3d7bff"], ["RÓŻOWE", "#ff6fb8"], ["ZIELONE", "#3ec46d"]];
+  const SHIRT_COLORS = [["CZERWONA", "#d63a3a"], ["NIEBIESKA", "#2f6fe0"], ["ZIELONA", "#2fa84a"], ["ŻÓŁTA", "#efc21c"],
+                        ["FIOLETOWA", "#8a4fd8"], ["POMARAŃCZOWA", "#f07a1a"], ["RÓŻOWA", "#f06fb0"], ["BIAŁA", "#e6e6e6"]];
+  const PANTS_COLORS = [["NIEBIESKIE", "#2e4a9e"], ["CZARNE", "#26262e"], ["BRĄZOWE", "#6b4a2b"], ["SZARE", "#70757f"],
+                        ["ZIELONE", "#3b6b34"], ["CZERWONE", "#a12a2a"], ["FIOLETOWE", "#5c3a8e"], ["BIAŁE", "#d8d8d8"]];
+
+  // 12 x 22 sprites facing right: S skin, E eyes, M mouth, T/t shirt, P/p pants, B shoes.
+  const HEAD = [
+    "............",
+    "............",
+    "...SSSSSS...",
+    "...SSSSSS...",
+    "...SSSSSS...",
+    "...SESSES...",
+    "...SESSES...",
+    "...SSSSSS...",
+    "...SSMMSS...",
+    "....SSSS....",
+    ".....SS.....",
+  ];
+  const BODY = {
+    stand: [
+      "...TTTTTT...",
+      "..TTTTTTTT..",
+      "..TTTTTTTT..",
+      "..tTTTTTTt..",
+      "..STTTTTTS..",
+      "...PPPPPP...",
+      "...PPPPPP...",
+      "...PP..PP...",
+      "...PP..PP...",
+      "...pp..pp...",
+      "...BBB.BBB..",
+    ],
+    walk: [
+      "...TTTTTT...",
+      "..TTTTTTTT..",
+      ".tTTTTTTTTt.",
+      ".STTTTTTTTS.",
+      "...TTTTTT...",
+      "...PPPPPP...",
+      "..PPP..PPP..",
+      "..PP....PP..",
+      ".PP......PP.",
+      ".pp......pp.",
+      "BBB......BBB",
+    ],
+    jump: [
+      ".TTTTTTTTTT.",
+      "..TTTTTTTT..",
+      "...TTTTTT...",
+      "...TTTTTT...",
+      "...tTTTTt...",
+      "...PPPPPP...",
+      "..PPP..PPP..",
+      "..PP....PP..",
+      ".BBB....BBB.",
+      "............",
+      "............",
+    ],
+  };
+  const JUMP_NECK = ".S...SS...S.";   // hands up next to the neck
+  // Overlays on the sprite: H hair, h darker hair ("." keeps what's under it).
+  const HAIR = {
+    short: { name: "KRÓTKIE", rows: [
+      "............",
+      "....HHHHH...",
+      "..HHHHHHHH..",
+      "..HHHHHHHH..",
+      "..HHHh..H...",
+      "..HH........",
+      "..Hh........",
+    ] },
+    spiky: { name: "JEŻYK", rows: [
+      "..H.H.H.H...",
+      "..HHHHHHHH..",
+      ".HHHHHHHHHH.",
+      "..HHHHHHHH..",
+      "..HHh...H...",
+      "..Hh........",
+    ] },
+    long: { name: "DŁUGIE", rows: [
+      "............",
+      "....HHHHH...",
+      "..HHHHHHHH..",
+      ".HHHHHHHHHH.",
+      ".HHHHh..HH..",
+      ".HHH.....H..",
+      ".HHH........",
+      ".HHH........",
+      ".HHH........",
+      ".HHH........",
+      ".HHh........",
+      ".HHh........",
+      "..hh........",
+    ] },
+    ponytail: { name: "KUCYK", rows: [
+      "............",
+      "....HHHHH...",
+      "..HHHHHHHH..",
+      ".HHHHHHHHHH.",
+      "HHHHh...H...",
+      "HHh.........",
+      "HH..........",
+      "HH..........",
+      "Hh..........",
+      ".h..........",
+    ] },
+    curly: { name: "KRĘCONE", rows: [
+      "...HHHHH....",
+      "..HhHHHhH...",
+      ".HHHHHHHHH..",
+      "HHhHHHHHHhH.",
+      "HHHH.....HH.",
+      "HhH.......H.",
+      "HHH.........",
+      ".Hh.........",
+    ] },
+    mohawk: { name: "IROKEZ", rows: [
+      ".....HH.....",
+      "....HHHH....",
+      "....HhHH....",
+      "....hHHh....",
+    ] },
+  };
+  // A bow (in the shirt's colour), eyelashes and rosy cheeks.
+  const GIRL = [
+    "............",
+    ".R.R........",
+    "..R.........",
+    ".R.R........",
+    "........E...",
+    "............",
+    "............",
+    "...c....c...",
+  ];
+  const OUTLINE = "#0a0a14";
+
+  const DEFAULT_LOOK = { gender: "boy", hair: "short", hairColor: 1, shirt: 0, pants: 0 };
+  let look = { ...DEFAULT_LOOK };
+  try {
+    const saved = JSON.parse(localStorage.getItem("laboratorium-look") || "null");
+    if (saved && HAIR[saved.hair] && ["boy", "girl"].includes(saved.gender) &&
+        HAIR_COLORS[saved.hairColor] && SHIRT_COLORS[saved.shirt] && PANTS_COLORS[saved.pants]) look = saved;
+  } catch (e) { /* ignore */ }
+  const saveLook = () => { try { localStorage.setItem("laboratorium-look", JSON.stringify(look)); } catch (e) { /* ignore */ } };
+
+  function shade(hex, f) {
+    const n = parseInt(hex.slice(1), 16);
+    const ch = s => { const v = (n >> s) & 255; return Math.max(0, Math.min(255, Math.round(f < 0 ? v * (1 + f) : v + (255 - v) * f))); };
+    return "#" + [16, 8, 0].map(s => ch(s).toString(16).padStart(2, "0")).join("");
+  }
+
+  // A sprite from a template: each pixel of `rows` is looked up in `pal`
+  // ("." and unknown letters are transparent), with a 1px dark outline.
+  function makeSprite(rows, pal) {
+    const w = rows[0].length, h = rows.length;
+    const c = document.createElement("canvas");
+    c.width = w + 2; c.height = h + 2;
+    const x = c.getContext("2d");
+    const on = (i, j) => pal[rows[j][i]] !== undefined;
+    x.fillStyle = OUTLINE;
+    for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+      if (!on(i, j)) continue;
+      x.fillRect(i, j + 1, 3, 1);
+      x.fillRect(i + 1, j, 1, 3);
+    }
+    for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+      if (!on(i, j)) continue;
+      x.fillStyle = pal[rows[j][i]];
+      x.fillRect(i + 1, j + 1, 1, 1);
+    }
+    return c;
+  }
+
+  function overlay(grid, rows) {
+    rows.forEach((r, j) => [...r].forEach((ch, i) => { if (ch !== ".") grid[j][i] = ch; }));
+  }
+
+  function characterSprites(lk) {
+    const hair = HAIR_COLORS[lk.hairColor][1], shirt = SHIRT_COLORS[lk.shirt][1], pants = PANTS_COLORS[lk.pants][1];
+    const pal = {
+      S: "#f1c19a", E: "#1d1d2e", M: "#b5483f", c: "#f39a9a", B: "#3b2a22",
+      T: shirt, t: shade(shirt, -0.25), P: pants, p: shade(pants, -0.3),
+      H: hair, h: shade(hair, -0.3), R: lk.shirt === 6 ? "#ffffff" : shirt,
+    };
+    const frame = name => {
+      const grid = HEAD.concat(BODY[name]).map(r => [...r]);
+      if (name === "jump") grid[10] = [...JUMP_NECK];
+      overlay(grid, HAIR[lk.hair].rows);
+      if (lk.gender === "girl") overlay(grid, GIRL);
+      return makeSprite(grid.map(r => r.join("")), pal);
+    };
+    return { stand: frame("stand"), walk: frame("walk"), jump: frame("jump") };
+  }
+
+  // Keys: K key colour, k shine.
+  const KEY_ROWS = [
+    ".KKK........",
+    "KkkKK.......",
+    "Kk.KKKKKKKKK",
+    "KK.KK...K.K.",
+    ".KKK....K.K.",
+  ];
+  const keySprites = {};
+  for (const [c, info] of Object.entries(KEY_INFO)) keySprites[c] = makeSprite(KEY_ROWS, { K: info.main, k: info.light });
+
+  // ---------- Sound (tiny chiptune blips) ----------
+  let audio = null, soundOn = true;
+  try { soundOn = localStorage.getItem("laboratorium-sound") !== "off"; } catch (e) { /* ignore */ }
+  function beep(freq, dur, type = "square", vol = 0.06, slideTo = null, delay = 0) {
+    if (!soundOn) return;
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const t0 = audio.currentTime + delay;
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, t0);
+      if (slideTo) o.frequency.linearRampToValueAtTime(slideTo, t0 + dur);
+      g.gain.setValueAtTime(vol, t0);
+      g.gain.linearRampToValueAtTime(0, t0 + dur);
+      o.connect(g).connect(audio.destination);
+      o.start(t0); o.stop(t0 + dur + 0.02);
+    } catch (e) { /* audio unavailable */ }
+  }
+  const sfx = {
+    jump()   { beep(260, 0.12, "square", 0.035, 560); },
+    land()   { beep(110, 0.05, "triangle", 0.06); },
+    key()    { [660, 880, 1320].forEach((f, i) => beep(f, 0.08, "square", 0.05, null, i * 0.07)); },
+    door()   { beep(160, 0.4, "sawtooth", 0.05, 520); },
+    locked() { beep(120, 0.18, "square", 0.05, 80); },
+    boot()   { [880, 660, 990].forEach((f, i) => beep(f, 0.05, "square", 0.035, null, i * 0.06)); },
+    type()   { beep(1300, 0.02, "square", 0.025); },
+    good()   { [523, 659, 784, 1046].forEach((f, i) => beep(f, 0.08, "square", 0.06, null, i * 0.07)); },
+    bad()    { beep(220, 0.35, "sawtooth", 0.07, 70); },
+    alarm()  { [660, 880, 660, 880, 1046].forEach((f, i) => beep(f, 0.16, "square", 0.05, null, 0.35 + i * 0.17)); },
+    win()    { [523, 659, 784, 659, 784, 1046].forEach((f, i) => beep(f, 0.12, "square", 0.06, null, i * 0.11)); },
+    start()  { [262, 330, 392, 523].forEach((f, i) => beep(f, 0.09, "square", 0.05, null, i * 0.08)); },
+  };
+
+  // ---------- Levels ----------
+  function parseLevel(def) {
+    const rows = def.map, h = rows.length, w = rows[0].length;
+    if (rows.some(r => r.length !== w)) throw new Error(`${def.name}: rows of different lengths`);
+    const world = {
+      name: def.name, w, h, tiles: new Array(w * h).fill("."), doorAt: new Array(w * h).fill(null),
+      decor: [], doors: [], keys: [], computers: [], exit: null, start: null,
+    };
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const ch = rows[y][x], i = y * w + x;
+      if ("#x=".includes(ch)) world.tiles[i] = ch;
+      else if ("lmvwpfst".includes(ch)) world.decor.push({ x, y, ch });
+      else if (ch === "P") world.start = { x, y };
+      else if (ch === "C") world.computers.push({ x, y, n: world.computers.length + 1, solved: false, task: null });
+      else if ("rgby".includes(ch)) world.keys.push({ x, y, color: ch, taken: false });
+      else if ("RGBYE".includes(ch)) {
+        let d = y > 0 && rows[y - 1][x] === ch ? world.doorAt[i - w] : null;
+        if (!d) {
+          d = { x, y, h: 0, color: ch === "E" ? null : ch.toLowerCase(), open: false, anim: 0 };
+          if (ch === "E") world.exit = d; else world.doors.push(d);
+        }
+        d.h++;
+        world.doorAt[i] = d;
+      }
+    }
+    if (!world.start || !world.exit) throw new Error(`${def.name}: needs P and E`);
+    world.solid = (tx, ty) => {
+      if (tx < 0 || ty < 0 || tx >= w || ty >= h) return true;
+      const t = world.tiles[ty * w + tx];
+      if (t === "#" || t === "x") return true;
+      const d = world.doorAt[ty * w + tx];
+      return !!d && !d.open;
+    };
+    world.platform = (tx, ty) => tx >= 0 && ty >= 0 && tx < w && ty < h && world.tiles[ty * w + tx] === "=";
+    return world;
+  }
+
+  // ---------- Physics ----------
+  function newPlayer(start) {
+    return {
+      x: start.x * TILE + (TILE - PW) / 2, y: (start.y + 1) * TILE - PH,
+      vx: 0, vy: 0, onGround: true, facing: 1, coyote: 0, jumpBuf: 0, walkT: 0,
+    };
+  }
+
+  function moveX(p, dx, world) {
+    if (!dx) return;
+    p.x += dx;
+    const top = Math.floor(p.y / TILE), bot = Math.floor((p.y + PH - 0.001) / TILE);
+    const tx = dx > 0 ? Math.floor((p.x + PW - 0.001) / TILE) : Math.floor(p.x / TILE);
+    for (let ty = top; ty <= bot; ty++) {
+      if (!world.solid(tx, ty)) continue;
+      p.x = dx > 0 ? tx * TILE - PW : (tx + 1) * TILE;
+      return;
+    }
+  }
+
+  function moveY(p, dy, world) {
+    const left = Math.floor(p.x / TILE), right = Math.floor((p.x + PW - 0.001) / TILE);
+    const prevBottom = p.y + PH;
+    p.y += dy;
+    p.onGround = false;
+    if (dy > 0) {
+      const ty = Math.floor((p.y + PH - 0.001) / TILE);
+      for (let tx = left; tx <= right; tx++) {
+        if (world.solid(tx, ty) || (world.platform(tx, ty) && prevBottom <= ty * TILE + 0.01)) {
+          p.y = ty * TILE - PH; p.vy = 0; p.onGround = true;
+          return;
+        }
+      }
+    } else if (dy < 0) {
+      const ty = Math.floor(p.y / TILE);
+      for (let tx = left; tx <= right; tx++) {
+        if (world.solid(tx, ty)) { p.y = (ty + 1) * TILE; p.vy = 0; return; }
+      }
+    }
+  }
+
+  // One physics step. inp: { dir: -1/0/1, jumpHeld, jumpPressed }.
+  function stepPlayer(p, inp, world, dt) {
+    const wasGround = p.onGround, fallSpeed = p.vy;
+    p.vx = inp.dir * RUN_SPEED;
+    if (inp.dir) p.facing = inp.dir;
+    p.coyote = p.onGround ? COYOTE : Math.max(0, p.coyote - dt);
+    p.jumpBuf = inp.jumpPressed ? JUMP_BUFFER : Math.max(0, p.jumpBuf - dt);
+    let jumped = false;
+    if (p.jumpBuf > 0 && p.coyote > 0) {
+      p.vy = -JUMP_SPEED; p.jumpBuf = 0; p.coyote = 0; p.onGround = false; jumped = true;
+    }
+    if (!inp.jumpHeld && p.vy < -JUMP_CUT) p.vy = -JUMP_CUT;
+    p.vy = Math.min(MAX_FALL, p.vy + GRAVITY * dt);
+    moveX(p, p.vx * dt, world);
+    moveY(p, p.vy * dt, world);
+    return { jumped, landed: !wasGround && p.onGround && fallSpeed > 120 };
+  }
+
+  const rectOf = (tx, ty, tw = 1, th = 1) => ({ x: tx * TILE, y: ty * TILE, w: tw * TILE, h: th * TILE });
+  const overlaps = (p, r, pad = 0) =>
+    p.x - pad < r.x + r.w && p.x + PW + pad > r.x && p.y - pad < r.y + r.h && p.y + PH + pad > r.y;
+  const keyRect = k => ({ x: k.x * TILE + 2, y: k.y * TILE + 4, w: 12, h: 10 });
+  const doorRect = d => rectOf(d.x, d.y, 1, d.h);
+  // Standing at the computer: the player's middle is over it and their feet on its row.
+  const atComputer = (p, c) => Math.abs(p.x + PW / 2 - (c.x * TILE + TILE / 2)) < 11 &&
+    p.y + PH > c.y * TILE + 4 && p.y + PH <= (c.y + 1) * TILE + 2;
+
+  // ---------- DOM ----------
+  const $ = id => document.getElementById(id);
+  const canvas = $("game"), ctx = canvas.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
+  const overlayEl = $("overlay"), toastEl = $("toast");
+  const tInput = $("tInput"), tMsg = $("tMsg"), monitor = $("monitor");
+  const coarse = window.matchMedia("(pointer: coarse)").matches;
+
+  // ---------- Game state ----------
+  // menu | creator | intro | playing | paused | terminal | done
+  let state = "menu";
+  let world = null, player = null, sprites = characterSprites(look);
+  let inventory = new Set(), usedTasks = new Set();
+  let run = null;               // { startLevel, level, time, mistakes }
+  let levelTime = 0, levelMistakes = 0;
+  let cam = { x: 0, y: 0 };
+  let particles = [];
+  let nearComputer = null, activeComputer = null, terminalLock = false, pendingSolve = false;
+  let lockedCooldown = 0;
+  let menuLevel = 0;
+  let overlayAction = null;
+  const held = { left: false, right: false, jump: false };
+  const pressed = { jump: false, use: false };
+
+  const fmtTime = s => {
+    s = Math.floor(s);
+    return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+  };
+  const escapeHtml = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const girl = () => look.gender === "girl";
+
+  // ---------- Static level picture (walls, background, decoration) ----------
+  const px = (c, x, y, w, h, color) => { c.fillStyle = color; c.fillRect(x, y, w, h); };
+  const hash = (x, y) => ((x * 73856093) ^ (y * 19349663)) >>> 0;
+
+  function drawBackground(c, bx, by, x, y) {
+    px(c, bx, by, 16, 16, "#141a2c");
+    px(c, bx, by, 16, 1, "#0f1320");
+    px(c, bx, by, 1, 16, "#0f1320");
+    const hv = hash(x, y);
+    if (hv % 5 === 0) { px(c, bx + 3, by + 3, 10, 10, "#171e33"); px(c, bx + 3, by + 3, 10, 1, "#1c2440"); }
+    if (hv % 7 === 1) { px(c, bx + 2, by + 2, 1, 1, "#232b45"); px(c, bx + 13, by + 2, 1, 1, "#232b45"); }
+  }
+
+  function drawWall(c, bx, by, x, y, w) {
+    const open = (tx, ty) => !(w.tiles[ty * w.w + tx] === "#") && tx >= 0 && ty >= 0 && tx < w.w && ty < w.h;
+    px(c, bx, by, 16, 16, "#454f72");
+    px(c, bx, by, 16, 1, "#66729c");
+    px(c, bx, by, 1, 16, "#5a6690");
+    px(c, bx, by + 15, 16, 1, "#262c45");
+    px(c, bx + 15, by, 1, 16, "#2c3350");
+    [[2, 2], [13, 2], [2, 13], [13, 13]].forEach(([i, j]) => px(c, bx + i, by + j, 1, 1, "#8f9cc4"));
+    if (hash(x, y) % 4 === 0) px(c, bx + 5, by + 6, 6, 4, "#3d4666");
+    if (open(x, y - 1)) {        // a floor: steel plate on top
+      px(c, bx, by, 16, 3, "#a3adc9");
+      px(c, bx, by, 16, 1, "#d2d8e8");
+      px(c, bx, by + 3, 16, 1, "#262c45");
+      if (hash(x, y) % 3 === 0) for (let i = 0; i < 16; i += 4) px(c, bx + i, by + 1, 2, 2, "#e0b020");
+    }
+    if (open(x, y + 1)) px(c, bx, by + 14, 16, 2, "#2a3150");
+  }
+
+  function drawCrate(c, bx, by) {
+    px(c, bx, by, 16, 16, "#7a5a2e");
+    px(c, bx, by, 16, 2, "#a07a42"); px(c, bx, by + 14, 16, 2, "#4f3a1c");
+    px(c, bx, by, 2, 16, "#5e4422"); px(c, bx + 14, by, 2, 16, "#5e4422");
+    for (let i = 2; i < 14; i++) { px(c, bx + i, by + i, 1, 1, "#4f3a1c"); px(c, bx + 15 - i, by + i, 1, 1, "#4f3a1c"); }
+    px(c, bx + 6, by + 6, 4, 4, "#e0b020");
+  }
+
+  function drawGirder(c, bx, by) {
+    px(c, bx, by, 16, 3, "#c7ccd6");
+    px(c, bx, by, 16, 1, "#eef0f5");
+    px(c, bx, by + 3, 16, 1, "#6c7385");
+    for (let i = 0; i < 4; i++) {
+      px(c, bx + i, by + 4 + i, 1, 1, "#7d8597");
+      px(c, bx + 7 - i, by + 4 + i, 1, 1, "#7d8597");
+      px(c, bx + 8 + i, by + 4 + i, 1, 1, "#7d8597");
+      px(c, bx + 15 - i, by + 4 + i, 1, 1, "#7d8597");
+    }
+    px(c, bx, by + 8, 16, 1, "#575d6e");
+  }
+
+  function drawDecor(c, d, bx, by, w) {
+    switch (d.ch) {
+      case "l":
+        px(c, bx + 5, by, 6, 2, "#3a3f52"); px(c, bx + 3, by + 2, 10, 2, "#5a6078");
+        px(c, bx + 4, by + 4, 8, 1, "#fff6b0");
+        break;
+      case "m":
+        px(c, bx + 1, by + 3, 14, 10, "#2b2f3d"); px(c, bx + 2, by + 4, 12, 8, "#06240f");
+        px(c, bx + 3, by + 6, 3, 1, "#3dff6e"); px(c, bx + 6, by + 5, 2, 1, "#3dff6e"); px(c, bx + 8, by + 8, 2, 1, "#3dff6e");
+        px(c, bx + 10, by + 6, 3, 1, "#3dff6e"); px(c, bx + 3, by + 10, 9, 1, "#1d7a3a");
+        break;
+      case "v":
+        px(c, bx + 2, by + 4, 12, 9, "#2a3046");
+        for (let i = 0; i < 4; i++) px(c, bx + 3, by + 5 + i * 2, 10, 1, "#0b0e17");
+        break;
+      case "w":
+        for (let i = 0; i < 9; i++) px(c, bx + 8 - Math.floor(i / 2) - 1, by + 4 + i, Math.floor(i / 2) * 2 + 2, 1, "#f2c81a");
+        px(c, bx + 7, by + 7, 2, 3, "#1a1a1a"); px(c, bx + 7, by + 11, 2, 1, "#1a1a1a");
+        break;
+      case "p": {
+        const above = d.y > 0 && w.decor.some(o => o.ch === "p" && o.x === d.x && o.y === d.y - 1);
+        px(c, bx + 6, by, 5, 16, "#56607a"); px(c, bx + 7, by, 1, 16, "#8a96b8"); px(c, bx + 10, by, 1, 16, "#3c4357");
+        if (!above) px(c, bx + 5, by, 7, 2, "#3c4357");
+        if (d.y % 3 === 0) px(c, bx + 5, by + 8, 7, 2, "#3c4357");
+        break;
+      }
+      case "f":
+        px(c, bx + 1, by + 9, 14, 2, "#9aa0ad"); px(c, bx + 1, by + 9, 14, 1, "#c8ccd6");
+        px(c, bx + 2, by + 11, 1, 5, "#6c7385"); px(c, bx + 13, by + 11, 1, 5, "#6c7385");
+        px(c, bx + 3, by + 5, 4, 4, "#3dff6e"); px(c, bx + 4, by + 3, 2, 2, "#cfe8ff"); px(c, bx + 3, by + 5, 4, 1, "#9dffb8");
+        px(c, bx + 9, by + 4, 4, 5, "#b05cff"); px(c, bx + 10, by + 2, 2, 2, "#cfe8ff"); px(c, bx + 9, by + 4, 1, 4, "#d9a8ff");
+        break;
+      case "s":
+        px(c, bx + 2, by, 12, 16, "#1c2032"); px(c, bx + 2, by, 12, 1, "#3a4060");
+        for (let i = 0; i < 4; i++) {
+          px(c, bx + 3, by + 2 + i * 3, 10, 2, "#2c3148");
+          px(c, bx + 4 + (hash(d.x, i) % 6), by + 2 + i * 3, 1, 1, i % 2 ? "#3dff6e" : "#ffd800");
+        }
+        break;
+      case "t":
+        px(c, bx + 2, by + 1, 12, 2, "#7d89a8"); px(c, bx + 2, by + 14, 12, 2, "#7d89a8");
+        px(c, bx + 3, by + 3, 10, 11, "#16382c"); px(c, bx + 4, by + 5, 8, 9, "#2fbf7a");
+        px(c, bx + 5, by + 6, 1, 6, "#9fffd0"); px(c, bx + 9, by + 9, 2, 2, "#126b40");
+        break;
+    }
+  }
+
+  function renderStatic(w) {
+    const c = document.createElement("canvas");
+    c.width = w.w * TILE; c.height = w.h * TILE;
+    const g = c.getContext("2d");
+    for (let y = 0; y < w.h; y++) for (let x = 0; x < w.w; x++) {
+      const t = w.tiles[y * w.w + x], bx = x * TILE, by = y * TILE;
+      if (t === "#") drawWall(g, bx, by, x, y, w);
+      else {
+        drawBackground(g, bx, by, x, y);
+        if (t === "x") drawCrate(g, bx, by);
+        if (t === "=") drawGirder(g, bx, by);
+      }
+    }
+    w.decor.forEach(d => drawDecor(g, d, d.x * TILE, d.y * TILE, w));
+    // light cones under the lamps
+    w.decor.filter(d => d.ch === "l").forEach(d => {
+      for (let i = 0; i < 40; i++) {
+        g.fillStyle = `rgba(255,240,170,${0.07 * (1 - i / 40)})`;
+        g.fillRect(d.x * TILE + 4 - Math.floor(i / 3), d.y * TILE + 5 + i, 8 + Math.floor(i / 3) * 2, 1);
+      }
+    });
+    return c;
+  }
+
+  // ---------- Dynamic things ----------
+  const GLYPH_Q = ["###", "..#", ".##", "...", ".#."];
+  function drawComputer(c, x, y, t) {
+    px(ctx, x + 1, y + 10, 14, 6, "#bdb59a"); px(ctx, x + 1, y + 10, 14, 1, "#ded7bd"); px(ctx, x + 1, y + 15, 14, 1, "#8a846e");
+    px(ctx, x + 9, y + 12, 4, 1, "#4a4638");
+    px(ctx, x + 6, y + 9, 4, 1, "#8a846e");
+    px(ctx, x + 2, y, 12, 9, "#cfc8ab"); px(ctx, x + 2, y, 12, 1, "#ece6cc"); px(ctx, x + 13, y, 1, 9, "#a39c80");
+    px(ctx, x + 3, y + 1, 10, 7, "#111");
+    if (c.solved) {
+      px(ctx, x + 4, y + 2, 8, 5, "#06331a");
+      [[5, 4], [6, 5], [7, 4], [8, 3], [9, 2]].forEach(([i, j]) => px(ctx, x + i, y + j, 1, 1, "#3dff6e"));
+      px(ctx, x + 3, y + 12, 2, 1, "#3dff6e");
+    } else {
+      const blink = Math.floor(t * 2.5) % 2 === 0;
+      px(ctx, x + 4, y + 2, 8, 5, blink ? "#3a0b0b" : "#240707");
+      GLYPH_Q.forEach((r, j) => [...r].forEach((ch, i) => { if (ch === "#") px(ctx, x + 6 + i, y + 2 + j, 1, 1, blink ? "#ff5a3b" : "#a83020"); }));
+      px(ctx, x + 3, y + 12, 2, 1, blink ? "#ff3b3b" : "#5a1010");
+    }
+  }
+
+  function drawDoor(d, x, y, t) {
+    const hpx = d.h * TILE, info = d.color ? KEY_INFO[d.color] : null;
+    px(ctx, x, y, 16, hpx, "#2a3048");
+    px(ctx, x + 1, y + 1, 14, hpx - 1, "#07080e");
+    const e = d.anim * d.anim * (3 - 2 * d.anim);
+    const py = y + 1 - Math.round(e * (hpx - 3));
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x + 1, y + 1, 14, hpx - 1); ctx.clip();
+    if (info) {
+      px(ctx, x + 1, py, 14, hpx - 1, info.main);
+      px(ctx, x + 1, py, 1, hpx - 1, info.light); px(ctx, x + 14, py, 1, hpx - 1, info.dark);
+      for (let j = 4; j < hpx - 2; j += 6) px(ctx, x + 2, py + j, 12, 1, info.dark);
+      px(ctx, x + 5, py + 11, 6, 8, info.light);
+      px(ctx, x + 7, py + 12, 2, 2, "#111"); px(ctx, x + 7, py + 14, 2, 3, "#111");
+    } else {
+      px(ctx, x + 1, py, 14, hpx - 1, "#5a6070");
+      for (let j = 0; j < hpx; j += 4) for (let i = 0; i < 14; i += 4) px(ctx, x + 1 + ((i + j) % 8), py + j, 4, 2, "#f2c81a");
+      px(ctx, x + 1, py + 8, 14, 12, "#3a3f4d");
+      px(ctx, x + 4, py + 11, 8, 1, "#9aa0ad"); px(ctx, x + 4, py + 14, 8, 1, "#9aa0ad"); px(ctx, x + 4, py + 17, 8, 1, "#9aa0ad");
+    }
+    ctx.restore();
+    if (info) px(ctx, x + 5, y + 1, 6, 1, d.open ? "#3dff6e" : info.light);
+  }
+
+  function drawExitSign(d, x, y, t) {
+    const lit = d.open ? (Math.floor(t * 3) % 2 === 0 ? "#3dff6e" : "#1d9a42") : "#ff3b3b";
+    px(ctx, x + 1, y - 8, 14, 7, "#0a0a0a");
+    px(ctx, x + 1, y - 8, 14, 1, "#3a3f52");
+    const dir = d.x === 0 ? -1 : 1;
+    // an arrow pointing out of the map
+    for (let i = 0; i < 4; i++) {
+      const ax = dir > 0 ? x + 9 + i : x + 6 - i;
+      px(ctx, ax, y - 7 + i, 1, 5 - 2 * i < 1 ? 1 : 5 - 2 * i, lit);
+    }
+    px(ctx, dir > 0 ? x + 3 : x + 7, y - 5, 6, 1, lit);
+  }
+
+  function drawPlayer(x, y) {
+    let spr = sprites.stand;
+    if (!player.onGround) spr = sprites.jump;
+    else if (player.vx) spr = Math.floor(player.walkT / 0.14) % 2 === 0 ? sprites.walk : sprites.stand;
+    const sx = Math.round(x) - 2, sy = Math.round(y) - 1;
+    if (player.facing < 0) {
+      ctx.save(); ctx.translate(sx + spr.width, sy); ctx.scale(-1, 1); ctx.drawImage(spr, 0, 0); ctx.restore();
+    } else ctx.drawImage(spr, sx, sy);
+  }
+
+  function burst(x, y, color, n = 14) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2, s = 30 + Math.random() * 70;
+      particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 40, life: 0.5 + Math.random() * 0.4, color });
+    }
+  }
+
+  // ---------- Rendering ----------
+  function render(now) {
+    const t = now / 1000;
+    px(ctx, 0, 0, VIEW_W, VIEW_H, "#000");
+    if (!world) return;
+    const cx = Math.round(cam.x), cy = Math.round(cam.y);
+    ctx.drawImage(world.layer, cx, cy, VIEW_W, VIEW_H, 0, 0, VIEW_W, VIEW_H);
+
+    for (const c of world.computers) drawComputer(c, c.x * TILE - cx, c.y * TILE - cy, t);
+    for (const d of world.doors) drawDoor(d, d.x * TILE - cx, d.y * TILE - cy, t);
+    drawDoor(world.exit, world.exit.x * TILE - cx, world.exit.y * TILE - cy, t);
+    drawExitSign(world.exit, world.exit.x * TILE - cx, world.exit.y * TILE - cy, t);
+    for (const k of world.keys) {
+      if (k.taken) continue;
+      const bob = Math.round(Math.sin(t * 3 + k.x) * 1.5);
+      const kx = k.x * TILE - cx + 1, ky = k.y * TILE - cy + 5 + bob;
+      if (Math.floor(t * 4 + k.x) % 6 === 0) px(ctx, kx + 2, ky - 2, 1, 1, "#fff");
+      ctx.drawImage(keySprites[k.color], kx, ky);
+    }
+    for (const p of particles) px(ctx, Math.round(p.x - cx), Math.round(p.y - cy), 2, 2, p.color);
+
+    drawPlayer(player.x - cx, player.y - cy);
+
+    // "use me" arrow over the computer the player stands at
+    if (nearComputer && state === "playing") {
+      const ax = nearComputer.x * TILE - cx + 8, ay = nearComputer.y * TILE - cy - 12 - Math.round(Math.abs(Math.sin(t * 5)) * 3);
+      px(ctx, ax - 3, ay, 7, 1, "#ffd800"); px(ctx, ax - 2, ay + 1, 5, 1, "#ffd800"); px(ctx, ax - 1, ay + 2, 3, 1, "#ffd800"); px(ctx, ax, ay + 3, 1, 1, "#ffd800");
+    }
+    // once the exit is open, an arrow at the edge of the screen points at it
+    const ex = world.exit.x * TILE + 8 - cx, ey = world.exit.y * TILE + 16 - cy;
+    if (world.exit.open && (ex < 0 || ex > VIEW_W || ey < 0 || ey > VIEW_H) && Math.floor(t * 3) % 2 === 0) {
+      const mx = VIEW_W / 2, my = VIEW_H / 2, a = Math.atan2(ey - my, ex - mx);
+      const r = Math.min((VIEW_W / 2 - 10) / Math.abs(Math.cos(a) || 1e-6), (VIEW_H / 2 - 10) / Math.abs(Math.sin(a) || 1e-6));
+      const ax = mx + Math.cos(a) * r, ay = my + Math.sin(a) * r;
+      ctx.save(); ctx.translate(Math.round(ax), Math.round(ay)); ctx.rotate(a);
+      ctx.fillStyle = "#000"; ctx.fillRect(-7, -5, 13, 10);
+      ctx.fillStyle = "#3dff6e";
+      for (let i = 0; i < 4; i++) ctx.fillRect(i - 2, -3 + i, 1, 7 - 2 * i);
+      ctx.fillRect(-6, -1, 4, 2);
+      ctx.restore();
+    }
+  }
+
+  // ---------- Toast messages ----------
+  let toastTimer = 0, toastPrio = 0;
+  function toast(text, secs = 2.2, prio = 1, cls = "") {
+    if (toastTimer > 0 && prio < toastPrio) return;
+    if (toastEl.textContent !== text) toastEl.textContent = text;
+    toastEl.className = "toast" + (cls ? " " + cls : "");
+    toastTimer = secs; toastPrio = prio;
+  }
+  function hideToast() { toastTimer = 0; toastEl.classList.add("hidden"); }
+
+  // ---------- HUD ----------
+  function updateHud() {
+    if (!world) return;
+    $("hudLevel").textContent = `${run.level + 1}/${LEVELS.length}`;
+    $("hudTime").textContent = fmtTime(run.time);
+    const solved = world.computers.filter(c => c.solved).length;
+    $("hudTasks").textContent = `${solved}/${world.computers.length}`;
+  }
+  function updateHudKeys() {
+    const colors = [...new Set(world.keys.map(k => k.color))];
+    $("hudKeys").innerHTML = colors.length
+      ? colors.map(c => `<img src="${keyImages[c]}" alt="${KEY_INFO[c].name} KLUCZ" title="${KEY_INFO[c].name} KLUCZ" class="${inventory.has(c) ? "" : "missing"}">`).join("")
+      : `<span class="none">BRAK</span>`;
+  }
+  const keyImages = {};
+  for (const c of Object.keys(KEY_INFO)) keyImages[c] = keySprites[c].toDataURL();
+
+  // ---------- Overlay inside the board ----------
+  function showOverlay(html, action) {
+    overlayEl.innerHTML = html;
+    overlayEl.classList.remove("hidden");
+    overlayAction = action;
+    const btn = overlayEl.querySelector("[data-primary]");
+    if (btn) btn.addEventListener("click", () => action && action());
+    overlayEl.querySelectorAll("[data-menu]").forEach(b => b.addEventListener("click", goMenu));
+  }
+  function hideOverlay() { overlayEl.classList.add("hidden"); overlayEl.innerHTML = ""; overlayAction = null; }
+
+  // ---------- Flow ----------
+  function showScreen(name) {
+    $("menu").classList.toggle("hidden", name !== "menu");
+    $("creator").classList.toggle("hidden", name !== "creator");
+    const inGame = name === "game";
+    ["hud", "board", "below"].forEach(id => $(id).classList.toggle("hidden", !inGame));
+    document.body.classList.toggle("in-game", inGame);
+  }
+
+  function goMenu() {
+    closeTerminal(true);
+    hideOverlay(); hideToast();
+    state = "menu"; world = null; run = null;
+    showScreen("menu");
+    buildMenu();
+  }
+
+  function startRun(level) {
+    run = { startLevel: level, level, time: 0, mistakes: 0 };
+    sfx.start();
+    showScreen("game");
+    loadLevel(level);
+  }
+
+  function loadLevel(i) {
+    run.level = i;
+    world = parseLevel(LEVELS[i]);
+    world.layer = renderStatic(world);
+    player = newPlayer(world.start);
+    inventory = new Set(); usedTasks = new Set(); particles = [];
+    levelTime = 0; levelMistakes = 0; nearComputer = null;
+    sprites = characterSprites(look);
+    updateCamera(1, true);
+    updateHud(); updateHudKeys(); hideToast();
+    const nKeys = world.keys.length;
+    state = "intro";
+    showOverlay(`
+      <div class="big">POZIOM ${i + 1}: ${escapeHtml(world.name)}</div>
+      <div>KOMPUTERY DO ODBLOKOWANIA: <span class="sub">${world.computers.length}</span>${nKeys ? ` · KLUCZE: <span class="sub">${nKeys}</span>` : ""}</div>
+      <div class="dim">ROZWIĄŻ ZADANIA NA WSZYSTKICH KOMPUTERACH,<br>A OTWORZY SIĘ WYJŚCIE.</div>
+      <button class="main-btn" data-primary>START</button>`, play);
+  }
+
+  function play() {
+    hideOverlay();
+    Object.keys(held).forEach(k => { held[k] = false; });
+    pressed.jump = pressed.use = false;
+    document.querySelectorAll(".touch button.on").forEach(b => b.classList.remove("on"));
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    state = "playing";
+  }
+
+  function pause() {
+    if (state !== "playing") return;
+    state = "paused";
+    showOverlay(`<div class="big">PAUZA</div>
+      <div class="btns"><button class="main-btn" data-primary>GRAJ DALEJ</button><button class="main-btn alt" data-menu>MENU</button></div>`, play);
+  }
+
+  function levelComplete() {
+    state = "done";
+    sfx.win();
+    hideToast();
+    const last = run.level === LEVELS.length - 1;
+    const stats = `CZAS POZIOMU: <span class="sub">${fmtTime(levelTime)}</span> · BŁĘDNE ODPOWIEDZI: <span class="sub">${levelMistakes}</span>`;
+    if (!last) {
+      showOverlay(`
+        <div class="big">POZIOM ${run.level + 1} UKOŃCZONY!</div>
+        <div>${stats}</div>
+        <div class="btns"><button class="main-btn" data-primary>NASTĘPNY POZIOM</button><button class="main-btn alt" data-menu>MENU</button></div>`,
+        () => loadLevel(run.level + 1));
+    } else {
+      showOverlay(`
+        <div class="big">MISJA UKOŃCZONA!</div>
+        <div>${girl() ? "BRAWO, AGENTKO! UCIEKŁAŚ" : "BRAWO, AGENCIE! UCIEKŁEŚ"} Z TAJNEGO LABORATORIUM.</div>
+        <div>${stats}</div>
+        <div>POZIOMY ${run.startLevel + 1}-${LEVELS.length} · ŁĄCZNY CZAS: <span class="sub">${fmtTime(run.time)}</span> · BŁĘDY: <span class="sub">${run.mistakes}</span></div>
+        <div class="btns"><button class="main-btn" data-primary>MENU</button></div>`, goMenu);
+    }
+  }
+
+  // ---------- Update ----------
+  function updateCamera(dt, snap = false) {
+    const maxX = world.w * TILE - VIEW_W, maxY = world.h * TILE - VIEW_H;
+    const tx = Math.max(0, Math.min(maxX, player.x + PW / 2 - VIEW_W / 2));
+    const ty = Math.max(0, Math.min(maxY, player.y + PH / 2 - VIEW_H / 2 - 10));
+    const k = snap ? 1 : Math.min(1, dt * 7);
+    cam.x += (tx - cam.x) * k;
+    cam.y += (ty - cam.y) * k;
+  }
+
+  function update(dt) {
+    levelTime += dt; run.time += dt;
+    const inp = { dir: (held.right ? 1 : 0) - (held.left ? 1 : 0), jumpHeld: held.jump, jumpPressed: pressed.jump };
+    pressed.jump = false;
+    const r = stepPlayer(player, inp, world, dt);
+    if (r.jumped) sfx.jump();
+    if (r.landed) sfx.land();
+    player.walkT = player.onGround && player.vx ? player.walkT + dt : 0;
+    lockedCooldown = Math.max(0, lockedCooldown - dt);
+
+    for (const k of world.keys) {
+      if (k.taken || !overlaps(player, keyRect(k))) continue;
+      k.taken = true;
+      inventory.add(k.color);
+      sfx.key();
+      burst(k.x * TILE + 8, k.y * TILE + 8, KEY_INFO[k.color].main);
+      toast(`MASZ ${KEY_INFO[k.color].name} KLUCZ!`, 2.5, 2, "good");
+      updateHudKeys();
+    }
+    for (const d of world.doors) {
+      if (d.open) { d.anim = Math.min(1, d.anim + dt * 2); continue; }
+      if (!overlaps(player, doorRect(d), 1)) continue;
+      const info = KEY_INFO[d.color];
+      if (inventory.has(d.color)) {
+        d.open = true;
+        sfx.door();
+        toast(`${info.doors} DRZWI OTWARTE!`, 2, 2, "good");
+      } else if (!lockedCooldown) {
+        lockedCooldown = 1.2;
+        sfx.locked();
+        toast(`DRZWI ZAMKNIĘTE! POTRZEBNY ${info.name} KLUCZ.`, 2.2, 2, "bad");
+      }
+    }
+    const exit = world.exit;
+    if (exit.open) {
+      exit.anim = Math.min(1, exit.anim + dt * 1.5);
+      if (overlaps(player, doorRect(exit), -3)) { levelComplete(); return; }
+    } else if (overlaps(player, doorRect(exit), 1) && !lockedCooldown) {
+      lockedCooldown = 1.2;
+      sfx.locked();
+      const solved = world.computers.filter(c => c.solved).length;
+      toast(`WYJŚCIE ZAMKNIĘTE! ROZWIĄŻ WSZYSTKIE ZADANIA (${solved}/${world.computers.length}).`, 2.5, 2, "bad");
+    }
+
+    nearComputer = world.computers.find(c => !c.solved && atComputer(player, c)) || null;
+    if (nearComputer) toast(coarse ? "NACIŚNIJ UŻYJ, ABY WŁĄCZYĆ KOMPUTER" : "NACIŚNIJ E, ABY WŁĄCZYĆ KOMPUTER", 0.15, 0);
+    if (pressed.use) {
+      pressed.use = false;
+      if (nearComputer) { openTerminal(nearComputer); return; }
+    }
+
+    for (const p of particles) { p.vy += 300 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; }
+    particles = particles.filter(p => p.life > 0);
+    updateCamera(dt);
+  }
+
+  // ---------- Computer terminal ----------
+  function openTerminal(c) {
+    state = "terminal";
+    activeComputer = c;
+    terminalLock = false;
+    if (!c.task) c.task = newTask(usedTasks);
+    $("tNum").textContent = `TERMINAL ${c.n}/${world.computers.length}`;
+    $("tQuestion").textContent = c.task.text;
+    tInput.value = "";
+    tInput.readOnly = coarse;     // on phones the keypad below is the keyboard
+    tMsg.textContent = " "; tMsg.className = "t-msg";
+    $("terminal").classList.remove("hidden");
+    hideToast();
+    sfx.boot();
+    if (!coarse) setTimeout(() => tInput.focus(), 30);
+  }
+
+  function closeTerminal(silent = false) {
+    if (!activeComputer) return;
+    $("terminal").classList.add("hidden");
+    tInput.blur();
+    activeComputer = null;
+    if (pendingSolve) { pendingSolve = false; if (!silent) afterSolve(); }
+    if (!silent && state === "terminal") play();
+  }
+
+  function clearMsg() { if (!terminalLock) { tMsg.textContent = "\u00a0"; tMsg.className = "t-msg"; } }
+  function typeDigit(d) {
+    if (terminalLock || tInput.value.length >= 3) return;
+    tInput.value += d;
+    clearMsg();
+    sfx.type();
+  }
+
+  function submitAnswer() {
+    const c = activeComputer;
+    if (!c || terminalLock) return;
+    const v = tInput.value.trim();
+    if (!v) return;
+    if (Number(v) === c.task.answer) {
+      c.solved = true;
+      terminalLock = true; pendingSolve = true;
+      $("tQuestion").textContent = c.task.text.replace("?", c.task.answer);
+      tMsg.textContent = "> DOBRZE! DOSTĘP PRZYZNANY."; tMsg.className = "t-msg good";
+      sfx.good();
+      burst(c.x * TILE + 8, c.y * TILE + 4, "#3dff6e", 18);
+      setTimeout(() => { if (activeComputer === c) closeTerminal(); }, 1100);
+    } else {
+      run.mistakes++; levelMistakes++;
+      tMsg.textContent = "> BŁĄD! SPRÓBUJ JESZCZE RAZ."; tMsg.className = "t-msg bad";
+      tInput.value = "";
+      monitor.classList.remove("shake"); void monitor.offsetWidth; monitor.classList.add("shake");
+      sfx.bad();
+    }
+  }
+
+  function afterSolve() {
+    updateHud();
+    const left = world.computers.filter(c => !c.solved).length;
+    if (left === 0) {
+      world.exit.open = true;
+      sfx.alarm();
+      toast("WSZYSTKIE ZADANIA ROZWIĄZANE! WYJŚCIE JEST OTWARTE!", 4, 3, "good");
+    } else {
+      toast(`ZADANIE ROZWIĄZANE! ZOSTAŁO: ${left}`, 2.5, 2, "good");
+    }
+  }
+
+  // keypad
+  const keypad = $("keypad");
+  ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].forEach(d => {
+    const b = document.createElement("button");
+    b.textContent = d;
+    b.addEventListener("click", () => typeDigit(d));
+    keypad.appendChild(b);
+  });
+  [["USUŃ", () => { if (!terminalLock) tInput.value = tInput.value.slice(0, -1); }], ["OK", submitAnswer]].forEach(([label, fn]) => {
+    const b = document.createElement("button");
+    b.textContent = label; b.className = label === "OK" ? "wide ok" : "wide";
+    b.addEventListener("click", fn);
+    keypad.appendChild(b);
+  });
+  // keep keypad clicks from moving focus out of the input on desktop
+  keypad.addEventListener("mousedown", e => e.preventDefault());
+  tInput.addEventListener("input", () => { tInput.value = tInput.value.replace(/\D/g, "").slice(0, 3); clearMsg(); });
+  $("tClose").addEventListener("click", () => closeTerminal());
+  $("terminal").addEventListener("click", e => { if (e.target.id === "terminal") closeTerminal(); });
+
+  // ---------- Input ----------
+  const KEYMAP = {
+    ArrowLeft: "left", KeyA: "left", ArrowRight: "right", KeyD: "right",
+    ArrowUp: "jump", KeyW: "jump", Space: "jump",
+    ArrowDown: "use", KeyS: "use", KeyE: "use", Enter: "use", NumpadEnter: "use",
+  };
+
+  function toggleSound() {
+    soundOn = !soundOn;
+    try { localStorage.setItem("laboratorium-sound", soundOn ? "on" : "off"); } catch (e) { /* ignore */ }
+    $("btnSound").textContent = soundOn ? "DŹWIĘK: WŁ." : "DŹWIĘK: WYŁ.";
+  }
+
+  window.addEventListener("keydown", e => {
+    if (state === "terminal") {
+      if (e.code === "Escape") { e.preventDefault(); closeTerminal(); return; }
+      if (terminalLock) return;
+      if (e.key === "Enter") { e.preventDefault(); submitAnswer(); return; }
+      if (document.activeElement === tInput) { if (/^[0-9]$/.test(e.key)) sfx.type(); return; }
+      if (/^[0-9]$/.test(e.key)) { e.preventDefault(); typeDigit(e.key); }
+      else if (e.key === "Backspace") { e.preventDefault(); tInput.value = tInput.value.slice(0, -1); }
+      return;
+    }
+    if (e.code === "KeyM" && state !== "creator") { toggleSound(); return; }
+    if (state === "menu") {
+      if (e.code === "Enter" && document.activeElement === document.body) { e.preventDefault(); startRun(menuLevel); }
+      return;
+    }
+    if (state === "intro" || state === "paused" || state === "done") {
+      if (e.code === "Enter" || e.code === "Space") { e.preventDefault(); if (!e.repeat && overlayAction) overlayAction(); }
+      else if (state === "paused" && (e.code === "KeyP" || e.code === "Escape")) play();
+      return;
+    }
+    if (state !== "playing") return;
+    if (e.code === "KeyP" || e.code === "Escape") { pause(); return; }
+    const action = KEYMAP[e.code];
+    if (!action) return;
+    e.preventDefault();
+    if (action === "use") { if (!e.repeat) pressed.use = true; return; }
+    if (action === "jump" && !e.repeat) pressed.jump = true;
+    held[action] = true;
+  });
+  window.addEventListener("keyup", e => {
+    const action = KEYMAP[e.code];
+    if (action && action in held) held[action] = false;
+  });
+  window.addEventListener("blur", () => { Object.keys(held).forEach(k => { held[k] = false; }); });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) pause(); });
+
+  document.querySelectorAll(".touch [data-hold]").forEach(b => {
+    const action = b.dataset.hold;
+    const down = e => {
+      e.preventDefault();
+      b.classList.add("on");
+      if (state !== "playing") return;
+      if (action === "use") pressed.use = true;
+      else { if (action === "jump") pressed.jump = true; held[action] = true; }
+    };
+    const up = e => { e.preventDefault(); b.classList.remove("on"); if (action in held) held[action] = false; };
+    b.addEventListener("pointerdown", down);
+    ["pointerup", "pointercancel", "pointerleave"].forEach(ev => b.addEventListener(ev, up));
+    b.addEventListener("contextmenu", e => e.preventDefault());
+  });
+  $("btnPause").addEventListener("click", pause);
+  $("btnSound").addEventListener("click", toggleSound);
+  $("btnSound").textContent = soundOn ? "DŹWIĘK: WŁ." : "DŹWIĘK: WYŁ.";
+
+  // ---------- Menu ----------
+  function buildMenu() {
+    const box = $("levelBtns");
+    box.innerHTML = "";
+    LEVELS.forEach((lv, i) => {
+      const b = document.createElement("button");
+      b.className = "opt" + (i === menuLevel ? " sel" : "");
+      b.innerHTML = `<b>${i + 1}</b>${escapeHtml(lv.name)}`;
+      b.addEventListener("click", () => { menuLevel = i; buildMenu(); });
+      box.appendChild(b);
+    });
+  }
+  $("btnPlay").addEventListener("click", () => startRun(menuLevel));
+  $("btnCreator").addEventListener("click", () => { state = "creator"; showScreen("creator"); buildCreator(); });
+  $("btnDone").addEventListener("click", () => { saveLook(); sprites = characterSprites(look); state = "menu"; showScreen("menu"); buildMenu(); });
+  $("btnRandom").addEventListener("click", () => {
+    const pick = arr => Math.floor(Math.random() * arr.length);
+    look = {
+      gender: Math.random() < 0.5 ? "boy" : "girl", hair: Object.keys(HAIR)[pick(Object.keys(HAIR))],
+      hairColor: pick(HAIR_COLORS), shirt: pick(SHIRT_COLORS), pants: pick(PANTS_COLORS),
+    };
+    buildCreator();
+  });
+
+  // ---------- Character creator ----------
+  function drawSpriteTo(cv, spr) {
+    const c = cv.getContext("2d");
+    c.clearRect(0, 0, cv.width, cv.height);
+    c.drawImage(spr, 0, 0);
+  }
+
+  function buildCreator() {
+    sprites = characterSprites(look);
+    const choice = (box, items, isSel, onPick, withSprite) => {
+      box.innerHTML = "";
+      items.forEach(([value, label, lk]) => {
+        const b = document.createElement("button");
+        b.className = "opt" + (isSel(value) ? " sel" : "");
+        if (withSprite) {
+          const cv = document.createElement("canvas");
+          cv.width = 14; cv.height = 24;
+          drawSpriteTo(cv, characterSprites(lk).stand);
+          b.appendChild(cv);
+        }
+        b.appendChild(document.createTextNode(label));
+        b.addEventListener("click", () => { onPick(value); buildCreator(); });
+        box.appendChild(b);
+      });
+    };
+    choice($("optGender"), [["boy", "CHŁOPIEC", { ...look, gender: "boy" }], ["girl", "DZIEWCZYNKA", { ...look, gender: "girl" }]],
+      v => look.gender === v, v => { look.gender = v; }, true);
+    choice($("optHair"), Object.entries(HAIR).map(([k, h]) => [k, h.name, { ...look, hair: k }]),
+      v => look.hair === v, v => { look.hair = v; }, true);
+    const swatches = (box, colors, field) => {
+      box.innerHTML = "";
+      colors.forEach(([name, hex], i) => {
+        const b = document.createElement("button");
+        b.className = "swatch" + (look[field] === i ? " sel" : "");
+        b.style.background = hex;
+        b.title = name; b.setAttribute("aria-label", name);
+        b.addEventListener("click", () => { look[field] = i; buildCreator(); });
+        box.appendChild(b);
+      });
+    };
+    swatches($("optHairColor"), HAIR_COLORS, "hairColor");
+    swatches($("optShirt"), SHIRT_COLORS, "shirt");
+    swatches($("optPants"), PANTS_COLORS, "pants");
+  }
+
+  // walking preview in the menu and the creator
+  function animatePreviews(t) {
+    const frame = Math.floor(t / 280) % 2 === 0 ? sprites.walk : sprites.stand;
+    if (state === "creator") drawSpriteTo($("preview"), frame);
+    if (state === "menu") drawSpriteTo($("menuHero"), frame);
+  }
+
+  // ---------- Main loop ----------
+  let last = performance.now(), acc = 0;
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (state === "playing") {
+      acc += dt;
+      while (acc >= STEP && state === "playing") { update(STEP); acc -= STEP; }
+      updateHud();
+    } else {
+      acc = 0;
+      // time at a computer counts too
+      if (state === "terminal") { levelTime += dt; run.time += dt; updateHud(); }
+    }
+    if (toastTimer > 0 && (state === "playing" || state === "terminal")) {
+      toastTimer -= dt;
+      toastEl.classList.toggle("hidden", toastTimer <= 0);
+    }
+    if (state === "menu" || state === "creator") animatePreviews(now);
+    else render(now);
+    requestAnimationFrame(frame);
+  }
+
+  // For tests: the level data and the physics, so a script can check every
+  // level can be finished.
+  window.LAB = {
+    LEVELS, TILE, PW, PH, STEP, parseLevel, newPlayer, stepPlayer, overlaps, keyRect, doorRect, atComputer,
+    get state() { return state; }, get world() { return world; }, get player() { return player; },
+  };
+
+  buildMenu();
+  showScreen("menu");
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
