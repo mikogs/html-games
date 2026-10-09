@@ -9,4 +9,9 @@ return [
         'title' => 'Liczożerca',
         'categories' => ['add', 'sub', 'mul', 'div'],
     ],
+    // score = metres driven (the whole route when finished), time = seconds to get there
+    'szosa' => [
+        'title' => 'Szalona Szosa',
+        'categories' => [],
+    ],
 ];

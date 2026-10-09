@@ -68,6 +68,13 @@
   #hudKeys img { width: 28px; height: 18px; image-rendering: pixelated; }
   #hudKeys img.missing { opacity: .22; filter: grayscale(1); }
   #hudKeys .none { color: var(--dim); font-size: 14px; }
+  #hudLives { display: grid; grid-template-columns: repeat(5, auto); gap: 3px; min-height: 29px; align-content: center; }
+  #hudLives img { width: 18px; height: 16px; image-rendering: pixelated; }
+  #hudLives img.lost { opacity: .2; filter: grayscale(1); }
+  #hudAmmo { display: flex; align-items: center; gap: 6px; min-height: 29px; color: var(--yellow); }
+  #hudAmmo img { width: 30px; height: 16px; image-rendering: pixelated; }
+  #hudAmmo .none { color: var(--dim); font-size: 14px; }
+  #hudAmmo.empty { color: var(--red); }
 
   .board { position: relative; background: #000; line-height: 0; }
   canvas#game {
@@ -130,6 +137,12 @@
   .opt b { display: block; font-size: 24px; font-weight: normal; color: var(--yellow); }
   .opt:hover { border-color: var(--wall); }
   .opt.sel { border-color: var(--yellow); background: #3a2f00; }
+  .ops { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; width: 100%; max-width: 620px; }
+  .ops .opt { font-size: 13px; }
+  .ops .opt b { font-size: 28px; line-height: 1.1; }
+  .ranges { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; width: 100%; max-width: 620px; }
+  .ranges .opt { padding: 6px 0; font-size: 20px; }
+  .range-hint { font-size: 14px; color: var(--cyan); margin-top: -6px; }
   .menu-hint { font-size: 13px; color: var(--dim); line-height: 1.7; max-width: 640px; }
   .menu-hint b { color: var(--cyan); font-weight: normal; }
 
@@ -192,6 +205,11 @@
     border: 2px solid var(--green); padding: 0 8px; caret-color: var(--green); outline: none;
     text-shadow: inherit;
   }
+  .t-pin { display: flex; justify-content: center; gap: 8px; margin: 8px 0 2px; font-size: 20px; }
+  .t-pin span { min-width: 2.6em; padding: 0 4px; text-align: center; border: 2px solid #1d7a3a; color: #1d7a3a; }
+  .t-pin span.ok { border-color: var(--green); color: var(--yellow); text-shadow: 0 0 6px rgba(255,216,0,.6); }
+  .t-pin span.cur { border-color: var(--green); color: var(--green); animation: pinblink 1s steps(2) infinite; }
+  @keyframes pinblink { 50% { border-color: #1d7a3a; } }
   .t-msg { min-height: 1.5em; font-size: 16px; margin-top: 4px; }
   .t-msg.bad { color: var(--red); text-shadow: 0 0 6px rgba(255,59,59,.6); }
   .t-msg.good { color: var(--yellow); text-shadow: 0 0 6px rgba(255,216,0,.6); }
@@ -214,6 +232,15 @@
     #hudKeys img { width: 21px; height: 14px; }
     .menu-top { flex-direction: column; text-align: center; }
     .screen { padding: 12px; }
+    .hud { flex-wrap: wrap; row-gap: 4px; }
+    .ops { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .ranges { grid-template-columns: repeat(5, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .levels { grid-template-columns: repeat(2, 1fr); }
+    .touch { gap: 8px; }
+    .touch .pad { gap: 6px; }
+    .touch button { width: 58px; font-size: 13px; }
   }
 </style>
 </head>
@@ -224,17 +251,22 @@
   <section class="screen frame" id="menu">
     <div class="menu-top">
       <canvas class="hero" id="menuHero" width="14" height="24"></canvas>
-      <p>WŁAMUJESZ SIĘ DO <b>TAJNEGO LABORATORIUM</b>! ZBIERAJ <b>KOLOROWE KLUCZE</b> - OTWIERAJĄ DRZWI W TYM SAMYM KOLORZE. PODCHODŹ DO <b>KOMPUTERÓW</b> I ROZWIĄZUJ ZADANIA. GDY ROZWIĄŻESZ WSZYSTKIE, OTWORZY SIĘ <b>WYJŚCIE</b>.</p>
+      <p>WŁAMUJESZ SIĘ DO <b>TAJNEGO LABORATORIUM</b>! ZBIERAJ <b>KOLOROWE KLUCZE</b> - OTWIERAJĄ DRZWI W TYM SAMYM KOLORZE. DRZWI <b>NA PIN</b> OTWIERASZ, ROZWIĄZUJĄC 4 ZADANIA. <b>WINDY</b> WŁĄCZASZ PRZEŁĄCZNIKIEM NA ŚCIANIE. UWAŻAJ NA <b>MUTANTY</b> - DOTKNIĘCIE ZABIERA ŻYCIE, ALE MOŻESZ JE PRZESKOCZYĆ ALBO ZASTRZELIĆ Z <b>PISTOLETU</b> (KAŻDY ZNALEZIONY DAJE 5 NABOJÓW). PODCHODŹ DO <b>KOMPUTERÓW</b> I ROZWIĄZUJ ZADANIA. GDY ROZWIĄŻESZ WSZYSTKIE, OTWORZY SIĘ <b>WYJŚCIE</b>.</p>
     </div>
     <div class="menu-title">WYBIERZ POZIOM</div>
     <div class="levels" id="levelBtns"></div>
+    <div class="menu-title">ZADANIA NA KOMPUTERACH</div>
+    <div class="ops" id="opBtns"></div>
+    <div class="menu-title">TRUDNOŚĆ ZADAŃ</div>
+    <div class="ranges" id="rangeBtns"></div>
+    <div class="range-hint" id="rangeHint"></div>
     <div class="btns">
       <button class="main-btn" id="btnPlay">GRAJ</button>
       <button class="main-btn alt" id="btnCreator">ZMIEŃ POSTAĆ</button>
     </div>
     <div class="menu-hint">
-      <b>STRZAŁKI / A D</b> CHODZENIE &nbsp; <b>STRZAŁKA W GÓRĘ / W / SPACJA</b> SKOK<br>
-      <b>E / STRZAŁKA W DÓŁ / ENTER</b> UŻYJ KOMPUTERA &nbsp; <b>P</b> PAUZA &nbsp; <b>M</b> DŹWIĘK
+      <b>STRZAŁKI / A D</b> CHODZENIE &nbsp; <b>STRZAŁKA W GÓRĘ / W</b> SKOK &nbsp; <b>SPACJA</b> STRZAŁ<br>
+      <b>E / STRZAŁKA W DÓŁ / ENTER</b> UŻYJ (KOMPUTER, PIN, PRZEŁĄCZNIK) &nbsp; <b>P</b> PAUZA &nbsp; <b>M</b> DŹWIĘK
     </div>
   </section>
 
@@ -261,6 +293,8 @@
     <div><span class="label">CZAS</span><span class="val" id="hudTime">00:00</span></div>
     <div><span class="label">ZADANIA</span><span class="val" id="hudTasks">0/0</span></div>
     <div><span class="label">KLUCZE</span><div id="hudKeys"></div></div>
+    <div><span class="label">ŻYCIA</span><div id="hudLives"></div></div>
+    <div><span class="label">NABOJE</span><div id="hudAmmo"></div></div>
   </div>
   <div class="board frame hidden" id="board">
     <canvas id="game" width="320" height="192"></canvas>
@@ -273,12 +307,13 @@
       <button data-hold="right" aria-label="W prawo"><svg viewBox="0 0 10 10"><path d="M3 1v8l5-4z"/></svg></button>
     </div>
     <div class="pad">
+      <button data-hold="fire" id="btnFire" class="hidden">STRZAŁ</button>
       <button data-hold="use">UŻYJ</button>
       <button data-hold="jump">SKOK</button>
     </div>
   </div>
   <div class="below hidden" id="below">
-    <div class="help"><span class="keys-only"><b>STRZAŁKI / A D</b> CHODZENIE · <b>GÓRA / W / SPACJA</b> SKOK · <b>E / DÓŁ / ENTER</b> UŻYJ · <b>P</b> PAUZA · <b>M</b> DŹWIĘK</span></div>
+    <div class="help"><span class="keys-only"><b>STRZAŁKI / A D</b> CHODZENIE · <b>GÓRA / W</b> SKOK · <b>SPACJA</b> STRZAŁ · <b>E / DÓŁ / ENTER</b> UŻYJ · <b>P</b> PAUZA · <b>M</b> DŹWIĘK</span></div>
     <div class="row">
       <button class="btn-small" id="btnPause">PAUZA</button>
       <button class="btn-small" id="btnSound">DŹWIĘK: WŁ.</button>
@@ -289,9 +324,10 @@
 <div class="modal hidden" id="terminal" role="dialog" aria-modal="true" aria-label="Komputer">
   <div class="monitor" id="monitor">
     <div class="crt">
-      <div class="t-head"><span>LAB-OS 3.1</span><span id="tNum">TERMINAL 1/1</span></div>
-      <div class="t-line">&gt; SYSTEM ZABLOKOWANY.</div>
-      <div class="t-line">&gt; PODAJ WYNIK, ABY GO ODBLOKOWAĆ:</div>
+      <div class="t-head"><span id="tHead">LAB-OS 3.1</span><span id="tNum">TERMINAL 1/1</span></div>
+      <div class="t-line" id="tLine1">&gt; SYSTEM ZABLOKOWANY.</div>
+      <div class="t-line" id="tLine2">&gt; PODAJ WYNIK, ABY GO ODBLOKOWAĆ:</div>
+      <div class="t-pin hidden" id="tPin"></div>
       <div class="t-q" id="tQuestion">?</div>
       <div class="t-in">&gt; <input id="tInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" aria-label="Wynik"></div>
       <div class="t-msg" id="tMsg">&nbsp;</div>
@@ -317,27 +353,40 @@
   const COYOTE = 0.09;                  // can still jump this long after walking off a ledge
   const JUMP_BUFFER = 0.12;             // a jump pressed this long before landing still counts
   const PW = 10, PH = 22;               // player hitbox
-  const MAX_SUM = 100;                  // computer tasks: "a + b = ?" with a + b <= MAX_SUM
+  const NUM_RANGES = 10;                // task difficulty N => results up to N * 10
+  const START_LIVES = 5;
+  const AMMO_PER_PISTOL = 5;            // the first pistol found, and every one after it, adds this many bullets
+  const BULLET_SPEED = 330;             // px/s
+  const FIRE_COOLDOWN = 0.28;           // s between shots
+  const SAFE_TIME = 4;                  // s of blinking, and no harm from mutants, after losing a life
+  const LIFT_SPEED = 26;                // px/s
+  const LIFT_WAIT = 1;                  // s a lift stops at the top and at the bottom
+  const PIN_TASKS = 4;                  // tasks to solve to open a door with a PIN
 
   // Maps: # wall, x crate, = girder (jump up through it, stand on it),
   // P start, C computer, r/g/b/y key, R/G/B/Y door of that colour
-  // (2 tiles high), E exit (2 tiles high, on the edge of the map).
+  // (2 tiles high), E exit (2 tiles high, on the edge of the map),
+  // o pistol (5 bullets; standing on the floor like keys), N door opened
+  // with a PIN (4 tasks, 2 tiles high), M lift platform at its lowest place
+  // with : marking the shaft it rides up (the top : row is its highest
+  // place), S lift switch (works the nearest lift), mutants that walk
+  // along their floor: d two-headed dog, h one-eyed pig; u pig butt (stays).
   // Decoration only: l lamp, m monitor, v vent, w warning sign, p pipe,
   // f lab table, s server rack, t tank. Every map is at least 20 x 12.
   const LEVELS = [
     { name: "WEJŚCIE", map: [
       "########################################",
-      "#...l................l..l.....#.l......#",
-      "#.......w.p...................#........#",
-      "#.........p...................#........#",
-      "#.........p.......v......m....#........#",
-      "#..w......p...................#........#",
-      "#.........pw...........r......#........#",
-      "#.........p.........=====.....#........#",
-      "#.........p.....C.............#........#",
-      "#.........p..======...w.......#........#",
-      "#...........s.................R........E",
-      "#.P....fC...x......t..........R...Cs...E",
+      "#...l................l..l.....#.l...#..#",
+      "#.......w.p...................#.....#..#",
+      "#.........p...................#.....#..#",
+      "#.........p.......v......m....#.....#..#",
+      "#..w......p...................#.....#..#",
+      "#.........pw...........r......#.....#..#",
+      "#.........p.........=====.....#.....#..#",
+      "#.........p.....C.o...........#.....#..#",
+      "#.........p..======...w.......#.....#..#",
+      "#...........s.................R.....N..E",
+      "#.P....fC...x......t.....h....R.u.CsN..E",
       "########################################",
     ] },
     { name: "MAGAZYN", map: [
@@ -347,19 +396,19 @@
       "#.............v.............................v..#",
       "#...v..............................w..w........#",
       "#...................................x..........E",
-      "#..........f..........x.......C.....x..........E",
-      "#.====m.########################################",
-      "#.......l.#.l.....................l..l.........#",
-      "#.........#...................r................#",
-      "#..====...#..............m..=====..............#",
-      "#.........R....................................#",
-      "#.........R.........C..t...f...t...............#",
+      "#..........f..........x.......C.....x.....h....E",
+      "##:::###########################################",
+      "#.:::...l.#.l.....................l..l.........#",
+      "#.:::.....#...................r................#",
+      "#.:::.....#..............m..=====..............#",
+      "#.:::.....R....................................#",
+      "#.MMM.S...R.........C..td..f...t............o..#",
       "######################################=========#",
-      "#.l..........l....b.......#.l..................#",
-      "#......m........=====.....#....................#",
-      "#.........................#.............====w..#",
-      "#..............f..........B....................#",
-      "#.P.....C.....xx..........B.......C......t.....#",
+      "#.l..........l....b.......#.l........#.........#",
+      "#......m........=====.....#..........#....o....#",
+      "#.........................#..........#..====w..#",
+      "#..............f..........B..........N.........#",
+      "#.P.....C.....xx..........B...u...C..N...t.....#",
       "################################################",
     ] },
     { name: "REAKTOR", map: [
@@ -373,47 +422,47 @@
       "#......................................................#",
       "#.=====........................m...............v.......#",
       "#......................................................#",
-      "#...................bf....x.........C..................#",
-      "##...#########################################=========#",
-      "#............l...l............#...........l............#",
-      "#.............................#........................#",
-      "#...w...........v..........w..#...............v.====...#",
-      "#.............................R........................#",
-      "#.....r.f....................sR.........C..........t...#",
+      "#...........d.......bf....x.........C..................#",
+      "##...#########################################===:::===#",
+      "#............l...l............#...........l......:::...#",
+      "#.............................#..................:::...#",
+      "#...w...........v..........w..#...............v..:::...#",
+      "#.............................R..................:::...#",
+      "#.....r.f.............h......sR.........C...o..S.MMM...#",
       "############...#========################################",
-      "#.......................#........l.....l..........l....#",
-      "#.......................#.......m..............w.......#",
-      "#.................=====w#.......................v......#",
-      "#.......................G......x.......................E",
-      "#.P.........C...........G.....xx..s.....C...........s..E",
+      "#.......................#........l.....l.....#....l....#",
+      "#...................o...#.......m............#.w.......#",
+      "#.................=====w#....................#..v......#",
+      "#.......................G......x.............N.........E",
+      "#.P.........C.....u.....G.....xx..s.....C....N...u..s..E",
       "########################################################",
     ] },
     { name: "SERWEROWNIA", map: [
       "################################################################",
-      "#....l.......l...........l..............#...................l..#",
-      "#..............m........................#.w....................#",
-      "#.....m....................v............#......................#",
-      "#.......................................#.m....................#",
-      "#........................x..............G......................#",
-      "#.................s.....xx..............G.........C.....y......#",
+      "#....l.......l...........l..............#.....#.............l..#",
+      "#..............m........................#.w...#................#",
+      "#.....m....................v............#.....#................#",
+      "#.......................................#.m...#................#",
+      "#........................x..............G.....N................#",
+      "#.................s.....xx.......u......G.....N...C.....y......#",
       "#=======##################################################.v..##",
       "#..............................l....#...l..........l...........#",
       "#.v..................m..............#..........................#",
       "#..====.............................#........v.................#",
       "#...................................B...............w..........#",
-      "#s....t..f........C.......g.........B.f.....C..................#",
-      "##################################################...#=========#",
-      "#.......l...............#...........l.............w............#",
-      "#....v..................#........................m..........w..#",
-      "#.......................#...............................====...#",
-      "#.......................R......................................#",
-      "#.............C..s......R..t....f.xf........b..................#",
+      "#s....t..f........C.......g...h.....B.f.....C..................#",
+      "##################################################...#===:::===#",
+      "#.......l...............#...........l.............w......:::...#",
+      "#....v..................#........................m.......:::w..#",
+      "#.......................#................................:::...#",
+      "#.......................R................................:::...#",
+      "#.............C..s..d...R..t....f.xf........b.......o..S.MMM...#",
       "#======#####################################...#################",
-      "#......l...................................l....#.......l......#",
-      "#...............................................#.............v#",
-      "#.====..................m......w.........r......#........m.....#",
-      "#........................................x......Y..............E",
-      "#....s..C.......................P.......xx......Y.......C......E",
+      "#......l...................................l....#.......l...#..#",
+      "#..o............................................#...........#.v#",
+      "#.====..................m......w.........r......#........m..#..#",
+      "#........................................x......Y...........N..E",
+      "#....s..C.......d...............P.......xx......Y...h...C...N..E",
       "################################################################",
     ] },
   ];
@@ -426,16 +475,41 @@
   };
 
   // ---------- Computer tasks ----------
+  // The same kinds of tasks as in Liczożerca: the result r is at most max.
   const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
   const TASKS = {
-    add() {
-      const sum = randInt(2, MAX_SUM), a = randInt(1, sum - 1);
-      return { text: `${a} + ${sum - a} = ?`, answer: sum };
-    },
+    add: { name: "DODAWANIE", sym: "+", gen(max) { const r = randInt(2, max), a = randInt(1, r - 1); return [a, r - a, r]; } },
+    sub: { name: "ODEJMOWANIE", sym: "-", gen(max) { const r = randInt(1, max - 1), a = randInt(r + 1, max); return [a, a - r, r]; } },
+    mul: { name: "MNOŻENIE", sym: "×", gen(max) {
+      // prefer real multiplications (no ×1): pick a result that has a pair of factors >= 2
+      const results = [];
+      for (let n = 4; n <= max; n++) for (let a = 2; a * a <= n; a++) if (n % a === 0) { results.push(n); break; }
+      const r = results[randInt(0, results.length - 1)], pairs = [];
+      for (let a = 2; a * 2 <= r; a++) if (r % a === 0) pairs.push([a, r / a]);
+      const [a, b] = pairs[randInt(0, pairs.length - 1)];
+      return [a, b, r];
+    } },
+    div: { name: "DZIELENIE", sym: ":", gen(max) { const r = randInt(1, max), b = randInt(2, 9); return [r * b, b, r]; } },
   };
+  const TASK_MODES = { ...Object.fromEntries(Object.entries(TASKS).map(([k, t]) => [k, { name: t.name, sym: t.sym }])),
+                       all: { name: "WSZYSTKO", sym: "+-×:" } };
+  const rangeMax = n => n * 10;
+  let taskSettings = { op: "add", range: 1 };
+  try {
+    const saved = JSON.parse(localStorage.getItem("laboratorium-tasks") || "null");
+    if (saved && TASK_MODES[saved.op] && saved.range >= 1 && saved.range <= NUM_RANGES) taskSettings = { op: saved.op, range: saved.range };
+  } catch (e) { /* ignore */ }
+  const saveTaskSettings = () => { try { localStorage.setItem("laboratorium-tasks", JSON.stringify(taskSettings)); } catch (e) { /* ignore */ } };
+
+  function genTask() {
+    const keys = Object.keys(TASKS);
+    const op = taskSettings.op === "all" ? keys[randInt(0, keys.length - 1)] : taskSettings.op;
+    const [a, b, r] = TASKS[op].gen(rangeMax(taskSettings.range));
+    return { text: `${a} ${TASKS[op].sym} ${b} = ?`, answer: r };
+  }
   function newTask(used) {
-    let t = TASKS.add();
-    for (let i = 0; i < 50 && used.has(t.text); i++) t = TASKS.add();
+    let t = genTask();
+    for (let i = 0; i < 50 && used.has(t.text); i++) t = genTask();
     used.add(t.text);
     return t;
   }
@@ -649,6 +723,127 @@
   const keySprites = {};
   for (const [c, info] of Object.entries(KEY_INFO)) keySprites[c] = makeSprite(KEY_ROWS, { K: info.main, k: info.light });
 
+  // Pistol lying in the lab (G metal, g shine, D dark, W wooden grip), the
+  // small one in the player's hand, and a heart for the lives.
+  const PISTOL_ROWS = [
+    "GGGGGGGGGGG.",
+    "GggggggggggG",
+    "GGGGGGGGGGGG",
+    "DDDWWWD.D...",
+    "..DWWWDDD...",
+    "..WWWW......",
+    "..WWWW......",
+    "..WWW.......",
+  ];
+  const PISTOL_PAL = { G: "#8d96a8", g: "#d6dcea", D: "#3a3f4d", W: "#7a4a24" };
+  const pistolSprite = makeSprite(PISTOL_ROWS, PISTOL_PAL);
+  const HAND_GUN_ROWS = [
+    "GGGGGG",
+    "WWDD..",
+    "WW....",
+  ];
+  const handGun = makeSprite(HAND_GUN_ROWS, PISTOL_PAL);
+  const HEART_ROWS = [
+    ".RR...RR.",
+    "RrRR.RRRR",
+    "RrRRRRRRR",
+    "RRRRRRRRR",
+    ".RRRRRRR.",
+    "..RRRRR..",
+    "...RRR...",
+    "....R....",
+  ];
+  // Mutants from the lab, facing right, two frames each: walking legs, or the
+  // wagging tail of the pig butt. D/d fur, e eye, N nose, T tongue,
+  // P/p pig skin, W eye white, S/n snout, c tail, G green mutant spots.
+  const MUTANT_PAL = {
+    D: "#9a6a3a", d: "#5e3c1e", e: "#ff3b3b", N: "#1d1d2e", T: "#ff7a9a",
+    P: "#f29ab0", p: "#c96a86", W: "#ffffff", S: "#e07a96", n: "#7a2a40", c: "#c96a86", G: "#8fd16a",
+  };
+  const MUTANTS = {
+    d: { name: "PSA", speed: 13, frames: [[
+      "...........d.d.......",
+      "...........DDDD......",
+      "..........DDDeDDN....",
+      "..........DDDDDTT....",
+      "d.........dDDd.......",
+      ".d.......dDDd...d.d..",
+      ".dDDDDDDDDDDDD.DDDD..",
+      "..DDDDDDDDDDDDDDDeDDN",
+      "..DDDDDDDDDDDDDDDDDTT",
+      "..DdDDDDDDDdDD.......",
+      "..DD.DD...DD.DD......",
+      "..dd.dd...dd.dd......",
+    ], [
+      "...........d.d.......",
+      "...........DDDD......",
+      "..........DDDeDDN....",
+      "..........DDDDDTT....",
+      "d.........dDDd.......",
+      ".d.......dDDd...d.d..",
+      ".dDDDDDDDDDDDD.DDDD..",
+      "..DDDDDDDDDDDDDDDeDDN",
+      "..DDDDDDDDDDDDDDDDDTT",
+      "..DdDDDDDDDdDD.......",
+      "...DD.DD...DD.DD.....",
+      "...dd.dd...dd.dd.....",
+    ]] },
+    h: { name: "ŚWINIĘ", speed: 9, frames: [[
+      "...........p.p..",
+      "..........pPPPp.",
+      "...PPPPPPPWWWPP.",
+      "c.PPPPPPPPWeWPSS",
+      ".cPPPPPPPPWWWPSn",
+      "..PPPPPPPPPPPPSS",
+      "..PPPPPPPPPPPPP.",
+      "..pPPPPPPPPPPPp.",
+      "...PP.PP..PP.PP.",
+      "...pp.pp..pp.pp.",
+    ], [
+      "...........p.p..",
+      "..........pPPPp.",
+      "...PPPPPPPWWWPP.",
+      "c.PPPPPPPPWeWPSS",
+      ".cPPPPPPPPWWWPSn",
+      "..PPPPPPPPPPPPSS",
+      "..PPPPPPPPPPPPP.",
+      "..pPPPPPPPPPPPp.",
+      "..PP..PP.PP..PP.",
+      "..pp..pp.pp..pp.",
+    ]].map(f => f.map(r => r.replace("e", "N"))) },
+    u: { name: "ŚWIŃSKI TYŁEK", speed: 0, frames: [[
+      ".....cc.......",
+      "....c..c......",
+      ".....c.c......",
+      "..PPPPPPPPPP..",
+      ".PPGPPPpPPPPP.",
+      "PPPPPPPpPPPGPP",
+      "PPPPPPPpPPPPPP",
+      "PPGPPPPpPPPPPP",
+      ".PPPPPPpPPPPP.",
+      "..pPPp...pPPp.",
+      "..pp......pp..",
+    ], [
+      ".......cc.....",
+      "......c..c....",
+      "......c.c.....",
+      "..PPPPPPPPPP..",
+      ".PPGPPPpPPPPP.",
+      "PPPPPPPpPPPGPP",
+      "PPPPPPPpPPPPPP",
+      "PPGPPPPpPPPPPP",
+      ".PPPPPPpPPPPP.",
+      "..pPPp...pPPp.",
+      "..pp......pp..",
+    ]] },
+  };
+  for (const m of Object.values(MUTANTS)) {
+    m.sprites = m.frames.map(rows => makeSprite(rows, MUTANT_PAL));
+    m.w = m.frames[0][0].length; m.h = m.frames[0].length;
+  }
+  const heartImage = makeSprite(HEART_ROWS, { R: "#ff3b3b", r: "#ffb0a0" }).toDataURL();
+  const pistolImage = pistolSprite.toDataURL();
+
   // ---------- Sound (tiny chiptune blips) ----------
   let audio = null, soundOn = true;
   try { soundOn = localStorage.getItem("laboratorium-sound") !== "off"; } catch (e) { /* ignore */ }
@@ -680,6 +875,14 @@
     alarm()  { [660, 880, 660, 880, 1046].forEach((f, i) => beep(f, 0.16, "square", 0.05, null, 0.35 + i * 0.17)); },
     win()    { [523, 659, 784, 659, 784, 1046].forEach((f, i) => beep(f, 0.12, "square", 0.06, null, i * 0.11)); },
     start()  { [262, 330, 392, 523].forEach((f, i) => beep(f, 0.09, "square", 0.05, null, i * 0.08)); },
+    shoot()  { beep(900, 0.09, "square", 0.05, 180); beep(120, 0.08, "sawtooth", 0.04, 60); },
+    empty()  { beep(1500, 0.02, "square", 0.03); beep(1100, 0.02, "square", 0.03, null, 0.05); },
+    hit()    { beep(400, 0.05, "triangle", 0.04, 200); },
+    gun()    { [330, 494, 659, 988].forEach((f, i) => beep(f, 0.07, "square", 0.05, null, i * 0.06)); },
+    splat()  { beep(180, 0.25, "sawtooth", 0.06, 40); beep(700, 0.12, "square", 0.04, 1400, 0.05); },
+    lever()  { beep(500, 0.05, "square", 0.05); beep(300, 0.08, "square", 0.05, null, 0.06); },
+    hurt()   { beep(300, 0.4, "sawtooth", 0.07, 60); },
+    over()   { [392, 330, 262, 196].forEach((f, i) => beep(f, 0.2, "square", 0.06, null, i * 0.2)); },
   };
 
   // ---------- Levels ----------
@@ -688,7 +891,8 @@
     if (rows.some(r => r.length !== w)) throw new Error(`${def.name}: rows of different lengths`);
     const world = {
       name: def.name, w, h, tiles: new Array(w * h).fill("."), doorAt: new Array(w * h).fill(null),
-      decor: [], doors: [], keys: [], computers: [], exit: null, start: null,
+      decor: [], doors: [], pinDoors: [], keys: [], pistols: [], computers: [], lifts: [], switches: [], enemies: [],
+      exit: null, start: null,
     };
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
       const ch = rows[y][x], i = y * w + x;
@@ -697,17 +901,36 @@
       else if (ch === "P") world.start = { x, y };
       else if (ch === "C") world.computers.push({ x, y, n: world.computers.length + 1, solved: false, task: null });
       else if ("rgby".includes(ch)) world.keys.push({ x, y, color: ch, taken: false });
-      else if ("RGBYE".includes(ch)) {
+      else if (ch === "o") world.pistols.push({ x, y, taken: false });
+      else if (ch === "S") world.switches.push({ x, y, lift: null });
+      else if (MUTANTS[ch]) {
+        const m = MUTANTS[ch];
+        world.enemies.push({ kind: ch, x: x * TILE + (TILE - m.w) / 2, y: (y + 1) * TILE - m.h, w: m.w, h: m.h,
+                             dir: -1, t: Math.random() * 2, dead: false });
+      } else if (ch === "M" && rows[y][x - 1] !== "M") {
+        let x2 = x, top = y;
+        while (rows[y][x2 + 1] === "M") x2++;
+        while (top > 0 && rows[top - 1][x] === ":") top--;
+        world.lifts.push({ x, w: x2 - x + 1, top: top * TILE, bottom: y * TILE, y: y * TILE, on: false, dir: -1, wait: 0 });
+      } else if ("RGBYEN".includes(ch)) {
         let d = y > 0 && rows[y - 1][x] === ch ? world.doorAt[i - w] : null;
         if (!d) {
-          d = { x, y, h: 0, color: ch === "E" ? null : ch.toLowerCase(), open: false, anim: 0 };
-          if (ch === "E") world.exit = d; else world.doors.push(d);
+          d = { x, y, h: 0, color: "EN".includes(ch) ? null : ch.toLowerCase(), open: false, anim: 0 };
+          if (ch === "E") world.exit = d;
+          else if (ch === "N") { d.pin = true; d.tasks = null; d.done = 0; world.pinDoors.push(d); }
+          else world.doors.push(d);
         }
         d.h++;
         world.doorAt[i] = d;
       }
     }
     if (!world.start || !world.exit) throw new Error(`${def.name}: needs P and E`);
+    // every switch works the lift nearest to it
+    for (const sw of world.switches) {
+      const dist = l => Math.hypot(l.x + l.w / 2 - sw.x, l.bottom / TILE - sw.y);
+      sw.lift = world.lifts.reduce((a, b) => (!a || dist(b) < dist(a) ? b : a), null);
+      if (!sw.lift) throw new Error(`${def.name}: a switch without a lift`);
+    }
     world.solid = (tx, ty) => {
       if (tx < 0 || ty < 0 || tx >= w || ty >= h) return true;
       const t = world.tiles[ty * w + tx];
@@ -743,8 +966,15 @@
     const left = Math.floor(p.x / TILE), right = Math.floor((p.x + PW - 0.001) / TILE);
     const prevBottom = p.y + PH;
     p.y += dy;
-    p.onGround = false;
+    p.onGround = false; p.onLift = null;
     if (dy > 0) {
+      for (const l of world.lifts) {
+        if (p.x >= (l.x + l.w) * TILE || p.x + PW <= l.x * TILE) continue;
+        if (prevBottom <= l.y + 3 && p.y + PH >= l.y) {
+          p.y = l.y - PH; p.vy = 0; p.onGround = true; p.onLift = l;
+          return;
+        }
+      }
       const ty = Math.floor((p.y + PH - 0.001) / TILE);
       for (let tx = left; tx <= right; tx++) {
         if (world.solid(tx, ty) || (world.platform(tx, ty) && prevBottom <= ty * TILE + 0.01)) {
@@ -782,6 +1012,8 @@
   const overlaps = (p, r, pad = 0) =>
     p.x - pad < r.x + r.w && p.x + PW + pad > r.x && p.y - pad < r.y + r.h && p.y + PH + pad > r.y;
   const keyRect = k => ({ x: k.x * TILE + 2, y: k.y * TILE + 4, w: 12, h: 10 });
+  const switchRect = sw => ({ x: sw.x * TILE + 2, y: sw.y * TILE, w: 12, h: TILE });
+  const pistolRect = g => ({ x: g.x * TILE + 1, y: g.y * TILE + 6, w: 14, h: 10 });
   const doorRect = d => rectOf(d.x, d.y, 1, d.h);
   // Standing at the computer: the player's middle is over it and their feet on its row.
   const atComputer = (p, c) => Math.abs(p.x + PW / 2 - (c.x * TILE + TILE / 2)) < 11 &&
@@ -796,20 +1028,23 @@
   const coarse = window.matchMedia("(pointer: coarse)").matches;
 
   // ---------- Game state ----------
-  // menu | creator | intro | playing | paused | terminal | done
+  // menu | creator | intro | playing | paused | terminal | done | over
   let state = "menu";
   let world = null, player = null, sprites = characterSprites(look);
   let inventory = new Set(), usedTasks = new Set();
-  let run = null;               // { startLevel, level, time, mistakes }
+  // the pistol, bullets and lives stay with the player from level to level
+  let run = null;               // { startLevel, level, time, mistakes, lives, pistol, ammo }
+  let bullets = [], fireCooldown = 0, hurtTimer = 0, gunHint = 0;
   let levelTime = 0, levelMistakes = 0;
   let cam = { x: 0, y: 0 };
   let particles = [];
   let nearComputer = null, activeComputer = null, terminalLock = false, pendingSolve = false;
+  let nearPin = null, activePin = null, nearSwitch = null;
   let lockedCooldown = 0;
   let menuLevel = 0;
   let overlayAction = null;
   const held = { left: false, right: false, jump: false };
-  const pressed = { jump: false, use: false };
+  const pressed = { jump: false, use: false, fire: false };
 
   const fmtTime = s => {
     s = Math.floor(s);
@@ -931,6 +1166,15 @@
       }
     }
     w.decor.forEach(d => drawDecor(g, d, d.x * TILE, d.y * TILE, w));
+    // lift shafts: a dark slot with a rail on each side
+    for (const l of w.lifts) {
+      const x0 = l.x * TILE, x1 = (l.x + l.w) * TILE, y0 = l.top, y1 = l.bottom + TILE;
+      g.fillStyle = "rgba(0,0,0,.28)"; g.fillRect(x0 + 3, y0, x1 - x0 - 6, y1 - y0);
+      for (const rx of [x0 + 1, x1 - 3]) {
+        px(g, rx, y0, 2, y1 - y0, "#4a5578"); px(g, rx, y0, 1, y1 - y0, "#6b7699");
+        for (let y = y0 + 4; y < y1; y += 8) px(g, rx, y, 2, 1, "#2a3048");
+      }
+    }
     // light cones under the lamps
     w.decor.filter(d => d.ch === "l").forEach(d => {
       for (let i = 0; i < 40; i++) {
@@ -985,6 +1229,57 @@
     if (info) px(ctx, x + 5, y + 1, 6, 1, d.open ? "#3dff6e" : info.light);
   }
 
+  // A door opened with a PIN: steel, with a keypad and a red / green light.
+  function drawPinDoor(d, x, y, t) {
+    const hpx = d.h * TILE;
+    px(ctx, x, y, 16, hpx, "#2a3048");
+    px(ctx, x + 1, y + 1, 14, hpx - 1, "#07080e");
+    const e = d.anim * d.anim * (3 - 2 * d.anim);
+    const py = y + 1 - Math.round(e * (hpx - 3));
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x + 1, y + 1, 14, hpx - 1); ctx.clip();
+    px(ctx, x + 1, py, 14, hpx - 1, "#6f7a92");
+    px(ctx, x + 1, py, 1, hpx - 1, "#a3adc4"); px(ctx, x + 14, py, 1, hpx - 1, "#454d60");
+    px(ctx, x + 2, py + 3, 12, 1, "#454d60"); px(ctx, x + 2, py + hpx - 5, 12, 1, "#454d60");
+    px(ctx, x + 4, py + 9, 8, 12, "#1b1f2b");
+    px(ctx, x + 5, py + 10, 6, 3, d.done ? "#1d5a2c" : "#0b2a16");
+    for (let i = 0; i < d.done; i++) px(ctx, x + 5 + i + (i > 1 ? 1 : 0), py + 11, 1, 1, "#3dff6e");
+    for (let j = 0; j < 3; j++) for (let i = 0; i < 3; i++) px(ctx, x + 5 + i * 2, py + 14 + j * 2, 1, 1, "#cfd6e6");
+    ctx.restore();
+    const lit = d.open ? "#3dff6e" : (Math.floor(t * 2) % 2 === 0 ? "#ff3b3b" : "#7a1414");
+    px(ctx, x + 6, y + 1, 4, 1, lit);
+  }
+
+  function drawLift(l, x, y) {
+    const w = l.w * TILE;
+    px(ctx, x + 1, y, w - 2, 5, "#8d96a8");
+    px(ctx, x + 1, y, w - 2, 1, "#d6dcea");
+    for (let i = 2; i < w - 2; i += 6) px(ctx, x + i, y + 2, 3, 2, "#f2c81a");
+    px(ctx, x + 1, y + 4, w - 2, 1, "#3a3f4d");
+    px(ctx, x + w / 2 - 2, y + 5, 4, 2, "#3a3f4d");
+    px(ctx, x + w / 2 - 1, y + 5, 2, 1, l.on ? "#3dff6e" : "#ff3b3b");
+  }
+
+  function drawSwitch(sw, x, y) {
+    const on = sw.lift.on;
+    px(ctx, x + 4, y + 1, 8, 13, "#0a0a0a");
+    px(ctx, x + 5, y + 2, 6, 11, "#3a3f52");
+    px(ctx, x + 5, y + 2, 6, 1, "#5a6070");
+    px(ctx, x + 7, y + 6, 2, 3, "#111");
+    // the lever points up when the lift is on
+    px(ctx, x + 7, on ? y + 3 : y + 8, 2, 4, "#cfd6e6");
+    px(ctx, x + 6, on ? y + 2 : y + 11, 4, 2, on ? "#3dff6e" : "#ff3b3b");
+  }
+
+  function drawMutant(e, x, y, t) {
+    const m = MUTANTS[e.kind];
+    const spr = m.sprites[Math.floor(e.t / (m.speed ? 0.22 : 0.5)) % 2];
+    const sx = Math.round(x) - 1, sy = Math.round(y) - 1;
+    if (e.dir < 0 && m.speed) {
+      ctx.save(); ctx.translate(sx + spr.width, sy); ctx.scale(-1, 1); ctx.drawImage(spr, 0, 0); ctx.restore();
+    } else ctx.drawImage(spr, sx, sy);
+  }
+
   function drawExitSign(d, x, y, t) {
     const lit = d.open ? (Math.floor(t * 3) % 2 === 0 ? "#3dff6e" : "#1d9a42") : "#ff3b3b";
     px(ctx, x + 1, y - 8, 14, 7, "#0a0a0a");
@@ -998,14 +1293,28 @@
     px(ctx, dir > 0 ? x + 3 : x + 7, y - 5, 6, 1, lit);
   }
 
+  // Where the front hand is in each sprite frame (pixels of the 12 x 22 grid).
+  const HAND = { stand: [9, 15], walk: [10, 14], jump: [10, 10] };
+  function playerFrame() {
+    if (!player.onGround) return "jump";
+    return player.vx && Math.floor(player.walkT / 0.14) % 2 === 0 ? "walk" : "stand";
+  }
+  // the end of the gun's barrel, in level pixels
+  function muzzle() {
+    const [hx, hy] = HAND[playerFrame()];
+    const lx = hx + 7;
+    return { x: player.x - 2 + (player.facing < 0 ? 14 - lx : lx), y: player.y + hy };
+  }
+
   function drawPlayer(x, y) {
-    let spr = sprites.stand;
-    if (!player.onGround) spr = sprites.jump;
-    else if (player.vx) spr = Math.floor(player.walkT / 0.14) % 2 === 0 ? sprites.walk : sprites.stand;
+    if (hurtTimer > 0 && Math.floor(hurtTimer * 12) % 2 === 0) return;   // blinking after losing a life
+    const name = playerFrame(), spr = sprites[name];
     const sx = Math.round(x) - 2, sy = Math.round(y) - 1;
-    if (player.facing < 0) {
-      ctx.save(); ctx.translate(sx + spr.width, sy); ctx.scale(-1, 1); ctx.drawImage(spr, 0, 0); ctx.restore();
-    } else ctx.drawImage(spr, sx, sy);
+    ctx.save();
+    if (player.facing < 0) { ctx.translate(sx + spr.width, sy); ctx.scale(-1, 1); } else ctx.translate(sx, sy);
+    ctx.drawImage(spr, 0, 0);
+    if (run.pistol) { const [hx, hy] = HAND[name]; ctx.drawImage(handGun, hx, hy); }
+    ctx.restore();
   }
 
   function burst(x, y, color, n = 14) {
@@ -1025,6 +1334,9 @@
 
     for (const c of world.computers) drawComputer(c, c.x * TILE - cx, c.y * TILE - cy, t);
     for (const d of world.doors) drawDoor(d, d.x * TILE - cx, d.y * TILE - cy, t);
+    for (const d of world.pinDoors) drawPinDoor(d, d.x * TILE - cx, d.y * TILE - cy, t);
+    for (const sw of world.switches) drawSwitch(sw, sw.x * TILE - cx, sw.y * TILE - cy);
+    for (const l of world.lifts) drawLift(l, l.x * TILE - cx, Math.round(l.y) - cy);
     drawDoor(world.exit, world.exit.x * TILE - cx, world.exit.y * TILE - cy, t);
     drawExitSign(world.exit, world.exit.x * TILE - cx, world.exit.y * TILE - cy, t);
     for (const k of world.keys) {
@@ -1034,13 +1346,27 @@
       if (Math.floor(t * 4 + k.x) % 6 === 0) px(ctx, kx + 2, ky - 2, 1, 1, "#fff");
       ctx.drawImage(keySprites[k.color], kx, ky);
     }
+    for (const g of world.pistols) {
+      if (g.taken) continue;
+      const bob = Math.round(Math.sin(t * 3 + g.x) * 1.5);
+      const gx = g.x * TILE - cx + 1, gy = g.y * TILE - cy + 6 + bob;
+      if (Math.floor(t * 4 + g.x) % 6 === 0) px(ctx, gx + 3, gy - 1, 1, 1, "#fff");
+      ctx.drawImage(pistolSprite, gx, gy);
+    }
+    for (const e of world.enemies) if (!e.dead) drawMutant(e, e.x - cx, e.y - cy, t);
+    for (const b of bullets) {
+      const bx = Math.round(b.x - cx), by = Math.round(b.y - cy);
+      px(ctx, b.vx > 0 ? bx - 6 : bx + 1, by, 5, 1, "rgba(255,216,0,.35)");
+      px(ctx, bx - 1, by - 1, 3, 2, "#fff2a0");
+    }
     for (const p of particles) px(ctx, Math.round(p.x - cx), Math.round(p.y - cy), 2, 2, p.color);
 
     drawPlayer(player.x - cx, player.y - cy);
 
-    // "use me" arrow over the computer the player stands at
-    if (nearComputer && state === "playing") {
-      const ax = nearComputer.x * TILE - cx + 8, ay = nearComputer.y * TILE - cy - 12 - Math.round(Math.abs(Math.sin(t * 5)) * 3);
+    // "use me" arrow over the computer, PIN door or switch the player stands at
+    const near = nearComputer || nearPin || nearSwitch;
+    if (near && state === "playing") {
+      const ax = near.x * TILE - cx + 8, ay = near.y * TILE - cy - 12 - Math.round(Math.abs(Math.sin(t * 5)) * 3);
       px(ctx, ax - 3, ay, 7, 1, "#ffd800"); px(ctx, ax - 2, ay + 1, 5, 1, "#ffd800"); px(ctx, ax - 1, ay + 2, 3, 1, "#ffd800"); px(ctx, ax, ay + 3, 1, 1, "#ffd800");
     }
     // once the exit is open, an arrow at the edge of the screen points at it
@@ -1075,12 +1401,30 @@
     $("hudTime").textContent = fmtTime(run.time);
     const solved = world.computers.filter(c => c.solved).length;
     $("hudTasks").textContent = `${solved}/${world.computers.length}`;
+    updateHudLives(); updateHudAmmo();
   }
   function updateHudKeys() {
     const colors = [...new Set(world.keys.map(k => k.color))];
     $("hudKeys").innerHTML = colors.length
       ? colors.map(c => `<img src="${keyImages[c]}" alt="${KEY_INFO[c].name} KLUCZ" title="${KEY_INFO[c].name} KLUCZ" class="${inventory.has(c) ? "" : "missing"}">`).join("")
       : `<span class="none">BRAK</span>`;
+  }
+  let hudLivesShown = -1, hudAmmoShown = -1;   // what the HUD shows now (-1: not drawn yet)
+  function updateHudLives() {
+    if (hudLivesShown === run.lives) return;
+    hudLivesShown = run.lives;
+    $("hudLives").innerHTML = Array.from({ length: START_LIVES }, (_, i) =>
+      `<img src="${heartImage}" alt="" class="${i < run.lives ? "" : "lost"}">`).join("");
+    $("hudLives").title = `ŻYCIA: ${run.lives}`;
+  }
+  function updateHudAmmo() {
+    const v = run.pistol ? run.ammo : null;
+    if (hudAmmoShown === v) return;
+    hudAmmoShown = v;
+    const el = $("hudAmmo");
+    el.innerHTML = run.pistol ? `<img src="${pistolImage}" alt="PISTOLET"><span class="val">${run.ammo}</span>` : `<span class="none">BRAK</span>`;
+    el.classList.toggle("empty", !!run.pistol && run.ammo === 0);
+    $("btnFire").classList.toggle("hidden", !run.pistol);
   }
   const keyImages = {};
   for (const c of Object.keys(KEY_INFO)) keyImages[c] = keySprites[c].toDataURL();
@@ -1114,7 +1458,8 @@
   }
 
   function startRun(level) {
-    run = { startLevel: level, level, time: 0, mistakes: 0 };
+    run = { startLevel: level, level, time: 0, mistakes: 0, lives: START_LIVES, pistol: false, ammo: 0 };
+    hudLivesShown = -1; hudAmmoShown = -1;
     sfx.start();
     showScreen("game");
     loadLevel(level);
@@ -1125,8 +1470,9 @@
     world = parseLevel(LEVELS[i]);
     world.layer = renderStatic(world);
     player = newPlayer(world.start);
-    inventory = new Set(); usedTasks = new Set(); particles = [];
-    levelTime = 0; levelMistakes = 0; nearComputer = null;
+    inventory = new Set(); usedTasks = new Set(); particles = []; bullets = [];
+    fireCooldown = 0; hurtTimer = 0;
+    levelTime = 0; levelMistakes = 0; nearComputer = nearPin = nearSwitch = null;
     sprites = characterSprites(look);
     updateCamera(1, true);
     updateHud(); updateHudKeys(); hideToast();
@@ -1135,6 +1481,9 @@
     showOverlay(`
       <div class="big">POZIOM ${i + 1}: ${escapeHtml(world.name)}</div>
       <div>KOMPUTERY DO ODBLOKOWANIA: <span class="sub">${world.computers.length}</span>${nKeys ? ` · KLUCZE: <span class="sub">${nKeys}</span>` : ""}</div>
+      <div>ZADANIA: <span class="sub">${TASK_MODES[taskSettings.op].name}</span> · WYNIK DO <span class="sub">${rangeMax(taskSettings.range)}</span></div>
+      ${world.enemies.length ? `<div style="color:var(--red)">UWAGA, MUTANTY! MOŻESZ JE PRZESKOCZYĆ${run.pistol ? " ALBO ZASTRZELIĆ" : ""}.</div>` : ""}
+      <div>ŻYCIA: <span class="sub">${run.lives}</span> · ${run.pistol ? `NABOJE: <span class="sub">${run.ammo}</span>` : "PISTOLET: <span class=\"sub\">POSZUKAJ GO!</span>"}</div>
       <div class="dim">ROZWIĄŻ ZADANIA NA WSZYSTKICH KOMPUTERACH,<br>A OTWORZY SIĘ WYJŚCIE.</div>
       <button class="main-btn" data-primary>START</button>`, play);
   }
@@ -1142,7 +1491,7 @@
   function play() {
     hideOverlay();
     Object.keys(held).forEach(k => { held[k] = false; });
-    pressed.jump = pressed.use = false;
+    pressed.jump = pressed.use = pressed.fire = false;
     document.querySelectorAll(".touch button.on").forEach(b => b.classList.remove("on"));
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     state = "playing";
@@ -1177,6 +1526,103 @@
     }
   }
 
+  // Lose a life: the player blinks for a moment, and at 0 lives the game is over.
+  function loseLife() {
+    if (hurtTimer > 0 || state !== "playing") return;
+    run.lives = Math.max(0, run.lives - 1);
+    updateHudLives();
+    sfx.hurt();
+    burst(player.x + PW / 2, player.y + PH / 2, "#ff3b3b", 18);
+    if (run.lives > 0) { hurtTimer = SAFE_TIME; player.vy = Math.min(player.vy, -170); toast(`AUĆ! ZOSTAŁO ŻYĆ: ${run.lives}`, 2, 3, "bad"); return; }
+    state = "over";
+    hideToast();
+    sfx.over();
+    showOverlay(`
+      <div class="big" style="color:var(--red)">KONIEC GRY</div>
+      <div>${girl() ? "STRACIŁAŚ" : "STRACIŁEŚ"} WSZYSTKIE ŻYCIA NA POZIOMIE ${run.level + 1}.</div>
+      <div>ŁĄCZNY CZAS: <span class="sub">${fmtTime(run.time)}</span> · BŁĘDY: <span class="sub">${run.mistakes}</span></div>
+      <div class="btns"><button class="main-btn" data-primary>JESZCZE RAZ</button><button class="main-btn alt" data-menu>MENU</button></div>`,
+      () => startRun(run.startLevel));
+  }
+
+  function shoot() {
+    if (!run.pistol) {
+      if (!gunHint) { gunHint = 2.5; toast("NIE MASZ PISTOLETU - POSZUKAJ GO!", 2.2, 2, "bad"); }
+      return;
+    }
+    if (fireCooldown > 0) return;
+    if (run.ammo <= 0) {
+      fireCooldown = FIRE_COOLDOWN;
+      sfx.empty();
+      toast("BRAK NABOJÓW! ZNAJDŹ KOLEJNY PISTOLET.", 2.2, 2, "bad");
+      return;
+    }
+    run.ammo--; fireCooldown = FIRE_COOLDOWN;
+    updateHudAmmo();
+    sfx.shoot();
+    const m = muzzle();
+    bullets.push({ x: m.x, y: m.y, vx: player.facing * BULLET_SPEED, life: 1.4 });
+  }
+
+  function updateBullets(dt) {
+    for (const b of bullets) {
+      b.x += b.vx * dt; b.life -= dt;
+      const e = world.enemies.find(e => !e.dead && b.x >= e.x && b.x <= e.x + e.w && b.y >= e.y - 1 && b.y <= e.y + e.h);
+      if (e) {
+        e.dead = true; b.life = 0;
+        sfx.splat();
+        burst(e.x + e.w / 2, e.y + e.h / 2, e.kind === "d" ? "#9a6a3a" : "#f29ab0", 20);
+        burst(e.x + e.w / 2, e.y + e.h / 2, "#8fd16a", 8);
+        toast("MUTANT POKONANY!", 1.6, 2, "good");
+        continue;
+      }
+      if (world.solid(Math.floor(b.x / TILE), Math.floor(b.y / TILE))) {
+        b.life = 0;
+        sfx.hit();
+        for (let i = 0; i < 6; i++) particles.push({
+          x: b.x - Math.sign(b.vx) * 2, y: b.y, vx: -Math.sign(b.vx) * (20 + Math.random() * 60), vy: -30 - Math.random() * 60,
+          life: 0.25 + Math.random() * 0.2, color: i % 2 ? "#ffd800" : "#fff2a0",
+        });
+      }
+    }
+    bullets = bullets.filter(b => b.life > 0);
+  }
+
+  function updateLifts(dt) {
+    for (const l of world.lifts) {
+      if (!l.on) continue;
+      if (l.wait > 0) { l.wait -= dt; continue; }
+      const old = l.y;
+      l.y += l.dir * LIFT_SPEED * dt;
+      if (l.y <= l.top) { l.y = l.top; l.dir = 1; l.wait = LIFT_WAIT; }
+      if (l.y >= l.bottom) { l.y = l.bottom; l.dir = -1; l.wait = LIFT_WAIT; }
+      // carry whoever stands on it
+      if (player.onLift === l && player.onGround) player.y += l.y - old;
+    }
+  }
+
+  // Mutants walk to the end of their floor and turn back. They never step
+  // off it, nor walk into a wall, a closed door, the exit or a computer.
+  function mutantTurns(e, nx) {
+    const front = e.dir > 0 ? nx + e.w - 0.001 : nx;
+    const tx = Math.floor(front / TILE), ty = Math.floor((e.y + e.h - 1) / TILE);
+    if (world.solid(tx, ty) || !(world.solid(tx, ty + 1) || world.platform(tx, ty + 1))) return true;
+    if (world.doorAt[ty * world.w + tx] === world.exit) return true;
+    return world.computers.some(c => c.x === tx && c.y === ty);
+  }
+  function updateMutants(dt) {
+    for (const e of world.enemies) {
+      if (e.dead) continue;
+      e.t += dt;
+      const speed = MUTANTS[e.kind].speed;
+      if (speed) {
+        const nx = e.x + e.dir * speed * dt;
+        if (mutantTurns(e, nx)) e.dir = -e.dir; else e.x = nx;
+      }
+      if (hurtTimer <= 0 && overlaps(player, { x: e.x + 2, y: e.y + 2, w: e.w - 4, h: e.h - 2 })) loseLife();
+    }
+  }
+
   // ---------- Update ----------
   function updateCamera(dt, snap = false) {
     const maxX = world.w * TILE - VIEW_W, maxY = world.h * TILE - VIEW_H;
@@ -1189,6 +1635,7 @@
 
   function update(dt) {
     levelTime += dt; run.time += dt;
+    updateLifts(dt);
     const inp = { dir: (held.right ? 1 : 0) - (held.left ? 1 : 0), jumpHeld: held.jump, jumpPressed: pressed.jump };
     pressed.jump = false;
     const r = stepPlayer(player, inp, world, dt);
@@ -1196,6 +1643,25 @@
     if (r.landed) sfx.land();
     player.walkT = player.onGround && player.vx ? player.walkT + dt : 0;
     lockedCooldown = Math.max(0, lockedCooldown - dt);
+    fireCooldown = Math.max(0, fireCooldown - dt);
+    hurtTimer = Math.max(0, hurtTimer - dt);
+    gunHint = Math.max(0, gunHint - dt);
+    if (pressed.fire) { pressed.fire = false; shoot(); }
+    updateBullets(dt);
+    updateMutants(dt);
+    if (state !== "playing") return;
+
+    for (const g of world.pistols) {
+      if (g.taken || !overlaps(player, pistolRect(g))) continue;
+      g.taken = true;
+      const first = !run.pistol;
+      run.pistol = true; run.ammo += AMMO_PER_PISTOL;
+      updateHudAmmo();
+      sfx.gun();
+      burst(g.x * TILE + 8, g.y * TILE + 10, "#d6dcea");
+      toast(first ? `MASZ PISTOLET! NABOJE: ${run.ammo}. STRZELASZ ${coarse ? "PRZYCISKIEM STRZAŁ" : "SPACJĄ"}.`
+                  : `+${AMMO_PER_PISTOL} NABOJÓW! MASZ ICH TERAZ ${run.ammo}.`, 3, 2, "good");
+    }
 
     for (const k of world.keys) {
       if (k.taken || !overlaps(player, keyRect(k))) continue;
@@ -1220,6 +1686,7 @@
         toast(`DRZWI ZAMKNIĘTE! POTRZEBNY ${info.name} KLUCZ.`, 2.2, 2, "bad");
       }
     }
+    for (const d of world.pinDoors) if (d.open) d.anim = Math.min(1, d.anim + dt * 2);
     const exit = world.exit;
     if (exit.open) {
       exit.anim = Math.min(1, exit.anim + dt * 1.5);
@@ -1231,11 +1698,23 @@
       toast(`WYJŚCIE ZAMKNIĘTE! ROZWIĄŻ WSZYSTKIE ZADANIA (${solved}/${world.computers.length}).`, 2.5, 2, "bad");
     }
 
+    const useKey = coarse ? "UŻYJ" : "E";
     nearComputer = world.computers.find(c => !c.solved && atComputer(player, c)) || null;
-    if (nearComputer) toast(coarse ? "NACIŚNIJ UŻYJ, ABY WŁĄCZYĆ KOMPUTER" : "NACIŚNIJ E, ABY WŁĄCZYĆ KOMPUTER", 0.15, 0);
+    nearPin = nearComputer ? null : world.pinDoors.find(d => !d.open && overlaps(player, doorRect(d), 6)) || null;
+    nearSwitch = nearComputer || nearPin ? null : world.switches.find(sw => player.onGround && overlaps(player, switchRect(sw))) || null;
+    if (nearComputer) toast(`NACIŚNIJ ${useKey}, ABY WŁĄCZYĆ KOMPUTER`, 0.15, 0);
+    else if (nearPin) toast(`DRZWI NA PIN! NACIŚNIJ ${useKey} I ROZWIĄŻ ${PIN_TASKS} ZADANIA`, 0.15, 0);
+    else if (nearSwitch) toast(`WINDA: NACIŚNIJ ${useKey}, ABY JĄ ${nearSwitch.lift.on ? "WYŁĄCZYĆ" : "WŁĄCZYĆ"}`, 0.15, 0);
     if (pressed.use) {
       pressed.use = false;
       if (nearComputer) { openTerminal(nearComputer); return; }
+      if (nearPin) { openPinPad(nearPin); return; }
+      if (nearSwitch) {
+        const l = nearSwitch.lift;
+        l.on = !l.on;
+        sfx.lever();
+        toast(l.on ? "WINDA WŁĄCZONA!" : "WINDA WYŁĄCZONA.", 1.5, 2, l.on ? "good" : "");
+      }
     }
 
     for (const p of particles) { p.vy += 300 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; }
@@ -1243,29 +1722,59 @@
     updateCamera(dt);
   }
 
-  // ---------- Computer terminal ----------
-  function openTerminal(c) {
-    state = "terminal";
-    activeComputer = c;
-    terminalLock = false;
-    if (!c.task) c.task = newTask(usedTasks);
-    $("tNum").textContent = `TERMINAL ${c.n}/${world.computers.length}`;
-    $("tQuestion").textContent = c.task.text;
+  // ---------- Computer terminal (also the keypad of a door with a PIN) ----------
+  function showTerminal() {
     tInput.value = "";
     tInput.readOnly = coarse;     // on phones the keypad below is the keyboard
-    tMsg.textContent = " "; tMsg.className = "t-msg";
+    tMsg.textContent = "\u00a0"; tMsg.className = "t-msg";
     $("terminal").classList.remove("hidden");
     hideToast();
     sfx.boot();
     if (!coarse) setTimeout(() => tInput.focus(), 30);
   }
 
+  function openTerminal(c) {
+    state = "terminal";
+    activeComputer = c; activePin = null;
+    terminalLock = false;
+    if (!c.task) c.task = newTask(usedTasks);
+    $("tHead").textContent = "LAB-OS 3.1";
+    $("tNum").textContent = `TERMINAL ${c.n}/${world.computers.length}`;
+    $("tLine1").textContent = "> SYSTEM ZABLOKOWANY.";
+    $("tLine2").textContent = "> PODAJ WYNIK, ABY GO ODBLOKOWAĆ:";
+    $("tPin").classList.add("hidden");
+    $("tQuestion").textContent = c.task.text;
+    showTerminal();
+  }
+
+  // The PIN is the answers of its tasks; the ones solved stay solved when the keypad is closed.
+  function openPinPad(d) {
+    state = "terminal";
+    activePin = d; activeComputer = null;
+    terminalLock = false;
+    if (!d.tasks) d.tasks = Array.from({ length: PIN_TASKS }, () => newTask(usedTasks));
+    $("tHead").textContent = "ZAMEK SZYFROWY";
+    $("tLine1").textContent = "> DRZWI ZAMKNIĘTE NA PIN.";
+    $("tLine2").textContent = `> ROZWIĄŻ ${PIN_TASKS} ZADANIA - WYNIKI TO PIN:`;
+    $("tPin").classList.remove("hidden");
+    showPinTask(d);
+    showTerminal();
+  }
+  function showPinTask(d) {
+    const cur = Math.min(d.done, PIN_TASKS - 1), t = d.tasks[cur];
+    $("tNum").textContent = `ZADANIE ${cur + 1}/${PIN_TASKS}`;
+    $("tPin").innerHTML = d.tasks.map((t, i) =>
+      `<span class="${i < d.done ? "ok" : i === d.done ? "cur" : ""}">${i < d.done ? t.answer : "?"}</span>`).join("");
+    $("tQuestion").textContent = d.done > cur ? t.text.replace("?", t.answer) : t.text;
+  }
+
   function closeTerminal(silent = false) {
-    if (!activeComputer) return;
+    if (!activeComputer && !activePin) return;
     $("terminal").classList.add("hidden");
     tInput.blur();
-    activeComputer = null;
-    if (pendingSolve) { pendingSolve = false; if (!silent) afterSolve(); }
+    const d = activePin;
+    activeComputer = null; activePin = null;
+    if (pendingSolve) { pendingSolve = false; if (!silent) (d ? pinAccepted(d) : afterSolve()); }
     if (!silent && state === "terminal") play();
   }
 
@@ -1278,18 +1787,38 @@
   }
 
   function submitAnswer() {
-    const c = activeComputer;
-    if (!c || terminalLock) return;
+    const c = activeComputer, d = activePin;
+    if ((!c && !d) || terminalLock) return;
     const v = tInput.value.trim();
     if (!v) return;
-    if (Number(v) === c.task.answer) {
-      c.solved = true;
-      terminalLock = true; pendingSolve = true;
-      $("tQuestion").textContent = c.task.text.replace("?", c.task.answer);
-      tMsg.textContent = "> DOBRZE! DOSTĘP PRZYZNANY."; tMsg.className = "t-msg good";
+    const task = c ? c.task : d.tasks[d.done];
+    if (Number(v) === task.answer) {
+      terminalLock = true;
       sfx.good();
-      burst(c.x * TILE + 8, c.y * TILE + 4, "#3dff6e", 18);
-      setTimeout(() => { if (activeComputer === c) closeTerminal(); }, 1100);
+      if (c) {
+        c.solved = true;
+        pendingSolve = true;
+        $("tQuestion").textContent = c.task.text.replace("?", c.task.answer);
+        tMsg.textContent = "> DOBRZE! DOSTĘP PRZYZNANY."; tMsg.className = "t-msg good";
+        burst(c.x * TILE + 8, c.y * TILE + 4, "#3dff6e", 18);
+        setTimeout(() => { if (activeComputer === c) closeTerminal(); }, 1100);
+        return;
+      }
+      d.done++;
+      showPinTask(d);
+      $("tQuestion").textContent = task.text.replace("?", task.answer);
+      if (d.done < PIN_TASKS) {
+        tMsg.textContent = `> DOBRZE! ZOSTAŁO ZADAŃ: ${PIN_TASKS - d.done}.`; tMsg.className = "t-msg good";
+        setTimeout(() => {
+          if (activePin !== d) return;
+          terminalLock = false; tInput.value = "";
+          clearMsg(); showPinTask(d);
+        }, 900);
+      } else {
+        pendingSolve = true;
+        tMsg.textContent = "> PIN PRZYJĘTY! DRZWI OTWARTE."; tMsg.className = "t-msg good";
+        setTimeout(() => { if (activePin === d) closeTerminal(); }, 1200);
+      }
     } else {
       run.mistakes++; levelMistakes++;
       tMsg.textContent = "> BŁĄD! SPRÓBUJ JESZCZE RAZ."; tMsg.className = "t-msg bad";
@@ -1297,6 +1826,13 @@
       monitor.classList.remove("shake"); void monitor.offsetWidth; monitor.classList.add("shake");
       sfx.bad();
     }
+  }
+
+  function pinAccepted(d) {
+    d.open = true;
+    sfx.door();
+    burst(d.x * TILE + 8, d.y * TILE + 16, "#3dff6e", 18);
+    toast("PIN PRZYJĘTY! DRZWI OTWARTE!", 2.5, 2, "good");
   }
 
   function afterSolve() {
@@ -1334,7 +1870,7 @@
   // ---------- Input ----------
   const KEYMAP = {
     ArrowLeft: "left", KeyA: "left", ArrowRight: "right", KeyD: "right",
-    ArrowUp: "jump", KeyW: "jump", Space: "jump",
+    ArrowUp: "jump", KeyW: "jump", Space: "fire",
     ArrowDown: "use", KeyS: "use", KeyE: "use", Enter: "use", NumpadEnter: "use",
   };
 
@@ -1359,7 +1895,7 @@
       if (e.code === "Enter" && document.activeElement === document.body) { e.preventDefault(); startRun(menuLevel); }
       return;
     }
-    if (state === "intro" || state === "paused" || state === "done") {
+    if (state === "intro" || state === "paused" || state === "done" || state === "over") {
       if (e.code === "Enter" || e.code === "Space") { e.preventDefault(); if (!e.repeat && overlayAction) overlayAction(); }
       else if (state === "paused" && (e.code === "KeyP" || e.code === "Escape")) play();
       return;
@@ -1369,7 +1905,7 @@
     const action = KEYMAP[e.code];
     if (!action) return;
     e.preventDefault();
-    if (action === "use") { if (!e.repeat) pressed.use = true; return; }
+    if (action === "use" || action === "fire") { if (!e.repeat) pressed[action] = true; return; }
     if (action === "jump" && !e.repeat) pressed.jump = true;
     held[action] = true;
   });
@@ -1386,7 +1922,7 @@
       e.preventDefault();
       b.classList.add("on");
       if (state !== "playing") return;
-      if (action === "use") pressed.use = true;
+      if (action === "use" || action === "fire") pressed[action] = true;
       else { if (action === "jump") pressed.jump = true; held[action] = true; }
     };
     const up = e => { e.preventDefault(); b.classList.remove("on"); if (action in held) held[action] = false; };
@@ -1409,6 +1945,27 @@
       b.addEventListener("click", () => { menuLevel = i; buildMenu(); });
       box.appendChild(b);
     });
+    const ops = $("opBtns");
+    ops.innerHTML = "";
+    Object.entries(TASK_MODES).forEach(([k, m]) => {
+      const b = document.createElement("button");
+      b.className = "opt" + (taskSettings.op === k ? " sel" : "");
+      b.innerHTML = `<b>${escapeHtml(m.sym)}</b>${escapeHtml(m.name)}`;
+      b.addEventListener("click", () => { taskSettings.op = k; saveTaskSettings(); buildMenu(); });
+      ops.appendChild(b);
+    });
+    const ranges = $("rangeBtns");
+    ranges.innerHTML = "";
+    for (let n = 1; n <= NUM_RANGES; n++) {
+      const b = document.createElement("button");
+      b.className = "opt" + (taskSettings.range === n ? " sel" : "");
+      b.textContent = n;
+      b.title = `WYNIK DO ${rangeMax(n)}`;
+      b.addEventListener("click", () => { taskSettings.range = n; saveTaskSettings(); buildMenu(); });
+      ranges.appendChild(b);
+    }
+    $("rangeHint").textContent = `WYNIK MAKSYMALNIE ${rangeMax(taskSettings.range)}` +
+      (taskSettings.op === "all" ? " · DZIAŁANIA LOSOWANE PRZY KAŻDYM KOMPUTERZE" : "");
   }
   $("btnPlay").addEventListener("click", () => startRun(menuLevel));
   $("btnCreator").addEventListener("click", () => { state = "creator"; showScreen("creator"); buildCreator(); });
@@ -1500,8 +2057,10 @@
   // For tests: the level data and the physics, so a script can check every
   // level can be finished.
   window.LAB = {
-    LEVELS, TILE, PW, PH, STEP, parseLevel, newPlayer, stepPlayer, overlaps, keyRect, doorRect, atComputer,
+    LEVELS, TILE, PW, PH, STEP, parseLevel, newPlayer, stepPlayer, overlaps, keyRect, pistolRect, doorRect, atComputer, switchRect, MUTANTS,
+    TASKS, genTask, loseLife, taskSettings,
     get state() { return state; }, get world() { return world; }, get player() { return player; },
+    get run() { return run; }, get bullets() { return bullets; },
   };
 
   buildMenu();

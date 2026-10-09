@@ -19,21 +19,104 @@
     background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.22) 2px 3px);
   }
   h1 { margin: 0; font-size: 48px; letter-spacing: 4px; color: var(--yellow); text-shadow: 3px 3px 0 #c43c00, 6px 6px 0 #4a1100; }
-  ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 420px; }
+  ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 520px; }
   a {
-    display: block; padding: 16px 18px; text-decoration: none; color: var(--text);
+    display: flex; align-items: center; gap: 18px; padding: 14px 18px; text-decoration: none; color: var(--text);
     background: var(--panel); border: 4px solid var(--wall); box-shadow: 0 0 0 4px #000, 0 0 0 8px #0b0b5a;
   }
   a:hover, a:focus-visible { border-color: var(--yellow); outline: none; }
+  a:active { transform: translate(2px, 2px); }
+  a img { flex: none; width: 96px; height: 96px; image-rendering: pixelated; }
   a b { display: block; font-size: 26px; font-weight: normal; color: var(--yellow); }
   a span { color: var(--dim); font-size: 14px; }
+  @media (max-width: 420px) {
+    a { gap: 12px; padding: 12px; }
+    a img { width: 72px; height: 72px; }
+    a b { font-size: 21px; }
+  }
 </style>
 </head>
 <body>
   <h1>GRY</h1>
   <ul>
-    <li><a href="liczozerca/"><b>LICZOŻERCA</b><span>ZJADAJ WYNIKI DZIAŁAŃ - DODAWANIE, ODEJMOWANIE, MNOŻENIE, DZIELENIE</span></a></li>
-    <li><a href="laboratorium/"><b>TAJNE LABORATORIUM</b><span>ZBIERAJ KLUCZE, OTWIERAJ DRZWI I ROZWIĄZUJ ZADANIA NA KOMPUTERACH</span></a></li>
+    <li><a href="liczozerca/"><img data-pix="liczozerca" alt=""><div><b>LICZOŻERCA</b><span>ZJADAJ WYNIKI DZIAŁAŃ - DODAWANIE, ODEJMOWANIE, MNOŻENIE, DZIELENIE</span></div></a></li>
+    <li><a href="laboratorium/"><img data-pix="laboratorium" alt=""><div><b>TAJNE LABORATORIUM</b><span>ZBIERAJ KLUCZE, OTWIERAJ DRZWI I ROZWIĄZUJ ZADANIA NA KOMPUTERACH</span></div></a></li>
+    <li><a href="szosa/"><img data-pix="szosa" alt=""><div><b>SZALONA SZOSA</b><span>WYŚCIG NA CZAS! DOJEDŹ DO METY, OMIJAJĄC AUTA, AUTOBUSY I CIĘŻARÓWKI</span></div></a></li>
   </ul>
+<script>
+  // A small pixel-art picture for each game, so it can be found without reading.
+  (() => {
+    const COLORS = {
+      Y: "#ffd800", K: "#000000", W: "#ffffff", B: "#2b5cff",
+      S: "#9a9ab0", D: "#0a2a14", L: "#3aff5a",
+      R: "#d82828", G: "#22344a", T: "#ffb0a0", P: "#eeeeee", X: "#141414", A: "#5a5a64", E: "#2e9a2a",
+    };
+    const PICTURES = {
+      liczozerca: [
+        "................",
+        "....YYYYYY......",
+        "..YYYYYYYYYY....",
+        ".YYYYYYYKKYYY...",
+        ".YYYYYYYKKYY....",
+        "YYYYYYYYYYY.....",
+        "YYYYYYYYY.......",
+        "YYYYYYY.....WW..",
+        "YYYYYYY.....WW..",
+        "YYYYYYYYY.......",
+        "YYYYYYYYYYY.....",
+        ".YYYYYYYYYYY....",
+        ".YYYYYYYYYYYY...",
+        "..YYYYYYYYYY....",
+        "....YYYYYY......",
+        "................",
+      ],
+      laboratorium: [
+        "................",
+        ".SSSSSSSSSSSSS..",
+        ".SDDDDDDDDDDDS..",
+        ".SDDLDDDDLLLDS..",
+        ".SDLLLDDDDDLDS..",
+        ".SDDLDDDDDLLDS..",
+        ".SDDDDDDDDDDDS..",
+        ".SDDDDDDDDLDDS..",
+        ".SSSSSSSSSSSSS..",
+        "......SS........",
+        "....SSSSSS......",
+        "................",
+        "...........YYY..",
+        ".YYYYYYYYYYY.Y..",
+        ".Y.Y.Y.....YYY..",
+        "................",
+      ],
+      szosa: [
+        "................",
+        "................",
+        "....RRRRRRRR....",
+        "...RGGGGGGGGR...",
+        "...RGGGGGGGGR...",
+        "..RRRRRRRRRRRR..",
+        ".RRRRRRRRRRRRRR.",
+        ".TTRRRRRRRRRRTT.",
+        ".RRRRRPPPPRRRRR.",
+        ".XXXXXXXXXXXXXX.",
+        ".XXXAAAAAAAAXXX.",
+        "EXXXAAAAAAAAXXXE",
+        "EAAAAAAAWAAAAAAE",
+        "EAAAAAAAWAAAAAAE",
+        "EAAAAAAAAAAAAAAE",
+        "EAAAAAAAWAAAAAAE",
+      ],
+    };
+    for (const img of document.querySelectorAll("img[data-pix]")) {
+      const rows = PICTURES[img.dataset.pix], c = document.createElement("canvas");
+      c.width = c.height = 16;
+      const g = c.getContext("2d");
+      rows.forEach((row, y) => [...row].forEach((ch, x) => {
+        if (COLORS[ch]) { g.fillStyle = COLORS[ch]; g.fillRect(x, y, 1, 1); }
+      }));
+      img.src = c.toDataURL();
+    }
+  })();
+</script>
 </body>
 </html>
