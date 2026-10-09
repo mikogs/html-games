@@ -75,6 +75,10 @@
   #hudAmmo img { width: 30px; height: 16px; image-rendering: pixelated; }
   #hudAmmo .none { color: var(--dim); font-size: 14px; }
   #hudAmmo.empty { color: var(--red); }
+  #hudScore { color: var(--yellow); }
+  #hudLetters { display: flex; gap: 2px; min-height: 29px; align-items: center; }
+  #hudLetters img { width: 15px; height: 20px; image-rendering: pixelated; }
+  #hudLetters img.missing { opacity: .18; filter: grayscale(1); }
 
   .board { position: relative; background: #000; line-height: 0; }
   canvas#game {
@@ -144,6 +148,25 @@
   .ranges .opt { padding: 6px 0; font-size: 20px; }
   .range-hint { font-size: 14px; color: var(--cyan); margin-top: -6px; }
   .menu-hint { font-size: 13px; color: var(--dim); line-height: 1.7; max-width: 640px; }
+  table.hof { border-collapse: collapse; width: 100%; max-width: 620px; font-size: 18px; line-height: 1.5; }
+  table.hof th { color: var(--dim); font-size: 13px; font-weight: normal; text-align: left; padding: 2px 8px; border-bottom: 3px solid #2a2a6a; }
+  table.hof td { padding: 2px 8px; text-align: left; white-space: nowrap; }
+  table.hof .num { text-align: right; }
+  table.hof .name { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+  table.hof tr:nth-child(even) td { background: rgba(43, 92, 255, .1); }
+  table.hof tr.empty td { color: #2f2f6a; }
+  table.hof tr.gold td { color: var(--yellow); }
+  table.hof tr.silver td { color: #e0e0f0; }
+  table.hof tr.bronze td { color: #ffab6b; }
+  table.hof tr.me td { background: #4a3a00; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .blink { animation: blink 1s steps(1) infinite; }
+  table.hof .fin { color: var(--green); font-size: 13px; }
+  .name-form { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .name-form input {
+    font-family: inherit; font-size: 22px; text-align: center; width: 10em; text-transform: uppercase;
+    color: var(--yellow); background: #12123f; border: 3px solid var(--yellow); padding: 2px 8px; outline: none;
+  }
   .menu-hint b { color: var(--cyan); font-weight: normal; }
 
   .creator { display: flex; gap: 24px; align-items: flex-start; justify-content: center; flex-wrap: wrap; width: 100%; }
@@ -231,6 +254,9 @@
     .hud .label { font-size: 11px; }
     #hudKeys img { width: 21px; height: 14px; }
     .menu-top { flex-direction: column; text-align: center; }
+    table.hof { font-size: 14px; line-height: 1.3; }
+    table.hof th, table.hof td { padding: 1px 4px; }
+    table.hof .name { max-width: 110px; }
     .screen { padding: 12px; }
     .hud { flex-wrap: wrap; row-gap: 4px; }
     .ops { grid-template-columns: repeat(3, 1fr); gap: 6px; }
@@ -251,7 +277,7 @@
   <section class="screen frame" id="menu">
     <div class="menu-top">
       <canvas class="hero" id="menuHero" width="14" height="24"></canvas>
-      <p>WŁAMUJESZ SIĘ DO <b>TAJNEGO LABORATORIUM</b>! ZBIERAJ <b>KOLOROWE KLUCZE</b> - OTWIERAJĄ DRZWI W TYM SAMYM KOLORZE. DRZWI <b>NA PIN</b> OTWIERASZ, ROZWIĄZUJĄC 4 ZADANIA. <b>WINDY</b> WŁĄCZASZ PRZEŁĄCZNIKIEM NA ŚCIANIE. UWAŻAJ NA <b>MUTANTY</b> - DOTKNIĘCIE ZABIERA ŻYCIE, ALE MOŻESZ JE PRZESKOCZYĆ ALBO ZASTRZELIĆ Z <b>PISTOLETU</b> (KAŻDY ZNALEZIONY DAJE 5 NABOJÓW). PODCHODŹ DO <b>KOMPUTERÓW</b> I ROZWIĄZUJ ZADANIA. GDY ROZWIĄŻESZ WSZYSTKIE, OTWORZY SIĘ <b>WYJŚCIE</b>.</p>
+      <p>WŁAMUJESZ SIĘ DO <b>TAJNEGO LABORATORIUM</b>! ZBIERAJ <b>KOLOROWE KLUCZE</b> - OTWIERAJĄ DRZWI W TYM SAMYM KOLORZE. ZBIERAJ <b>DIAMENTY</b>, <b>DYSKIETKI</b>, <b>PŁYTY CD</b> I <b>LITERY</b> SŁOWA NAUKA ZA PUNKTY. DRZWI <b>NA PIN</b> OTWIERASZ, ROZWIĄZUJĄC 4 ZADANIA. <b>WINDY</b> WŁĄCZASZ PRZEŁĄCZNIKIEM NA ŚCIANIE. UWAŻAJ NA <b>MUTANTY</b>, KAPIĄCE RURY I TOKSYCZNE KAŁUŻE - DOTKNIĘCIE ZABIERA ŻYCIE. MUTANTY MOŻESZ PRZESKOCZYĆ ALBO ZASTRZELIĆ Z <b>PISTOLETU</b> (KAŻDY ZNALEZIONY DAJE 5 NABOJÓW). PODCHODŹ DO <b>KOMPUTERÓW</b> I ROZWIĄZUJ ZADANIA. GDY ROZWIĄŻESZ WSZYSTKIE, OTWORZY SIĘ <b>WYJŚCIE</b>.</p>
     </div>
     <div class="menu-title">WYBIERZ POZIOM</div>
     <div class="levels" id="levelBtns"></div>
@@ -263,12 +289,15 @@
     <div class="btns">
       <button class="main-btn" id="btnPlay">GRAJ</button>
       <button class="main-btn alt" id="btnCreator">ZMIEŃ POSTAĆ</button>
+      <button class="main-btn alt" id="btnHofMenu">SALA SŁAWY</button>
     </div>
     <div class="menu-hint">
       <b>STRZAŁKI / A D</b> CHODZENIE &nbsp; <b>STRZAŁKA W GÓRĘ / W</b> SKOK &nbsp; <b>SPACJA</b> STRZAŁ<br>
       <b>E / STRZAŁKA W DÓŁ / ENTER</b> UŻYJ (KOMPUTER, PIN, PRZEŁĄCZNIK) &nbsp; <b>P</b> PAUZA &nbsp; <b>M</b> DŹWIĘK
     </div>
   </section>
+
+  <section class="screen frame hidden" id="hofScreen"></section>
 
   <section class="screen frame hidden" id="creator">
     <div class="menu-title">STWÓRZ SWOJĄ POSTAĆ</div>
@@ -295,6 +324,8 @@
     <div><span class="label">KLUCZE</span><div id="hudKeys"></div></div>
     <div><span class="label">ŻYCIA</span><div id="hudLives"></div></div>
     <div><span class="label">NABOJE</span><div id="hudAmmo"></div></div>
+    <div><span class="label">PUNKTY</span><span class="val" id="hudScore">0</span></div>
+    <div><span class="label">LITERY</span><div id="hudLetters"></div></div>
   </div>
   <div class="board frame hidden" id="board">
     <canvas id="game" width="320" height="192"></canvas>
@@ -362,6 +393,17 @@
   const LIFT_SPEED = 26;                // px/s
   const LIFT_WAIT = 1;                  // s a lift stops at the top and at the bottom
   const PIN_TASKS = 4;                  // tasks to solve to open a door with a PIN
+  const DRIP_EVERY = [2.2, 3.8];        // s between drops from a leaking pipe (random in this range)
+  // Points
+  const WORD = "NAUKA";                 // its letters are hidden in the levels
+  const PTS_TASK = 10;                  // every task solved, at a computer or a door with a PIN
+  const PTS_DIAMOND = 1;
+  const PTS_DISK = 2;                   // a floppy disk or a compact disc
+  const PTS_WORD = 300;                 // all the letters of WORD collected
+  const PTS_NO_HARM = 100;              // a level finished without losing a life
+  const LEVEL_BONUS = [[60, 200], [120, 150], [Infinity, 100]];   // finished in under [s] -> points
+  const LIFE_EVERY = 200;               // an extra life every this many points (up to START_LIVES)
+  const DRIP_GROW = 0.8;                // s a drop hangs and grows under the pipe before it falls
 
   // Maps: # wall, x crate, = girder (jump up through it, stand on it),
   // P start, C computer, r/g/b/y key, R/G/B/Y door of that colour
@@ -371,99 +413,103 @@
   // with : marking the shaft it rides up (the top : row is its highest
   // place), S lift switch (works the nearest lift), mutants that walk
   // along their floor: d two-headed dog, h one-eyed pig; u pig butt (stays).
+  // Toxic: k leaking pipe under a ceiling (drops fall from it), ~ puddle on
+  // the floor, c leaked barrel (decoration only).
+  // Points: * diamond (1 point), F floppy disk and O compact disc (2 points each), @ a letter of NAUKA - which ones a level has
+  // is in its `letters` (indexes into the word, in map reading order).
   // Decoration only: l lamp, m monitor, v vent, w warning sign, p pipe,
   // f lab table, s server rack, t tank. Every map is at least 20 x 12.
   const LEVELS = [
-    { name: "WEJŚCIE", map: [
-      "########################################",
-      "#...l................l..l.....#.l...#..#",
-      "#.......w.p...................#.....#..#",
-      "#.........p...................#.....#..#",
-      "#.........p.......v......m....#.....#..#",
-      "#..w......p...................#.....#..#",
-      "#.........pw...........r......#.....#..#",
-      "#.........p.........=====.....#.....#..#",
-      "#.........p.....C.o...........#.....#..#",
-      "#.........p..======...w.......#.....#..#",
-      "#...........s.................R.....N..E",
-      "#.P....fC...x......t.....h....R.u.CsN..E",
-      "########################################",
+    { name: "WEJŚCIE", letters: [0], map: [
+      "################################################################################",
+      "#...lk...............l..l.....#.l...#..#..l.....k.....l...k.......l...#....l...#",
+      "#.......w.p...................#.....#..#..............................#........#",
+      "#.........p...................#.....#..#.....................w........#........#",
+      "#.........p.......v......m....#.....#..#......m.......................#..m.....#",
+      "#..w......p...................#.....#..#.............v........*.b.@...#........#",
+      "#.........pw........F..r......#.....#..#......................=====...#........#",
+      "#.........p.........=====.....#.....#..#..............................#........#",
+      "#.........p...*.C.o...........#.....#..#................o..**.........#........#",
+      "#.........p..======...w.......#.....#..#................=====.........#........#",
+      "#...........s.................R.....N.................................B........E",
+      "#.P....fC..Fx..***.t..**.h.~c.R.u.CsN..O.*.c~....**.C.f**..O..h**..c~.Bt..Css*.E",
+      "################################################################################",
     ] },
-    { name: "MAGAZYN", map: [
-      "################################################",
-      "#............l...........................#.....#",
-      "#.......m................................#.....#",
-      "#.............v.............................v..#",
-      "#...v..............................w..w........#",
-      "#...................................x..........E",
-      "#..........f..........x.......C.....x.....h....E",
-      "##:::###########################################",
-      "#.:::...l.#.l.....................l..l.........#",
-      "#.:::.....#...................r................#",
-      "#.:::.....#..............m..=====..............#",
-      "#.:::.....R....................................#",
-      "#.MMM.S...R.........C..td..f...t............o..#",
-      "######################################=========#",
-      "#.l..........l....b.......#.l........#.........#",
-      "#......m........=====.....#..........#....o....#",
-      "#.........................#..........#..====w..#",
-      "#..............f..........B..........N.........#",
-      "#.P.....C.....xx..........B...u...C..N...t.....#",
-      "################################################",
+    { name: "MAGAZYN", letters: [1], map: [
+      "################################################################################################",
+      "#............l...........................#.....#...l............k...l.............k.....l......#",
+      "#.......m................................#.....#...............................................#",
+      "#.............v.............................v..#.......v...................m...................#",
+      "#...v..............................wF.w........#...............................................#",
+      "#...................................x..........................................................#",
+      "#..........f........**x.......C...**x.....h...***...c~....C.O.*...t...d...............o........#",
+      "##:::#######################################################################################..##",
+      "#.:::...l.#.l.....................l..l.........#........................#.......k.......l......#",
+      "#.:::.....#.................@.r................#............m...........#...w..................#",
+      "#.:::.....#..............m..=====..............#........................#......................#",
+      "#.:::.....R....................................#........................Y......................#",
+      "#.MMM.S...R......*..C..td..f...t*.c~..*.F...o..#.........*.f..C....h.*..Y.....y.....c~.........#",
+      "######################################=========#####..##########################################",
+      "#.l..........l..O.b...k...#.l........#.........#..........l...................k...l.....#......#",
+      "#......m........=====.....#..........#....o....#........................................#......#",
+      "#.........................#..........#..====w..#....................v...................#..w...#",
+      "#..............f..........B..........N.........#........................................N......E",
+      "#.P.....C.....xx....**....B...u...C..N...t***..#......**.c~.....C.......u...............N.s***.E",
+      "################################################################################################",
     ] },
-    { name: "REAKTOR", map: [
-      "########################################################",
-      "#......................l................#..............#",
-      "#..................w....m..v............#..............#",
-      "#.......................................B..........w...#",
-      "#.................x.........C..t...s....B.......g......#",
-      "#=======##########################################....##",
-      "#.........l..............l....................l........#",
-      "#......................................................#",
-      "#.=====........................m...............v.......#",
-      "#......................................................#",
-      "#...........d.......bf....x.........C..................#",
-      "##...#########################################===:::===#",
-      "#............l...l............#...........l......:::...#",
-      "#.............................#..................:::...#",
-      "#...w...........v..........w..#...............v..:::...#",
-      "#.............................R..................:::...#",
-      "#.....r.f.............h......sR.........C...o..S.MMM...#",
-      "############...#========################################",
-      "#.......................#........l.....l.....#....l....#",
-      "#...................o...#.......m............#.w.......#",
-      "#.................=====w#....................#..v......#",
-      "#.......................G......x.............N.........E",
-      "#.P.........C.....u.....G.....xx..s.....C....N...u..s..E",
-      "########################################################",
+    { name: "REAKTOR", letters: [2], map: [
+      "################################################################################################################",
+      "#......................l................#..............#########################################################",
+      "#..................w....m..v............#..............#########################################################",
+      "#.......................................B..........w...#########################################################",
+      "#.....***.........x.....***.C..t.*.s....B....@..g......#########################################################",
+      "#=======##########################################....##########################################################",
+      "#.........l..............l....................l........#........l.....................k.........l..............#",
+      "#.....*................................................#.......................................................#",
+      "#.=====........................m...............v.......#..............m...................................v....#",
+      "#......................................................#.......................................................#",
+      "#...........d.......bf....x..*......C.***.....F........#.......**.......***.o...c~..........u.......C....***...#",
+      "##...#########################################===:::===#####..##########################################===#####",
+      "#............l...l..k.........#...........l......:::...#......k.............l.................l................#",
+      "#.............................#..................:::...#..........................................y......O.....#",
+      "#...w...........v..........w..#...............v..:::...#........................w...............=====..=====...#",
+      "#.............................R..................:::...#.......................................................#",
+      "#.....r.f......***...Fh......sR.........C...o..S.MMM.*.#..........C.....h.................c~................s..#",
+      "############...#========##########################################################:::###########################",
+      "#.......................#........l.....l.....#....l....#....l...............l.....:::.....k.......l...#........#",
+      "#...................o...#.......m............#.w.......#..........................:::.................#........#",
+      "#.................=====w#....................#..v......#................v.........:::.................#........#",
+      "#.......................G.....Ox.............N....................................:::.................Y........E",
+      "#.P..*.c~...C.....u.....G.....xx..s.....C..*.N...u.*s........c~.f...C...........S.MMM.........d.....*.Y...t....E",
+      "################################################################################################################",
     ] },
-    { name: "SERWEROWNIA", map: [
-      "################################################################",
-      "#....l.......l...........l..............#.....#.............l..#",
-      "#..............m........................#.w...#................#",
-      "#.....m....................v............#.....#................#",
-      "#.......................................#.m...#................#",
-      "#........................x..............G.....N................#",
-      "#.................s.....xx.......u......G.....N...C.....y......#",
-      "#=======##################################################.v..##",
-      "#..............................l....#...l..........l...........#",
-      "#.v..................m..............#..........................#",
-      "#..====.............................#........v.................#",
-      "#...................................B...............w..........#",
-      "#s....t..f........C.......g...h.....B.f.....C..................#",
-      "##################################################...#===:::===#",
-      "#.......l...............#...........l.............w......:::...#",
-      "#....v..................#........................m.......:::w..#",
-      "#.......................#................................:::...#",
-      "#.......................R................................:::...#",
-      "#.............C..s..d...R..t....f.xf........b.......o..S.MMM...#",
-      "#======#####################################...#################",
-      "#......l...................................l....#.......l...#..#",
-      "#..o............................................#...........#.v#",
-      "#.====..................m......w.........r......#........m..#..#",
-      "#........................................x......Y...........N..E",
-      "#....s..C.......d...............P.......xx......Y...h...C...N..E",
-      "################################################################",
+    { name: "SERWEROWNIA", letters: [3, 4], map: [
+      "################################################################################################################################",
+      "#....l.......l...........l..............#.....#.............l..#################################################################",
+      "#..............m........................#.w...#................#################################################################",
+      "#.....m....................v............#.....#................#################################################################",
+      "#........................*..............#.m...#................#################################################################",
+      "#........................x..............G.....N................#################################################################",
+      "#.....F...........s.....xx.......u......G.***.N...C..@..y......#################################################################",
+      "#=======##################################################.v..##################################################################",
+      "#..............................l....#...l..........l...........#......l.................l.....................k.......l........#",
+      "#.v...*..............m..............#..........................#....................................v..........................#",
+      "#..====.............................#........v.................#................m..............................................#",
+      "#...................................B...............w..........#...............................................................#",
+      "#s....t..f.***....C.......g...h...*.B.f.....C..........*.....O.#***.......h....***.c~.........u.........C.................s....#",
+      "##################################################...#===:::===#####..############################################===###########",
+      "#.......l...............#...........l.............w......:::...#....l...k.....................l.........................l......#",
+      "#....v..................#........................m.......:::w..#..........................................O.o....@.............#",
+      "#.......................#................................:::...#................w.........v...............=====.===............#",
+      "#.......................R................................:::...#...............................................................#",
+      "#..F.....c~...C..s..d...R..t....f*xf........b...***.o..S.MMM...#............C.......d..............c~........*........*...t....#",
+      "#======#####################################...#############################################:::#################################",
+      "#......l............k......................l....#.......l...#..#........l.............k.....:::.....l...............l...#......#",
+      "#..o............................................#...........#.v#............................:::.........................#......#",
+      "#.====..................m......w.........r......#........m..#..#..............m.............:::.............w...........#......#",
+      "#........................................x......Y...........N...............................:::.........................N......E",
+      "#....s..C.....*.d...........*...P......*xx......Y...h...C...N.......c~....C.......h..*....S.MMM.........d......c~.......N..*s..E",
+      "################################################################################################################################",
     ] },
   ];
 
@@ -841,6 +887,59 @@
     m.sprites = m.frames.map(rows => makeSprite(rows, MUTANT_PAL));
     m.w = m.frames[0][0].length; m.h = m.frames[0].length;
   }
+  // The letters of NAUKA (5 x 7, drawn twice as big) - each its own colour - and a diamond.
+  const GLYPHS = {
+    N: ["#...#", "##..#", "#.#.#", "#.#.#", "#..##", "#...#", "#...#"],
+    A: [".###.", "#...#", "#...#", "#####", "#...#", "#...#", "#...#"],
+    U: ["#...#", "#...#", "#...#", "#...#", "#...#", "#...#", ".###."],
+    K: ["#...#", "#..#.", "#.#..", "##...", "#.#..", "#..#.", "#...#"],
+  };
+  const LETTER_COLORS = [["#ff4b4b", "#ffb0a0"], ["#ffb21a", "#fff0a0"], ["#3dff6e", "#c8ffd0"], ["#4f9bff", "#c0dcff"], ["#d070ff", "#f0c8ff"]];
+  const letterSprites = [...WORD].map((ch, i) => {
+    const rows = GLYPHS[ch].flatMap((r, j) => {
+      const big = [...r].map(c => c === "#" ? (j === 0 ? "ll" : "LL") : "..").join("");
+      return [big, big.replace(/l/g, "L")];
+    });
+    return makeSprite(rows, { L: LETTER_COLORS[i][0], l: LETTER_COLORS[i][1] });
+  });
+  const letterImages = letterSprites.map(c => c.toDataURL());
+  const diamondSprite = makeSprite([
+    ".bWb.",
+    "bWbbb",
+    "BbbbB",
+    ".BbB.",
+    "..B..",
+  ], { W: "#ffffff", b: "#6fe8ff", B: "#2a9fd0" });
+  // A floppy disk (B body, S metal shutter, h its hole, L label, l writing)
+  // and a compact disc (C silver, r/y/c rainbow shine, o the hole).
+  const DISKS = {
+    F: { name: "DYSKIETKA", sprite: makeSprite([
+      "BBBBBBBBBBB.",
+      "BBBSSSSShSBB",
+      "BBBSSSSShSBB",
+      "BBBSSSSSSSBB",
+      "BBBBBBBBBBBB",
+      "BBLLLLLLLLBB",
+      "BBLllllllLBB",
+      "BBLLLLLLLLBB",
+      "BBLlllllLLBB",
+      "BBLLLLLLLLBB",
+      "BBLLLLLLLLBB",
+    ], { B: "#2f4fc8", S: "#c8ccd6", h: "#2f4fc8", L: "#f2f2f2", l: "#d63a3a" }) },
+    O: { name: "PŁYTA CD", sprite: makeSprite([
+      "...CCCCC...",
+      "..CrrCCCC..",
+      ".CrryCCCCC.",
+      "CCryCCCCCCC",
+      "CCCCC.CCCCC",
+      "CCCC.o.CCCC",
+      "CCCCC.CCCCC",
+      "CCCCCCCccCC",
+      ".CCCCCccCC.",
+      "..CCCCCCC..",
+      "...CCCCC...",
+    ], { C: "#d6dcea", r: "#ff8bd0", y: "#fff2a0", c: "#6fe8ff", o: "#141a2c" }) },
+  };
   const heartImage = makeSprite(HEART_ROWS, { R: "#ff3b3b", r: "#ffb0a0" }).toDataURL();
   const pistolImage = pistolSprite.toDataURL();
 
@@ -879,6 +978,11 @@
     empty()  { beep(1500, 0.02, "square", 0.03); beep(1100, 0.02, "square", 0.03, null, 0.05); },
     hit()    { beep(400, 0.05, "triangle", 0.04, 200); },
     gun()    { [330, 494, 659, 988].forEach((f, i) => beep(f, 0.07, "square", 0.05, null, i * 0.06)); },
+    disk()   { beep(660, 0.06, "square", 0.04); beep(990, 0.08, "square", 0.04, null, 0.06); },
+    gem()    { beep(1800, 0.05, "square", 0.03); beep(2400, 0.06, "square", 0.03, null, 0.04); },
+    letter() { [784, 988, 1175, 1568].forEach((f, i) => beep(f, 0.08, "triangle", 0.06, null, i * 0.07)); },
+    life()   { [523, 784, 1046, 1568].forEach((f, i) => beep(f, 0.1, "triangle", 0.06, null, i * 0.09)); },
+    drip()   { if (dripNear()) beep(1200, 0.06, "sine", 0.03, 500); },
     splat()  { beep(180, 0.25, "sawtooth", 0.06, 40); beep(700, 0.12, "square", 0.04, 1400, 0.05); },
     lever()  { beep(500, 0.05, "square", 0.05); beep(300, 0.08, "square", 0.05, null, 0.06); },
     hurt()   { beep(300, 0.4, "sawtooth", 0.07, 60); },
@@ -891,13 +995,23 @@
     if (rows.some(r => r.length !== w)) throw new Error(`${def.name}: rows of different lengths`);
     const world = {
       name: def.name, w, h, tiles: new Array(w * h).fill("."), doorAt: new Array(w * h).fill(null),
-      decor: [], doors: [], pinDoors: [], keys: [], pistols: [], computers: [], lifts: [], switches: [], enemies: [],
+      decor: [], doors: [], pinDoors: [], keys: [], pistols: [], computers: [], lifts: [], switches: [], enemies: [], drips: [], puddles: [], gems: [], letters: [], disks: [],
       exit: null, start: null,
     };
     for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
       const ch = rows[y][x], i = y * w + x;
       if ("#x=".includes(ch)) world.tiles[i] = ch;
-      else if ("lmvwpfst".includes(ch)) world.decor.push({ x, y, ch });
+      else if ("lmvwpfstck".includes(ch)) {
+        world.decor.push({ x, y, ch });
+        if (ch === "k") world.drips.push({ x, y, wait: 0.5 + Math.random() * DRIP_EVERY[1], grow: 0, drop: null });
+      } else if (ch === "~") world.puddles.push({ x, y });
+      else if (ch === "*") world.gems.push({ x, y, taken: false });
+      else if (DISKS[ch]) world.disks.push({ x, y, kind: ch, taken: false });
+      else if (ch === "@") {
+        const idx = (def.letters || [])[world.letters.length];
+        if (idx === undefined) throw new Error(`${def.name}: more @ than letters`);
+        world.letters.push({ x, y, idx, taken: false });
+      }
       else if (ch === "P") world.start = { x, y };
       else if (ch === "C") world.computers.push({ x, y, n: world.computers.length + 1, solved: false, task: null });
       else if ("rgby".includes(ch)) world.keys.push({ x, y, color: ch, taken: false });
@@ -1012,6 +1126,10 @@
   const overlaps = (p, r, pad = 0) =>
     p.x - pad < r.x + r.w && p.x + PW + pad > r.x && p.y - pad < r.y + r.h && p.y + PH + pad > r.y;
   const keyRect = k => ({ x: k.x * TILE + 2, y: k.y * TILE + 4, w: 12, h: 10 });
+  const diskRect = d => ({ x: d.x * TILE + 2, y: d.y * TILE + 3, w: 12, h: 12 });
+  const gemRect = g => ({ x: g.x * TILE + 4, y: g.y * TILE + 6, w: 8, h: 8 });
+  const letterRect = l => ({ x: l.x * TILE + 2, y: l.y * TILE + 1, w: 12, h: 15 });
+  const puddleRect = q => ({ x: q.x * TILE + 3, y: q.y * TILE + 13, w: 10, h: 3 });
   const switchRect = sw => ({ x: sw.x * TILE + 2, y: sw.y * TILE, w: 12, h: TILE });
   const pistolRect = g => ({ x: g.x * TILE + 1, y: g.y * TILE + 6, w: 14, h: 10 });
   const doorRect = d => rectOf(d.x, d.y, 1, d.h);
@@ -1035,6 +1153,8 @@
   // the pistol, bullets and lives stay with the player from level to level
   let run = null;               // { startLevel, level, time, mistakes, lives, pistol, ammo }
   let bullets = [], fireCooldown = 0, hurtTimer = 0, gunHint = 0;
+  let levelHurt = false;        // lost a life on this level (no bonus then)
+  let popups = [];              // "+10" floating up where points were won
   let levelTime = 0, levelMistakes = 0;
   let cam = { x: 0, y: 0 };
   let particles = [];
@@ -1143,6 +1263,20 @@
           px(c, bx + 3, by + 2 + i * 3, 10, 2, "#2c3148");
           px(c, bx + 4 + (hash(d.x, i) % 6), by + 2 + i * 3, 1, 1, i % 2 ? "#3dff6e" : "#ffd800");
         }
+        break;
+      case "k":   // a pipe under the ceiling with a cracked, dripping joint
+        px(c, bx, by, 16, 6, "#56607a"); px(c, bx, by + 1, 16, 1, "#8a96b8"); px(c, bx, by + 5, 16, 1, "#3c4357");
+        px(c, bx + 5, by, 6, 7, "#3c4357"); px(c, bx + 6, by + 1, 4, 5, "#6b7699");
+        px(c, bx + 7, by + 7, 2, 2, "#3c4357");
+        px(c, bx + 4, by + 3, 2, 1, "#1d1d2e"); px(c, bx + 9, by + 2, 1, 2, "#1d1d2e");
+        px(c, bx + 6, by + 6, 1, 3, "#5ad13a"); px(c, bx + 9, by + 6, 1, 2, "#5ad13a");
+        break;
+      case "c":   // a toxic barrel that leaked onto the floor
+        px(c, bx + 3, by + 3, 10, 13, "#2f7a2a"); px(c, bx + 3, by + 3, 10, 1, "#4fa83f");
+        px(c, bx + 4, by + 4, 2, 11, "#5cc04a");
+        px(c, bx + 3, by + 7, 10, 1, "#1f4f1c"); px(c, bx + 3, by + 12, 10, 1, "#1f4f1c");
+        px(c, bx + 7, by + 8, 3, 3, "#f2c81a"); px(c, bx + 8, by + 9, 1, 1, "#1a1a1a");
+        px(c, bx + 12, by + 9, 2, 7, "#6dff3a"); px(c, bx + 13, by + 14, 3, 2, "#6dff3a");
         break;
       case "t":
         px(c, bx + 2, by + 1, 12, 2, "#7d89a8"); px(c, bx + 2, by + 14, 12, 2, "#7d89a8");
@@ -1280,6 +1414,32 @@
     } else ctx.drawImage(spr, sx, sy);
   }
 
+  function drawPuddle(q, x, y, t) {
+    px(ctx, x + 2, y + 14, 12, 2, "#2fa82a");
+    px(ctx, x + 3, y + 13, 10, 2, "#6dff3a");
+    px(ctx, x + 5, y + 13, 3, 1, "#c8ff9a");
+    // a bubble now and then
+    const b = (t * 0.9 + q.x * 0.37) % 1.6;
+    if (b < 0.5) px(ctx, x + 6 + (q.x * 3) % 5, y + 12 - Math.floor(b * 4), 2, 2, "#9dff6a");
+    else if (b < 0.6) px(ctx, x + 5 + (q.x * 3) % 5, y + 10, 4, 1, "#9dff6a");
+  }
+
+  // the drop growing under the pipe, and the one falling from it
+  function drawDrip(dr, cx, cy) {
+    const x = dr.x * TILE - cx, y = dr.y * TILE - cy;
+    if (dr.grow > 0) {
+      const r = Math.min(1, dr.grow / DRIP_GROW);
+      px(ctx, x + 7, y + 9, 3, 1 + Math.round(r * 3), "#6dff3a"); px(ctx, x + 7, y + 9, 1, 1, "#c8ff9a");
+    }
+    if (dr.drop) {   // a drop: thin at the top, round at the bottom
+      const dx = Math.round(dr.drop.x - cx), dy = Math.round(dr.drop.y - cy);
+      px(ctx, dx - 2, dy - 5, 5, 6, "#0a2a08"); px(ctx, dx - 1, dy - 7, 3, 3, "#0a2a08");   // dark outline
+      px(ctx, dx, dy - 6, 1, 2, "#6dff3a");
+      px(ctx, dx - 1, dy - 4, 3, 4, "#6dff3a");
+      px(ctx, dx - 1, dy - 3, 1, 1, "#e0ffc0");
+    }
+  }
+
   function drawExitSign(d, x, y, t) {
     const lit = d.open ? (Math.floor(t * 3) % 2 === 0 ? "#3dff6e" : "#1d9a42") : "#ff3b3b";
     px(ctx, x + 1, y - 8, 14, 7, "#0a0a0a");
@@ -1353,6 +1513,30 @@
       if (Math.floor(t * 4 + g.x) % 6 === 0) px(ctx, gx + 3, gy - 1, 1, 1, "#fff");
       ctx.drawImage(pistolSprite, gx, gy);
     }
+    for (const g of world.gems) {
+      if (g.taken) continue;
+      const bob = Math.round(Math.sin(t * 4 + g.x * 0.7) * 1.2);
+      const gx = g.x * TILE - cx + 5, gy = g.y * TILE - cy + 7 + bob;
+      ctx.drawImage(diamondSprite, gx, gy);
+      if (Math.floor(t * 3 + g.x * 1.3) % 7 === 0) { px(ctx, gx + 1, gy - 1, 1, 1, "#fff"); px(ctx, gx, gy, 3, 1, "rgba(255,255,255,.7)"); }
+    }
+    for (const d of world.disks) {
+      if (d.taken) continue;
+      const bob = Math.round(Math.sin(t * 3 + d.x * 0.9) * 1.5);
+      const dx = d.x * TILE - cx + 2, dy = d.y * TILE - cy + 3 + bob;
+      ctx.drawImage(DISKS[d.kind].sprite, dx, dy);
+      if (Math.floor(t * 4 + d.x) % 6 === 0) px(ctx, dx + 3, dy + 2, 1, 1, "#fff");
+    }
+    for (const l of world.letters) {
+      if (l.taken) continue;
+      const bob = Math.round(Math.sin(t * 2.5 + l.x) * 1.5);
+      const lx = l.x * TILE - cx + 2, ly = l.y * TILE - cy + bob;
+      ctx.fillStyle = LETTER_COLORS[l.idx][0] + "33"; ctx.fillRect(lx - 2, ly + 1, 16, 16);
+      ctx.drawImage(letterSprites[l.idx], lx, ly);
+      if (Math.floor(t * 4 + l.x) % 5 === 0) px(ctx, lx + 11, ly + 1, 1, 1, "#fff");
+    }
+    for (const q of world.puddles) drawPuddle(q, q.x * TILE - cx, q.y * TILE - cy, t);
+    for (const dr of world.drips) drawDrip(dr, cx, cy);
     for (const e of world.enemies) if (!e.dead) drawMutant(e, e.x - cx, e.y - cy, t);
     for (const b of bullets) {
       const bx = Math.round(b.x - cx), by = Math.round(b.y - cy);
@@ -1362,6 +1546,15 @@
     for (const p of particles) px(ctx, Math.round(p.x - cx), Math.round(p.y - cy), 2, 2, p.color);
 
     drawPlayer(player.x - cx, player.y - cy);
+
+    ctx.font = "8px Tiny5, monospace"; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+    for (const p of popups) {
+      const x = Math.round(p.x - cx), y = Math.round(p.y - cy);
+      ctx.globalAlpha = Math.min(1, p.life * 2);
+      ctx.fillStyle = "#000"; ctx.fillText(p.text, x + 1, y + 1);
+      ctx.fillStyle = p.color; ctx.fillText(p.text, x, y);
+      ctx.globalAlpha = 1;
+    }
 
     // "use me" arrow over the computer, PIN door or switch the player stands at
     const near = nearComputer || nearPin || nearSwitch;
@@ -1402,6 +1595,16 @@
     const solved = world.computers.filter(c => c.solved).length;
     $("hudTasks").textContent = `${solved}/${world.computers.length}`;
     updateHudLives(); updateHudAmmo();
+    $("hudScore").textContent = run.score;
+    updateHudLetters();
+  }
+  let hudLettersShown = "";
+  function updateHudLetters() {
+    const key = run.letters.join();
+    if (hudLettersShown === key) return;
+    hudLettersShown = key;
+    $("hudLetters").innerHTML = [...WORD].map((ch, i) =>
+      `<img src="${letterImages[i]}" alt="${ch}" title="${ch}" class="${run.letters[i] ? "" : "missing"}">`).join("");
   }
   function updateHudKeys() {
     const colors = [...new Set(world.keys.map(k => k.color))];
@@ -1437,6 +1640,8 @@
     const btn = overlayEl.querySelector("[data-primary]");
     if (btn) btn.addEventListener("click", () => action && action());
     overlayEl.querySelectorAll("[data-menu]").forEach(b => b.addEventListener("click", goMenu));
+    overlayEl.querySelectorAll("[data-hof]").forEach(b => b.addEventListener("click", () =>
+      showHallOfFame(result ? result.op : taskSettings.op, result && result.entry, true)));
   }
   function hideOverlay() { overlayEl.classList.add("hidden"); overlayEl.innerHTML = ""; overlayAction = null; }
 
@@ -1444,6 +1649,7 @@
   function showScreen(name) {
     $("menu").classList.toggle("hidden", name !== "menu");
     $("creator").classList.toggle("hidden", name !== "creator");
+    $("hofScreen").classList.toggle("hidden", name !== "hof");
     const inGame = name === "game";
     ["hud", "board", "below"].forEach(id => $(id).classList.toggle("hidden", !inGame));
     document.body.classList.toggle("in-game", inGame);
@@ -1452,14 +1658,15 @@
   function goMenu() {
     closeTerminal(true);
     hideOverlay(); hideToast();
-    state = "menu"; world = null; run = null;
+    state = "menu"; world = null; run = null; result = null;
     showScreen("menu");
     buildMenu();
   }
 
   function startRun(level) {
-    run = { startLevel: level, level, time: 0, mistakes: 0, lives: START_LIVES, pistol: false, ammo: 0 };
-    hudLivesShown = -1; hudAmmoShown = -1;
+    run = { startLevel: level, level, time: 0, mistakes: 0, lives: START_LIVES, pistol: false, ammo: 0,
+            score: 0, nextLife: LIFE_EVERY, letters: [...WORD].map(() => false), op: taskSettings.op, range: taskSettings.range };
+    hudLivesShown = -1; hudAmmoShown = -1; hudLettersShown = "";
     sfx.start();
     showScreen("game");
     loadLevel(level);
@@ -1471,7 +1678,7 @@
     world.layer = renderStatic(world);
     player = newPlayer(world.start);
     inventory = new Set(); usedTasks = new Set(); particles = []; bullets = [];
-    fireCooldown = 0; hurtTimer = 0;
+    fireCooldown = 0; hurtTimer = 0; levelHurt = false; popups = [];
     levelTime = 0; levelMistakes = 0; nearComputer = nearPin = nearSwitch = null;
     sprites = characterSprites(look);
     updateCamera(1, true);
@@ -1483,6 +1690,7 @@
       <div>KOMPUTERY DO ODBLOKOWANIA: <span class="sub">${world.computers.length}</span>${nKeys ? ` · KLUCZE: <span class="sub">${nKeys}</span>` : ""}</div>
       <div>ZADANIA: <span class="sub">${TASK_MODES[taskSettings.op].name}</span> · WYNIK DO <span class="sub">${rangeMax(taskSettings.range)}</span></div>
       ${world.enemies.length ? `<div style="color:var(--red)">UWAGA, MUTANTY! MOŻESZ JE PRZESKOCZYĆ${run.pistol ? " ALBO ZASTRZELIĆ" : ""}.</div>` : ""}
+      ${world.drips.length || world.puddles.length ? `<div style="color:#6dff3a">NIE DOTYKAJ ZIELONYCH KROPLI Z RUR ANI TOKSYCZNYCH KAŁUŻ!</div>` : ""}
       <div>ŻYCIA: <span class="sub">${run.lives}</span> · ${run.pistol ? `NABOJE: <span class="sub">${run.ammo}</span>` : "PISTOLET: <span class=\"sub\">POSZUKAJ GO!</span>"}</div>
       <div class="dim">ROZWIĄŻ ZADANIA NA WSZYSTKICH KOMPUTERACH,<br>A OTWORZY SIĘ WYJŚCIE.</div>
       <button class="main-btn" data-primary>START</button>`, play);
@@ -1509,40 +1717,52 @@
     sfx.win();
     hideToast();
     const last = run.level === LEVELS.length - 1;
+    const scoreBefore = run.score;
+    const [limit, bonus] = LEVEL_BONUS.find(([lim]) => levelTime < lim);
+    addPoints(bonus);
+    if (!levelHurt) addPoints(PTS_NO_HARM);
     const stats = `CZAS POZIOMU: <span class="sub">${fmtTime(levelTime)}</span> · BŁĘDNE ODPOWIEDZI: <span class="sub">${levelMistakes}</span>`;
+    const points = `<div>UKOŃCZENIE POZIOMU${limit < Infinity ? ` W MNIEJ NIŻ ${limit / 60} MIN.` : ""}: <span class="sub">+${bonus}</span>
+      ${levelHurt ? "" : `· BEZ UTRATY ŻYCIA: <span class="sub">+${PTS_NO_HARM}</span>`}</div>
+      <div>PUNKTY: <span class="sub">${scoreBefore}</span> → <span style="color:var(--yellow)">${run.score}</span></div>`;
     if (!last) {
       showOverlay(`
         <div class="big">POZIOM ${run.level + 1} UKOŃCZONY!</div>
-        <div>${stats}</div>
+        <div>${stats}</div>${points}
         <div class="btns"><button class="main-btn" data-primary>NASTĘPNY POZIOM</button><button class="main-btn alt" data-menu>MENU</button></div>`,
         () => loadLevel(run.level + 1));
     } else {
-      showOverlay(`
-        <div class="big">MISJA UKOŃCZONA!</div>
-        <div>${girl() ? "BRAWO, AGENTKO! UCIEKŁAŚ" : "BRAWO, AGENCIE! UCIEKŁEŚ"} Z TAJNEGO LABORATORIUM.</div>
-        <div>${stats}</div>
-        <div>POZIOMY ${run.startLevel + 1}-${LEVELS.length} · ŁĄCZNY CZAS: <span class="sub">${fmtTime(run.time)}</span> · BŁĘDY: <span class="sub">${run.mistakes}</span></div>
-        <div class="btns"><button class="main-btn" data-primary>MENU</button></div>`, goMenu);
+      endRun(true, `<div>${stats}</div>${points}`);
     }
   }
 
+
+  // Points; every LIFE_EVERY of them gives a life back (never more than START_LIVES).
+  function addPoints(n, x = null, y = null) {
+    run.score += n;
+    if (x !== null) popups.push({ x, y, text: "+" + n, life: 1, color: n >= PTS_TASK ? "#ffd800" : "#6fe8ff" });
+    while (run.score >= run.nextLife) {
+      run.nextLife += LIFE_EVERY;
+      if (run.lives < START_LIVES) {
+        run.lives++;
+        sfx.life();
+        toast(`${run.nextLife - LIFE_EVERY} PUNKTÓW - DODATKOWE ŻYCIE!`, 2.5, 3, "good");
+      }
+    }
+    updateHud();
+  }
+
   // Lose a life: the player blinks for a moment, and at 0 lives the game is over.
-  function loseLife() {
+  function loseLife(why = "AUĆ!") {
     if (hurtTimer > 0 || state !== "playing") return;
     run.lives = Math.max(0, run.lives - 1);
+    levelHurt = true;
     updateHudLives();
     sfx.hurt();
     burst(player.x + PW / 2, player.y + PH / 2, "#ff3b3b", 18);
-    if (run.lives > 0) { hurtTimer = SAFE_TIME; player.vy = Math.min(player.vy, -170); toast(`AUĆ! ZOSTAŁO ŻYĆ: ${run.lives}`, 2, 3, "bad"); return; }
-    state = "over";
-    hideToast();
+    if (run.lives > 0) { hurtTimer = SAFE_TIME; player.vy = Math.min(player.vy, -170); toast(`${why} ZOSTAŁO ŻYĆ: ${run.lives}`, 2, 3, "bad"); return; }
     sfx.over();
-    showOverlay(`
-      <div class="big" style="color:var(--red)">KONIEC GRY</div>
-      <div>${girl() ? "STRACIŁAŚ" : "STRACIŁEŚ"} WSZYSTKIE ŻYCIA NA POZIOMIE ${run.level + 1}.</div>
-      <div>ŁĄCZNY CZAS: <span class="sub">${fmtTime(run.time)}</span> · BŁĘDY: <span class="sub">${run.mistakes}</span></div>
-      <div class="btns"><button class="main-btn" data-primary>JESZCZE RAZ</button><button class="main-btn alt" data-menu>MENU</button></div>`,
-      () => startRun(run.startLevel));
+    endRun(false);
   }
 
   function shoot() {
@@ -1623,6 +1843,185 @@
     }
   }
 
+  // Leaking pipes: a drop grows under the pipe, falls and splashes on the floor.
+  // only the pipes on the screen make a sound
+  let dripAt = null;
+  const dripNear = () => dripAt && Math.abs(dripAt.x - (cam.x + VIEW_W / 2)) < VIEW_W * 0.6 && Math.abs(dripAt.y - (cam.y + VIEW_H / 2)) < VIEW_H * 0.6;
+  function updateDrips(dt) {
+    for (const dr of world.drips) {
+      if (dr.drop) {
+        const d = dr.drop;
+        d.vy = Math.min(MAX_FALL, d.vy + GRAVITY * 0.5 * dt);
+        d.y += d.vy * dt;
+        const tx = Math.floor(d.x / TILE), ty = Math.floor(d.y / TILE);
+        if (world.solid(tx, ty) || (world.platform(tx, ty) && d.y - ty * TILE < 6) ||
+            world.lifts.some(l => tx >= l.x && tx < l.x + l.w && d.y >= l.y && d.y - d.vy * dt <= l.y + 1)) {
+          for (let i = 0; i < 6; i++) particles.push({
+            x: d.x, y: d.y - 2, vx: (Math.random() - 0.5) * 70, vy: -30 - Math.random() * 50,
+            life: 0.25 + Math.random() * 0.2, color: i % 2 ? "#6dff3a" : "#2fa82a",
+          });
+          dr.drop = null;
+        } else if (hurtTimer <= 0 && overlaps(player, { x: d.x - 1, y: d.y - 6, w: 3, h: 6 })) {
+          dr.drop = null;
+          loseLife("FUJ, TOKSYCZNA KROPLA!");
+        }
+        continue;
+      }
+      if (dr.grow > 0) {
+        dr.grow += dt;
+        if (dr.grow >= DRIP_GROW) { dr.grow = 0; dr.drop = { x: dr.x * TILE + 8, y: dr.y * TILE + 14, vy: 20 }; dripAt = dr.drop; sfx.drip(); }
+        continue;
+      }
+      dr.wait -= dt;
+      if (dr.wait <= 0) {
+        dr.wait = DRIP_EVERY[0] + Math.random() * (DRIP_EVERY[1] - DRIP_EVERY[0]);
+        dr.grow = 0.001;
+      }
+    }
+    if (hurtTimer <= 0 && world.puddles.some(q => overlaps(player, puddleRect(q)))) loseLife("FUJ, TOKSYCZNA KAŁUŻA!");
+  }
+
+  // ---------- Hall of fame (shared by everyone - the gry API, /api/sala_slawy/laboratorium/) ----------
+  // One list per kind of task (as chosen in the menu); score = points, time = whole seconds of the run,
+  // level = the task difficulty (1-10), completed = escaped from the last level.
+  // Opened straight from a file there's no /api next to the page, so it goes to the server by name.
+  const HOF_URL = (location.protocol === "file:" ? "https://gry.billy.local" : "") + "/api/sala_slawy/laboratorium/";
+  const HOF_SIZE = 10;
+  let hof = null;                          // { add: [...], ... } as last fetched; null until then
+  let hofRequest = 0;                      // so a slow response can't redraw a screen the player already left
+  let lastName = "";
+  try { lastName = localStorage.getItem("laboratorium-name") || ""; } catch (e) { /* ignore */ }
+  const hofTime = e => e.time ?? Infinity;
+  const hofCompare = (a, b) => b.score - a.score || hofTime(a) - hofTime(b) || a.id - b.id;
+  async function hofLoad() {
+    const res = await fetch(HOF_URL + "?limit=" + HOF_SIZE, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    hof = Object.fromEntries(Object.keys(TASK_MODES).map(k => [k, data.categories?.[k] ?? []]));
+  }
+  async function hofPost(entry) {          // -> { entry, rank }
+    const res = await fetch(HOF_URL, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(entry),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "HTTP " + res.status);
+    return data;
+  }
+  function hofRank(r) {                    // 1-based place this run would take, or 0
+    if (r.score <= 0 || !hof) return 0;
+    const list = hof[r.op];
+    let rank = list.findIndex(e => hofCompare({ score: r.score, time: Math.floor(r.time), id: Infinity }, e) < 0);
+    if (rank === -1) rank = list.length;
+    return rank < HOF_SIZE ? rank + 1 : 0;
+  }
+
+  // Out of lives, or out of the lab: the results, then (if good enough) a name for the hall of fame.
+  let result = null;
+  function endRun(completed, extra = "") {
+    state = "over";
+    hideToast();
+    result = { completed, score: run.score, time: run.time, op: run.op, range: run.range, level: run.level,
+               startLevel: run.startLevel, mistakes: run.mistakes, letters: run.letters.filter(Boolean).length,
+               extra, entry: null, hofError: false };
+    const r = result;
+    if (r.score <= 0) { showResult(); return; }
+    showOverlay(`${resultHtml(r)}<div class="blink">ŁADOWANIE SALI SŁAWY...</div>`);
+    hofLoad()
+      .then(() => { if (result === r && state === "over") (hofRank(r) ? showNameEntry() : showResult()); })
+      .catch(() => { if (result === r && state === "over") { r.hofError = true; showResult(); } });
+  }
+  function resultHtml(r) {
+    const head = r.completed
+      ? `<div class="big">MISJA UKOŃCZONA!</div>
+         <div>${girl() ? "BRAWO, AGENTKO! UCIEKŁAŚ" : "BRAWO, AGENCIE! UCIEKŁEŚ"} Z TAJNEGO LABORATORIUM.</div>`
+      : `<div class="big" style="color:var(--red)">KONIEC GRY</div>
+         <div>${girl() ? "STRACIŁAŚ" : "STRACIŁEŚ"} WSZYSTKIE ŻYCIA NA POZIOMIE ${r.level + 1}.</div>`;
+    return `${head}${r.extra}
+      <div>PUNKTY: <span style="color:var(--yellow)">${r.score}</span> · ŁĄCZNY CZAS: <span class="sub">${fmtTime(r.time)}</span>
+        · LITERY: <span class="sub">${r.letters}/${WORD.length}</span> · BŁĘDY: <span class="sub">${r.mistakes}</span></div>`;
+  }
+  function showResult() {
+    const r = result;
+    showOverlay(`${resultHtml(r)}
+      ${r.hofError ? `<div style="color:var(--red)">SALA SŁAWY NIEDOSTĘPNA - BRAK POŁĄCZENIA Z SERWEREM</div>` : ""}
+      <div class="btns"><button class="main-btn" data-primary>JESZCZE RAZ</button><button class="main-btn alt" data-menu>MENU</button>
+      <button class="main-btn alt" data-hof>SALA SŁAWY</button></div>`, () => startRun(r.startLevel));
+  }
+  function showNameEntry() {
+    state = "entry";
+    const r = result;
+    showOverlay(`${resultHtml(r)}
+      <div style="color:var(--yellow)">JESTEŚ W SALI SŁAWY! MIEJSCE #${hofRank(r)}</div>
+      <form class="name-form" id="nameForm" autocomplete="off">
+        <label for="nameInput">WPISZ SWOJE IMIĘ:</label>
+        <input id="nameInput" maxlength="12" spellcheck="false" value="${escapeHtml(lastName)}">
+        <div class="btns"><button class="main-btn" type="submit">ZAPISZ</button>
+        <button class="main-btn alt" type="button" id="btnSkip" hidden>POMIŃ</button></div>
+        <div id="nameError" style="color:var(--red)"></div>
+      </form>`);
+    const input = $("nameInput"), form = $("nameForm");
+    setTimeout(() => { input.focus(); input.select(); }, 0);
+    form.onsubmit = async e => {
+      e.preventDefault();
+      const name = input.value.trim().toUpperCase().slice(0, 12) || (girl() ? "AGENTKA" : "AGENT");
+      lastName = name;
+      try { localStorage.setItem("laboratorium-name", name); } catch (err) { /* ignore */ }
+      const saveBtn = form.querySelector("[type=submit]");
+      saveBtn.disabled = true; saveBtn.textContent = "ZAPISYWANIE...";
+      try {
+        const saved = await hofPost({ name, score: r.score, category: r.op, time: Math.floor(r.time), level: r.range, completed: r.completed });
+        r.entry = saved.entry;
+      } catch (err) {
+        saveBtn.disabled = false; saveBtn.textContent = "SPRÓBUJ PONOWNIE";
+        $("nameError").textContent = "NIE UDAŁO SIĘ ZAPISAĆ (" + err.message + ")";
+        $("btnSkip").hidden = false;
+        return;
+      }
+      if (state !== "entry" || result !== r) return;
+      showHallOfFame(r.op, r.entry, true);
+    };
+    $("btnSkip").onclick = () => { state = "over"; showResult(); };
+  }
+
+  // The top 10 of one kind of task, with a tab for each kind. After a game it offers another one.
+  function showHallOfFame(op, highlight, afterGame, fetchFirst = true) {
+    closeTerminal(true);
+    hideOverlay(); hideToast();
+    state = "hof";
+    showScreen("hof");
+    const box = $("hofScreen");
+    const buttons = afterGame && result
+      ? `<div class="btns"><button class="main-btn" id="hofAgain">JESZCZE RAZ</button><button class="main-btn alt" id="hofMenu">MENU</button></div>`
+      : `<div class="btns"><button class="main-btn" id="hofMenu">WRÓĆ</button></div>`;
+    const show = body => {
+      const tabs = Object.entries(TASK_MODES).map(([k, m]) =>
+        `<button class="opt${k === op ? " sel" : ""}" data-tab="${k}"><b>${escapeHtml(m.sym)}</b>${escapeHtml(m.name)}</button>`).join("");
+      box.innerHTML = `<div class="menu-title">SALA SŁAWY</div><div class="ops">${tabs}</div>${body}${buttons}`;
+      box.querySelectorAll("[data-tab]").forEach(b => b.addEventListener("click", () => showHallOfFame(b.dataset.tab, highlight, afterGame, !hof)));
+      if ($("hofAgain")) $("hofAgain").onclick = () => startRun(result.startLevel);
+      $("hofMenu").onclick = goMenu;
+    };
+    if (fetchFirst) {
+      const req = ++hofRequest;
+      show(`<div class="blink">ŁADOWANIE...</div>`);
+      const stillHere = () => req === hofRequest && state === "hof";
+      hofLoad()
+        .then(() => { if (stillHere()) showHallOfFame(op, highlight, afterGame, false); })
+        .catch(err => { if (stillHere()) show(`<div style="color:var(--red)">BRAK POŁĄCZENIA Z SERWEREM (${escapeHtml(err.message)})</div>`); });
+      return;
+    }
+    const medal = ["gold", "silver", "bronze"];
+    const rows = Array.from({ length: HOF_SIZE }, (_, i) => {
+      const e = hof[op][i];
+      if (!e) return `<tr class="empty"><td class="num">${i + 1}.</td><td class="name">---</td><td class="num">-</td><td class="num">--:--</td><td class="num">-</td><td></td></tr>`;
+      const cls = [medal[i] || "", highlight && e.id === highlight.id ? "me" : ""].join(" ");
+      return `<tr class="${cls}"><td class="num">${i + 1}.</td><td class="name">${escapeHtml(e.name)}</td>
+        <td class="num">${e.score}</td><td class="num">${e.time == null ? "--:--" : fmtTime(e.time)}</td>
+        <td class="num">${e.level == null ? "-" : "DO " + rangeMax(e.level)}</td><td>${e.completed ? `<span class="fin">UCIECZKA</span>` : ""}</td></tr>`;
+    }).join("");
+    show(`<table class="hof"><tr><th class="num">#</th><th>IMIĘ</th><th class="num">PUNKTY</th><th class="num">CZAS</th><th class="num">WYNIKI</th><th></th></tr>${rows}</table>`);
+  }
+
   // ---------- Update ----------
   function updateCamera(dt, snap = false) {
     const maxX = world.w * TILE - VIEW_W, maxY = world.h * TILE - VIEW_H;
@@ -1649,8 +2048,40 @@
     if (pressed.fire) { pressed.fire = false; shoot(); }
     updateBullets(dt);
     updateMutants(dt);
+    if (state === "playing") updateDrips(dt);
     if (state !== "playing") return;
 
+    for (const g of world.gems) {
+      if (g.taken || !overlaps(player, gemRect(g))) continue;
+      g.taken = true;
+      sfx.gem();
+      burst(g.x * TILE + 8, g.y * TILE + 10, "#6fe8ff", 6);
+      addPoints(PTS_DIAMOND, g.x * TILE + 8, g.y * TILE + 4);
+    }
+    for (const d of world.disks) {
+      if (d.taken || !overlaps(player, diskRect(d))) continue;
+      d.taken = true;
+      sfx.disk();
+      burst(d.x * TILE + 8, d.y * TILE + 8, d.kind === "F" ? "#2f4fc8" : "#d6dcea", 10);
+      addPoints(PTS_DISK, d.x * TILE + 8, d.y * TILE + 2);
+      const left = world.disks.filter(o => o.kind === d.kind && !o.taken).length;
+      toast(`${DISKS[d.kind].name}! +${PTS_DISK} PUNKTY${left ? ` (NA TYM POZIOMIE JESZCZE ${left})` : ""}`, 2, 1, "good");
+    }
+    for (const l of world.letters) {
+      if (l.taken || !overlaps(player, letterRect(l))) continue;
+      l.taken = true;
+      run.letters[l.idx] = true;
+      sfx.letter();
+      burst(l.x * TILE + 8, l.y * TILE + 8, LETTER_COLORS[l.idx][0], 22);
+      updateHudLetters();
+      const have = run.letters.filter(Boolean).length;
+      if (have === WORD.length) {
+        toast(`${WORD}! WSZYSTKIE LITERY - BONUS +${PTS_WORD} PUNKTÓW!`, 3.5, 3, "good");
+        addPoints(PTS_WORD, l.x * TILE + 8, l.y * TILE);
+      } else {
+        toast(`LITERA ${WORD[l.idx]}! MASZ ${have} Z ${WORD.length} LITER SŁOWA ${WORD}.`, 3, 2, "good");
+      }
+    }
     for (const g of world.pistols) {
       if (g.taken || !overlaps(player, pistolRect(g))) continue;
       g.taken = true;
@@ -1718,6 +2149,8 @@
     }
 
     for (const p of particles) { p.vy += 300 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; }
+    for (const p of popups) { p.y -= 18 * dt; p.life -= dt; }
+    popups = popups.filter(p => p.life > 0);
     particles = particles.filter(p => p.life > 0);
     updateCamera(dt);
   }
@@ -1772,9 +2205,9 @@
     if (!activeComputer && !activePin) return;
     $("terminal").classList.add("hidden");
     tInput.blur();
-    const d = activePin;
+    const c = activeComputer, d = activePin;
     activeComputer = null; activePin = null;
-    if (pendingSolve) { pendingSolve = false; if (!silent) (d ? pinAccepted(d) : afterSolve()); }
+    if (pendingSolve) { pendingSolve = false; if (!silent) (d ? pinAccepted(d) : afterSolve(c)); }
     if (!silent && state === "terminal") play();
   }
 
@@ -1805,6 +2238,7 @@
         return;
       }
       d.done++;
+      addPoints(PTS_TASK, d.x * TILE + 8, d.y * TILE);
       showPinTask(d);
       $("tQuestion").textContent = task.text.replace("?", task.answer);
       if (d.done < PIN_TASKS) {
@@ -1835,8 +2269,8 @@
     toast("PIN PRZYJĘTY! DRZWI OTWARTE!", 2.5, 2, "good");
   }
 
-  function afterSolve() {
-    updateHud();
+  function afterSolve(c) {
+    addPoints(PTS_TASK, c.x * TILE + 8, c.y * TILE);
     const left = world.computers.filter(c => !c.solved).length;
     if (left === 0) {
       world.exit.open = true;
@@ -1881,6 +2315,7 @@
   }
 
   window.addEventListener("keydown", e => {
+    if (state === "entry" || state === "hof") return;       // typing a name, or looking at the hall of fame
     if (state === "terminal") {
       if (e.code === "Escape") { e.preventDefault(); closeTerminal(); return; }
       if (terminalLock) return;
@@ -1968,6 +2403,7 @@
       (taskSettings.op === "all" ? " · DZIAŁANIA LOSOWANE PRZY KAŻDYM KOMPUTERZE" : "");
   }
   $("btnPlay").addEventListener("click", () => startRun(menuLevel));
+  $("btnHofMenu").addEventListener("click", () => { result = null; showHallOfFame(taskSettings.op, null, false); });
   $("btnCreator").addEventListener("click", () => { state = "creator"; showScreen("creator"); buildCreator(); });
   $("btnDone").addEventListener("click", () => { saveLook(); sprites = characterSprites(look); state = "menu"; showScreen("menu"); buildMenu(); });
   $("btnRandom").addEventListener("click", () => {
@@ -2057,7 +2493,7 @@
   // For tests: the level data and the physics, so a script can check every
   // level can be finished.
   window.LAB = {
-    LEVELS, TILE, PW, PH, STEP, parseLevel, newPlayer, stepPlayer, overlaps, keyRect, pistolRect, doorRect, atComputer, switchRect, MUTANTS,
+    LEVELS, TILE, PW, PH, STEP, parseLevel, renderStatic, puddleRect, gemRect, letterRect, diskRect, addPoints, levelComplete, newPlayer, stepPlayer, overlaps, keyRect, pistolRect, doorRect, atComputer, switchRect, MUTANTS,
     TASKS, genTask, loseLife, taskSettings,
     get state() { return state; }, get world() { return world; }, get player() { return player; },
     get run() { return run; }, get bullets() { return bullets; },
