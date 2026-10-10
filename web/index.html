@@ -42,6 +42,7 @@
     <li><a href="liczozerca/"><img data-pix="liczozerca" alt=""><div><b>LICZOŻERCA</b><span>ZJADAJ WYNIKI DZIAŁAŃ - DODAWANIE, ODEJMOWANIE, MNOŻENIE, DZIELENIE</span></div></a></li>
     <li><a href="laboratorium/"><img data-pix="laboratorium" alt=""><div><b>TAJNE LABORATORIUM</b><span>ZBIERAJ KLUCZE, OTWIERAJ DRZWI I ROZWIĄZUJ ZADANIA NA KOMPUTERACH</span></div></a></li>
     <li><a href="szosa/"><img data-pix="szosa" alt=""><div><b>SZALONA SZOSA</b><span>WYŚCIG NA CZAS! DOJEDŹ DO METY, OMIJAJĄC AUTA, AUTOBUSY I CIĘŻARÓWKI</span></div></a></li>
+    <li><a href="psiaszkola/"><img data-pix="psiaszkola" alt=""><div><b>PSIA SZKOŁA</b><span>Z GÓRY SPADAJĄ KOŚCI Z PYTANIAMI - WYBIERZ DOBRĄ ODPOWIEDŹ, W LEWO ALBO W PRAWO!</span></div></a></li>
   </ul>
 <script>
   // A small pixel-art picture for each game, so it can be found without reading.
@@ -50,6 +51,7 @@
       Y: "#ffd800", K: "#000000", W: "#ffffff", B: "#2b5cff",
       S: "#9a9ab0", D: "#0a2a14", L: "#3aff5a",
       R: "#d82828", G: "#22344a", T: "#ffb0a0", P: "#eeeeee", X: "#141414", A: "#5a5a64", E: "#2e9a2a",
+      N: "#b5591f", n: "#7a3812", M: "#e86a8a",
     };
     const PICTURES = {
       liczozerca: [
@@ -105,6 +107,24 @@
         "EAAAAAAAWAAAAAAE",
         "EAAAAAAAAAAAAAAE",
         "EAAAAAAAWAAAAAAE",
+      ],
+      psiaszkola: [
+        "................",
+        "....nNNWWNNn....",
+        "...nNNNWWNNNn...",
+        "..nNNNNWWNNNNn..",
+        ".nNNNKKWWKKNNNn.",
+        ".nNNNKKWWKKNNNn.",
+        "nNNNNWWWWWWNNNNn",
+        "nNNNWWWWWWWWNNNn",
+        "nNNNWWWKKWWWNNNn",
+        "nNNNWWWKKWWWNNNn",
+        "nNNNWWKWWKWWNNNn",
+        "nNNNNWWWMWWWNNNn",
+        ".nNN.WWWMWWW.NNn",
+        ".nNN..WWWWW..Nn.",
+        "..nn.........n..",
+        "................",
       ],
     };
     for (const img of document.querySelectorAll("img[data-pix]")) {

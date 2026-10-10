@@ -18,6 +18,18 @@ function hof_list_games(array $games): array
     return $out;
 }
 
+// A game with 'question_sets' => true also has a list for every set of
+// questions in the database (lib/questions.php), as category set-<slug>.
+function hof_with_sets(PDO $pdo, array $games): array
+{
+    foreach ($games as &$game) {
+        if ($game['question_sets'] ?? false) {
+            $game['categories'] = [...$game['categories'] ?? [], ...array_map(fn($s) => 'set-' . $s['slug'], q_sets($pdo))];
+        }
+    }
+    return $games;
+}
+
 function hof_route(PDO $pdo, array $games, string $slug, string $method): never
 {
     $game = $games[$slug] ?? throw new HttpError(404, "unknown game '$slug'");

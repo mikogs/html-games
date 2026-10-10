@@ -15,6 +15,14 @@ return [
         'title' => 'Tajne Laboratorium',
         'categories' => ['add', 'sub', 'mul', 'div', 'all'],
     ],
+    // one list per domain and kind of task (only maths so far), and one per set of questions
+    // (set-<slug>); score = points (10 per right answer), time = seconds of the game,
+    // level = the level played (results up to level * 10; none for a set of questions)
+    'psiaszkola' => [
+        'title' => 'Psia Szkoła',
+        'categories' => ['math-add', 'math-sub', 'math-mul', 'math-div', 'math-all'],
+        'question_sets' => true,
+    ],
     // score = metres driven (the whole route when finished), time = seconds to get there
     'szosa' => [
         'title' => 'Szalona Szosa',

@@ -7,6 +7,8 @@
 //   GET  /api/sala_slawy/                the games that have a hall of fame
 //   GET  /api/sala_slawy/<game>/         top entries per category (?category=, ?limit=)
 //   POST /api/sala_slawy/<game>/         add an entry (JSON: name, score, category, time, level, completed)
+//   GET  /api/zadania/                   sets of questions written by hand (from api/zadania/*.json)
+//   GET  /api/zadania/<set>/             one set with its questions
 //
 // No authentication on purpose (for now) - anyone can post any score.
 declare(strict_types=1);
@@ -14,6 +16,7 @@ declare(strict_types=1);
 require __DIR__ . '/lib/http.php';
 require __DIR__ . '/lib/db.php';
 require __DIR__ . '/lib/halloffame.php';
+require __DIR__ . '/lib/questions.php';
 
 send_cors_headers();
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
@@ -33,12 +36,14 @@ try {
     match (true) {
         $parts === [] => only_methods($method, ['GET']) ?? json_response([
             'name' => 'gry.billy.local api',
-            'endpoints' => ['/api/sala_slawy/', '/api/sala_slawy/{game}/'],
+            'endpoints' => ['/api/sala_slawy/', '/api/sala_slawy/{game}/', '/api/zadania/', '/api/zadania/{set}/'],
         ]),
         $parts === ['sala_slawy'] => only_methods($method, ['GET']) ?? json_response([
-            'games' => hof_list_games($games),
+            'games' => hof_list_games(hof_with_sets(db($config['db_path']), $games)),
         ]),
-        count($parts) === 2 && $parts[0] === 'sala_slawy' => hof_route(db($config['db_path']), $games, $parts[1], $method),
+        count($parts) === 2 && $parts[0] === 'sala_slawy' => hof_route(db($config['db_path']), hof_with_sets(db($config['db_path']), $games), $parts[1], $method),
+        $parts === ['zadania'] => q_route(db($config['db_path']), null, $method),
+        count($parts) === 2 && $parts[0] === 'zadania' => q_route(db($config['db_path']), $parts[1], $method),
         default => throw new HttpError(404, 'not found'),
     };
 } catch (HttpError $e) {

@@ -19,6 +19,32 @@ const MIGRATIONS = [
         );
         CREATE INDEX hall_of_fame_ranking ON hall_of_fame (game, category, score DESC, time_seconds);
         SQL,
+    // sets of questions written by hand (lib/questions.php), loaded from api/zadania/*.json
+    2 => <<<'SQL'
+        CREATE TABLE question_sets (
+            slug        TEXT    PRIMARY KEY,
+            name        TEXT    NOT NULL,
+            domain      TEXT    NOT NULL,
+            position    INTEGER NOT NULL DEFAULT 0,
+            source_hash TEXT    NOT NULL,
+            updated_at  TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+        );
+        CREATE TABLE questions (
+            id       INTEGER PRIMARY KEY AUTOINCREMENT,
+            set_slug TEXT    NOT NULL REFERENCES question_sets (slug),
+            position INTEGER NOT NULL,
+            type     TEXT    NOT NULL,
+            text     TEXT    NOT NULL,
+            answer   TEXT    NOT NULL,
+            wrong    TEXT    NOT NULL,
+            full     TEXT    NOT NULL
+        );
+        CREATE INDEX questions_by_set ON questions (set_slug, position);
+        SQL,
+    // how many seconds a bone of the set takes to fall through the empty well (NULL: the game's own speed)
+    3 => <<<'SQL'
+        ALTER TABLE question_sets ADD COLUMN fall_seconds INTEGER;
+        SQL,
 ];
 
 function db(string $path): PDO
