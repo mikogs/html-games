@@ -1,0 +1,2667 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tajne Laboratorium 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000;
+    --panel: #05052a;
+    --wall: #2b5cff;
+    --yellow: #ffd800;
+    --green: #3dff6e;
+    --red: #ff3b3b;
+    --pink: #ff8bd0;
+    --cyan: #4ff3ff;
+    --text: #f2f2f2;
+    --dim: #7a7aa8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Tiny5", "Courier New", monospace;
+    font-size: 16px;
+    line-height: 1.6;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 16px;
+  }
+  /* CRT scanlines */
+  body::after {
+    content: "";
+    pointer-events: none;
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.22) 2px 3px);
+    z-index: 100;
+  }
+  .wrap {
+    display: flex; flex-direction: column; gap: 14px; align-items: stretch;
+    width: min(960px, 100%, calc((100vh - 250px) * 5 / 3 + 16px));
+    min-width: min(100%, 320px);
+    margin: auto 0;
+  }
+  h1 {
+    margin: 0; text-align: center; font-size: 40px; letter-spacing: 3px; line-height: 1.1;
+    color: var(--green);
+    text-shadow: 3px 3px 0 #0e6a2c, 6px 6px 0 #04260f;
+  }
+  .frame {
+    border: 4px solid var(--wall); background: var(--panel);
+    box-shadow: 0 0 0 4px #000, 0 0 0 8px #0b0b5a;
+  }
+  .hud {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 8px 12px;
+  }
+  .hud .label { color: var(--dim); font-size: 13px; display: block; line-height: 1.2; }
+  .hud .val { font-size: 22px; line-height: 1.3; }
+  #hudLevel { color: var(--pink); }
+  #hudTime  { color: var(--cyan); }
+  #hudTasks { color: var(--yellow); }
+  #hudKeys { display: flex; gap: 6px; min-height: 29px; align-items: center; }
+  #hudKeys img { width: 28px; height: 18px; image-rendering: pixelated; }
+  #hudKeys img.missing { opacity: .22; filter: grayscale(1); }
+  #hudKeys .none { color: var(--dim); font-size: 14px; }
+  #hudLives { display: grid; grid-template-columns: repeat(5, auto); gap: 3px; min-height: 29px; align-content: center; }
+  #hudLives img { width: 18px; height: 16px; image-rendering: pixelated; }
+  #hudLives img.lost { opacity: .2; filter: grayscale(1); }
+  #hudAmmo { display: flex; align-items: center; gap: 6px; min-height: 29px; color: var(--yellow); }
+  #hudAmmo img { width: 30px; height: 16px; image-rendering: pixelated; }
+  #hudAmmo .none { color: var(--dim); font-size: 14px; }
+  #hudAmmo.empty { color: var(--red); }
+  #hudScore { color: var(--yellow); }
+  #hudLetters { display: flex; gap: 2px; min-height: 29px; align-items: center; }
+  #hudLetters img { width: 15px; height: 20px; image-rendering: pixelated; }
+  #hudLetters img.missing { opacity: .18; filter: grayscale(1); }
+
+  .board { position: relative; background: #000; line-height: 0; }
+  canvas#game {
+    display: block; width: 100%; height: auto; aspect-ratio: 5 / 3;
+    image-rendering: pixelated; image-rendering: crisp-edges;
+  }
+  .overlay {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px; text-align: center;
+    background: rgba(0,0,0,.8); line-height: 1.5; padding: 12px; overflow-y: auto;
+    font-size: clamp(13px, 2.2vw, 18px);
+  }
+  .overlay .big { font-size: clamp(22px, 4.5vw, 38px); line-height: 1.1; color: var(--yellow); }
+  .overlay .sub { color: var(--cyan); }
+  .overlay .dim { color: var(--dim); font-size: .85em; }
+  .hidden { display: none !important; }
+  .toast {
+    position: absolute; left: 50%; top: 5%; transform: translateX(-50%);
+    max-width: 92%; padding: 6px 12px; line-height: 1.3; text-align: center;
+    font-size: clamp(12px, 2vw, 17px); color: var(--text);
+    background: rgba(5,5,42,.92); border: 3px solid var(--yellow); box-shadow: 3px 3px 0 #000;
+    pointer-events: none;
+  }
+  .toast.good { border-color: var(--green); color: var(--green); }
+  .toast.bad { border-color: var(--red); }
+
+  .below { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .help { color: var(--dim); font-size: 13px; line-height: 1.6; flex: 1 1 300px; }
+  .help b { color: var(--text); font-weight: normal; }
+  .row { display: flex; gap: 8px; }
+
+  button { font-family: inherit; cursor: pointer; }
+  button.main-btn {
+    font-size: 18px; color: #000; background: var(--yellow);
+    border: none; padding: 10px 16px;
+    box-shadow: 4px 4px 0 #c43c00;
+  }
+  button.main-btn.alt { background: #2a2a6a; color: var(--text); box-shadow: 4px 4px 0 #000; }
+  button.main-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #c43c00; }
+  .btn-small {
+    font-size: 14px; color: var(--text); background: #12123f;
+    border: 3px solid #2a2a6a; padding: 4px 10px; box-shadow: 3px 3px 0 #000;
+  }
+  .btn-small:hover { border-color: var(--wall); }
+  .btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+
+  /* menu and character screens */
+  .screen { padding: 18px; display: flex; flex-direction: column; gap: 16px; align-items: center; text-align: center; }
+  .menu-title { color: var(--pink); font-size: 20px; }
+  .menu-top { display: flex; gap: 20px; align-items: center; text-align: left; max-width: 640px; }
+  .menu-top p { margin: 0; font-size: 15px; line-height: 1.7; }
+  .menu-top p b { color: var(--yellow); font-weight: normal; }
+  canvas.hero { width: 84px; height: 144px; image-rendering: pixelated; flex: none; }
+  .levels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; max-width: 520px; }
+  .opt {
+    font-family: inherit; color: var(--text); background: #12123f; cursor: pointer;
+    border: 3px solid #2a2a6a; padding: 8px 6px; font-size: 15px; line-height: 1.3;
+    box-shadow: 3px 3px 0 #000;
+  }
+  .opt b { display: block; font-size: 24px; font-weight: normal; color: var(--yellow); }
+  .opt:hover { border-color: var(--wall); }
+  .opt.sel { border-color: var(--yellow); background: #3a2f00; }
+  .ops { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; width: 100%; max-width: 620px; }
+  .ops .opt { font-size: 13px; }
+  .ops .opt b { font-size: 28px; line-height: 1.1; }
+  .ranges { display: grid; grid-template-columns: repeat(10, 1fr); gap: 6px; width: 100%; max-width: 620px; }
+  .ranges .opt { padding: 6px 0; font-size: 20px; }
+  .range-hint { font-size: 14px; color: var(--cyan); margin-top: -6px; }
+  .menu-hint { font-size: 13px; color: var(--dim); line-height: 1.7; max-width: 640px; }
+  table.hof { border-collapse: collapse; width: 100%; max-width: 620px; font-size: 18px; line-height: 1.5; }
+  table.hof th { color: var(--dim); font-size: 13px; font-weight: normal; text-align: left; padding: 2px 8px; border-bottom: 3px solid #2a2a6a; }
+  table.hof td { padding: 2px 8px; text-align: left; white-space: nowrap; }
+  table.hof .num { text-align: right; }
+  table.hof .name { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+  table.hof tr:nth-child(even) td { background: rgba(43, 92, 255, .1); }
+  table.hof tr.empty td { color: #2f2f6a; }
+  table.hof tr.gold td { color: var(--yellow); }
+  table.hof tr.silver td { color: #e0e0f0; }
+  table.hof tr.bronze td { color: #ffab6b; }
+  table.hof tr.me td { background: #4a3a00; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .blink { animation: blink 1s steps(1) infinite; }
+  table.hof .fin { color: var(--green); font-size: 13px; }
+  .name-form { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .name-form input {
+    font-family: inherit; font-size: 22px; text-align: center; width: 10em; text-transform: uppercase;
+    color: var(--yellow); background: #12123f; border: 3px solid var(--yellow); padding: 2px 8px; outline: none;
+  }
+  .menu-hint b { color: var(--cyan); font-weight: normal; }
+
+  .creator { display: flex; gap: 24px; align-items: flex-start; justify-content: center; flex-wrap: wrap; width: 100%; }
+  .preview {
+    padding: 14px 20px 0; background: #141a2e; border: 3px solid #2a2a6a;
+    border-bottom: 10px solid #4a5578; line-height: 0;
+  }
+  .preview canvas { width: 140px; height: 240px; image-rendering: pixelated; }
+  .opts { display: flex; flex-direction: column; gap: 12px; text-align: left; flex: 1 1 320px; max-width: 560px; }
+  .opts .label { display: block; color: var(--cyan); font-size: 14px; margin-bottom: 4px; }
+  .choices { display: flex; flex-wrap: wrap; gap: 8px; }
+  .choices .opt { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 8px; font-size: 13px; }
+  .choices canvas { width: 28px; height: 48px; image-rendering: pixelated; }
+  .swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+  .swatch { width: 34px; height: 34px; border: 3px solid #2a2a6a; box-shadow: 3px 3px 0 #000; padding: 0; }
+  .swatch.sel { border-color: var(--yellow); outline: 3px solid #000; outline-offset: -6px; }
+
+  /* touch controls */
+  .touch { display: none; justify-content: space-between; gap: 12px; user-select: none; -webkit-user-select: none; }
+  .touch .pad { display: flex; gap: 10px; }
+  .touch button {
+    width: 68px; height: 58px; font-size: 15px; color: var(--text); background: #12123f;
+    border: 3px solid #2a2a6a; box-shadow: 3px 3px 0 #000; touch-action: none;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .touch button.on { border-color: var(--yellow); background: #3a2f00; }
+  .touch svg { width: 26px; height: 26px; fill: currentColor; }
+  @media (pointer: coarse) {
+    body.in-game .touch { display: flex; }
+    .help .keys-only { display: none; }
+  }
+
+  /* computer terminal */
+  .modal {
+    position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
+    background: rgba(0,0,0,.6); padding: 16px;
+  }
+  .monitor {
+    width: min(520px, 100%); background: #cfc8ab; padding: 18px 18px 10px;
+    border: 4px solid #8a846e; box-shadow: inset 4px 4px 0 #ece6cc, inset -4px -4px 0 #a39c80, 8px 8px 0 #000;
+  }
+  .monitor.shake { animation: shake .35s steps(6); }
+  @keyframes shake { 0%,100% { transform: none; } 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(6px); } }
+  .crt {
+    position: relative; background: #031a0c; color: var(--green); padding: 14px 16px;
+    border: 4px solid #2b2a22; box-shadow: inset 0 0 30px rgba(61,255,110,.15);
+    text-shadow: 0 0 6px rgba(61,255,110,.6); line-height: 1.5; overflow: hidden;
+  }
+  .crt::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.3) 2px 3px);
+  }
+  .t-head { display: flex; justify-content: space-between; gap: 8px; color: #031a0c; background: var(--green); padding: 0 6px; margin-bottom: 8px; text-shadow: none; }
+  .t-line { font-size: 15px; }
+  .t-q { font-size: clamp(30px, 8vw, 44px); text-align: center; margin: 6px 0; color: #b6ffc8; }
+  .t-in { display: flex; align-items: center; gap: 8px; font-size: 26px; }
+  .t-in input {
+    width: 4.2em; font-family: inherit; font-size: 26px; color: var(--green); background: #062a13;
+    border: 2px solid var(--green); padding: 0 8px; caret-color: var(--green); outline: none;
+    text-shadow: inherit;
+  }
+  .t-pin { display: flex; justify-content: center; gap: 8px; margin: 8px 0 2px; font-size: 20px; }
+  .t-pin span { min-width: 2.6em; padding: 0 4px; text-align: center; border: 2px solid #1d7a3a; color: #1d7a3a; }
+  .t-pin span.ok { border-color: var(--green); color: var(--yellow); text-shadow: 0 0 6px rgba(255,216,0,.6); }
+  .t-pin span.cur { border-color: var(--green); color: var(--green); animation: pinblink 1s steps(2) infinite; }
+  @keyframes pinblink { 50% { border-color: #1d7a3a; } }
+  .t-msg { min-height: 1.5em; font-size: 16px; margin-top: 4px; }
+  .t-msg.bad { color: var(--red); text-shadow: 0 0 6px rgba(255,59,59,.6); }
+  .t-msg.good { color: var(--yellow); text-shadow: 0 0 6px rgba(255,216,0,.6); }
+  .keypad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-top: 8px; }
+  .keypad button {
+    font-size: 20px; padding: 6px 0; color: var(--green); background: #062a13;
+    border: 2px solid #1d7a3a; text-shadow: inherit;
+  }
+  .keypad button:hover { border-color: var(--green); }
+  .keypad button.wide { grid-column: span 2; font-size: 16px; }
+  .keypad button.ok { grid-column: span 3; }
+  .bezel { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px; color: #6b6550; font-size: 14px; }
+  .bezel button { font-size: 14px; color: #2b2a22; background: #b8b194; border: 3px solid #8a846e; padding: 2px 10px; box-shadow: 2px 2px 0 #6b6550; }
+  .led { width: 10px; height: 10px; background: var(--green); box-shadow: 0 0 6px var(--green); display: inline-block; }
+
+  @media (max-width: 720px) {
+    h1 { font-size: 28px; }
+    .hud .val { font-size: 18px; }
+    .hud .label { font-size: 11px; }
+    #hudKeys img { width: 21px; height: 14px; }
+    .menu-top { flex-direction: column; text-align: center; }
+    table.hof { font-size: 14px; line-height: 1.3; }
+    table.hof th, table.hof td { padding: 1px 4px; }
+    table.hof .name { max-width: 110px; }
+    .screen { padding: 12px; }
+    .hud { flex-wrap: wrap; row-gap: 4px; }
+    .ops { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .ranges { grid-template-columns: repeat(5, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .levels { grid-template-columns: repeat(2, 1fr); }
+    .touch { gap: 8px; }
+    .touch .pad { gap: 6px; }
+    .touch button { width: 58px; font-size: 13px; }
+  }
+  /* the 3D view and, over it, the hand with the pistol, the map and the flashes */
+  .board canvas#game { touch-action: none; }
+  canvas#hud2d {
+    position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none;
+    image-rendering: pixelated; image-rendering: crisp-edges;
+  }
+  .touch .pad.move { display: grid; grid-template-columns: repeat(3, auto); gap: 6px; }
+  .touch .pad.move .up { grid-column: 2; }
+  .touch .pad.move .row2 { grid-row: 2; }
+  .touch .pad.acts { display: grid; grid-template-columns: repeat(2, auto); gap: 6px; align-content: end; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>TAJNE LABORATORIUM 3D</h1>
+
+  <section class="screen frame" id="menu">
+    <div class="menu-top">
+      <canvas class="hero" id="menuHero" width="14" height="24"></canvas>
+      <p>TYM RAZEM WCHODZISZ DO <b>TAJNEGO LABORATORIUM</b> NAPRAWDĘ - WIDZISZ WSZYSTKO SWOIMI OCZAMI! CHODZISZ PO KORYTARZACH I POKOJACH, ZBIERASZ <b>KOLOROWE KLUCZE</b> (OTWIERAJĄ DRZWI W TYM SAMYM KOLORZE), <b>DIAMENTY</b>, <b>DYSKIETKI</b>, <b>PŁYTY CD</b> I <b>LITERY</b> SŁOWA NAUKA. DRZWI <b>NA PIN</b> OTWIERASZ, ROZWIĄZUJĄC 4 ZADANIA. UWAŻAJ NA <b>MUTANTY</b> I TOKSYCZNE KAŁUŻE - DOTKNIĘCIE ZABIERA ŻYCIE. ZNAJDŹ <b>PISTOLET</b>, ŻEBY STRZELAĆ DO MUTANTÓW I ROZBIJAĆ PĘKNIĘTE ŚCIANY. ROZWIĄŻ ZADANIA NA WSZYSTKICH <b>KOMPUTERACH</b>, A OTWORZY SIĘ <b>WYJŚCIE</b>. W ROGU WIDAĆ <b>MAPĘ</b> TEGO, CO JUŻ ZOBACZYŁEŚ.</p>
+    </div>
+    <div class="menu-title">WYBIERZ POZIOM</div>
+    <div class="levels" id="levelBtns"></div>
+    <div class="menu-title">ZADANIA NA KOMPUTERACH</div>
+    <div class="ops" id="opBtns"></div>
+    <div class="menu-title">TRUDNOŚĆ ZADAŃ</div>
+    <div class="ranges" id="rangeBtns"></div>
+    <div class="range-hint" id="rangeHint"></div>
+    <div class="btns">
+      <button class="main-btn" id="btnPlay">GRAJ</button>
+      <button class="main-btn alt" id="btnCreator">ZMIEŃ POSTAĆ</button>
+      <button class="main-btn alt" id="btnHofMenu">SALA SŁAWY</button>
+    </div>
+    <div class="menu-hint">
+      <b>W / STRZAŁKA W GÓRĘ</b> NAPRZÓD &nbsp; <b>S / STRZAŁKA W DÓŁ</b> DO TYŁU &nbsp; <b>STRZAŁKI W BOK</b> OBRÓT &nbsp; <b>A D</b> KROK W BOK<br>
+      <b>MYSZ</b> (KLIKNIJ W GRĘ) ROZGLĄDANIE &nbsp; <b>SPACJA / KLIK</b> STRZAŁ &nbsp; <b>E / ENTER</b> UŻYJ &nbsp; <b>TAB</b> DUŻA MAPA &nbsp; <b>P</b> PAUZA &nbsp; <b>M</b> DŹWIĘK
+    </div>
+  </section>
+
+  <section class="screen frame hidden" id="hofScreen"></section>
+
+  <section class="screen frame hidden" id="creator">
+    <div class="menu-title">STWÓRZ SWOJĄ POSTAĆ</div>
+    <div class="creator">
+      <div class="preview"><canvas id="preview" width="14" height="24"></canvas></div>
+      <div class="opts">
+        <div><span class="label">POSTAĆ</span><div class="choices" id="optGender"></div></div>
+        <div><span class="label">FRYZURA</span><div class="choices" id="optHair"></div></div>
+        <div><span class="label">KOLOR WŁOSÓW</span><div class="swatches" id="optHairColor"></div></div>
+        <div><span class="label">KOLOR KOSZULKI</span><div class="swatches" id="optShirt"></div></div>
+        <div><span class="label">KOLOR SPODNI</span><div class="swatches" id="optPants"></div></div>
+      </div>
+    </div>
+    <div class="btns">
+      <button class="main-btn alt" id="btnRandom">LOSUJ</button>
+      <button class="main-btn" id="btnDone">GOTOWE</button>
+    </div>
+  </section>
+
+  <div class="hud frame hidden" id="hud">
+    <div><span class="label">POZIOM</span><span class="val" id="hudLevel">1</span></div>
+    <div><span class="label">CZAS</span><span class="val" id="hudTime">00:00</span></div>
+    <div><span class="label">ZADANIA</span><span class="val" id="hudTasks">0/0</span></div>
+    <div><span class="label">KLUCZE</span><div id="hudKeys"></div></div>
+    <div><span class="label">ŻYCIA</span><div id="hudLives"></div></div>
+    <div><span class="label">NABOJE</span><div id="hudAmmo"></div></div>
+    <div><span class="label">PUNKTY</span><span class="val" id="hudScore">0</span></div>
+    <div><span class="label">LITERY</span><div id="hudLetters"></div></div>
+  </div>
+  <div class="board frame hidden" id="board">
+    <canvas id="game" width="400" height="240"></canvas>
+    <canvas id="hud2d" width="400" height="240"></canvas>
+    <div class="toast hidden" id="toast"></div>
+    <div class="overlay hidden" id="overlay"></div>
+  </div>
+  <div class="touch" id="touch">
+    <div class="pad move">
+      <button data-hold="fwd" class="up" aria-label="Naprzód"><svg viewBox="0 0 10 10"><path d="M1 7h8L5 2z"/></svg></button>
+      <button data-hold="turnL" class="row2" aria-label="Obrót w lewo"><svg viewBox="0 0 10 10"><path d="M7 1v8L2 5z"/></svg></button>
+      <button data-hold="back" class="row2" aria-label="Do tyłu"><svg viewBox="0 0 10 10"><path d="M1 3h8L5 8z"/></svg></button>
+      <button data-hold="turnR" class="row2" aria-label="Obrót w prawo"><svg viewBox="0 0 10 10"><path d="M3 1v8l5-4z"/></svg></button>
+    </div>
+    <div class="pad acts">
+      <button data-hold="map">MAPA</button>
+      <button data-hold="fire" id="btnFire" class="hidden">STRZAŁ</button>
+      <button data-hold="use">UŻYJ</button>
+    </div>
+  </div>
+  <div class="below hidden" id="below">
+    <div class="help"><span class="keys-only"><b>W S / ↑ ↓</b> CHODZENIE · <b>← →</b> OBRÓT · <b>A D</b> KROK W BOK · <b>MYSZ</b> ROZGLĄDANIE · <b>SPACJA</b> STRZAŁ · <b>E</b> UŻYJ · <b>TAB</b> MAPA · <b>P</b> PAUZA</span></div>
+    <div class="row">
+      <button class="btn-small" id="btnPause">PAUZA</button>
+      <button class="btn-small" id="btnSound">DŹWIĘK: WŁ.</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal hidden" id="terminal" role="dialog" aria-modal="true" aria-label="Komputer">
+  <div class="monitor" id="monitor">
+    <div class="crt">
+      <div class="t-head"><span id="tHead">LAB-OS 3.1</span><span id="tNum">TERMINAL 1/1</span></div>
+      <div class="t-line" id="tLine1">&gt; SYSTEM ZABLOKOWANY.</div>
+      <div class="t-line" id="tLine2">&gt; PODAJ WYNIK, ABY GO ODBLOKOWAĆ:</div>
+      <div class="t-pin hidden" id="tPin"></div>
+      <div class="t-q" id="tQuestion">?</div>
+      <div class="t-in">&gt; <input id="tInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" aria-label="Wynik"></div>
+      <div class="t-msg" id="tMsg">&nbsp;</div>
+      <div class="keypad" id="keypad"></div>
+    </div>
+    <div class="bezel"><span><span class="led"></span> BILLY-TRON 486</span><button id="tClose">ZAMKNIJ (ESC)</button></div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from "../lib/three/three.module.min.js";
+
+(() => {
+  "use strict";
+
+  // ---------- Settings ----------
+  // The map is a grid of 1 x 1 tiles (walls are 1 high); x goes east, y south.
+  const VIEW_W = 400, VIEW_H = 240;     // the picture is drawn this small and scaled up, pixel by pixel
+  const STEP = 1 / 120;                 // physics step (s)
+  const MOVE_SPEED = 2.7;               // tiles/s
+  const TURN_SPEED = 2.6;               // rad/s with the keys
+  const MOUSE_TURN = 0.0028;            // rad per pixel the mouse moves
+  const DRAG_TURN = 0.009;              // rad per pixel dragged on a touch screen
+  const RADIUS = 0.22;                  // the player is a circle this big
+  const EYE = 0.52;                     // eye height
+  const FOV = 68;
+  const USE_DIST = 1.7;                 // how near a computer or a PIN door has to be to use it
+  const NUM_RANGES = 10;                // task difficulty N => results up to N * 10
+  const START_LIVES = 5;
+  const AMMO_PER_PISTOL = 5;
+  const FIRE_COOLDOWN = 0.3;
+  const SAFE_TIME = 3;                  // s of no harm (and mutants backing off) after losing a life
+  const CRACK_HITS = 3;
+  const PIN_TASKS = 4;
+  const SIGHT = 7;                      // tiles a mutant sees the player from
+  const ENEMY_R = 0.26;
+  const TOUCH_DIST = 0.55;              // a mutant this near takes a life
+  const WORD = "NAUKA";
+  const PTS_TASK = 10;
+  const PTS_DIAMOND = 1;
+  const PTS_DISK = 2;
+  const PTS_WORD = 300;
+  const PTS_NO_HARM = 100;
+  const LEVEL_BONUS = [[120, 200], [240, 150], [Infinity, 100]];   // finished in under [s] -> points
+  const LIFE_EVERY = 200;
+  const PX = 1 / 26;                    // world size of one pixel of the pixel-art sprites
+
+  // ---------- Levels ----------
+  // # wall (# looks different here and there by itself; 1 pipes, 2 a warning sign, 3 server racks,
+  // 4 a whiteboard), x a wooden crate (as high as a wall), % cracked wall (3 shots break it;
+  // what's behind it is a hidden pocket), P start (looking `dir`), C computer,
+  // r/g/b/y key, R/G/B/Y door of that colour, D wooden door (opens by itself),
+  // N door with a PIN (4 tasks), E exit (on the edge of the map; opens when every computer is solved),
+  // o pistol (+5 bullets), * diamond (1 point), F floppy disk and O compact disc (2 points each),
+  // @ a letter of NAUKA (which ones: the level's `letters`, in map reading order),
+  // mutants: h one-eyed pig, d two-headed dog, a toxic cat (2 shots), ~ toxic puddle,
+  // things in the way: t tank, W water cooler, c toxic barrel, f lab table, s server rack,
+  // Q a professor (says the level's `tip` when the player comes near).
+  const LEVELS = [
+    { name: "WEJŚCIE", theme: "lab", dir: "S", letters: [0, 1],
+      tip: "PSST! CZERWONY KLUCZ JEST ZA DREWNIANYMI DRZWIAMI OBOK. ROZWIĄŻ ZADANIA NA WSZYSTKICH KOMPUTERACH, A OTWORZY SIĘ WYJŚCIE!",
+      map: [
+        "##4#######1####1###3#3####",
+        "#Q....#........#........@#",
+        "#..P..#..*..*..#..*...*..#",
+        "#.....D...r....2....C....#",
+        "#..C..#..*..*..#..*...*..#",
+        "#....t#...t....#o........#",
+        "###.################R#####",
+        "#W.......................#",
+        "#..o.......h.............2",
+        "#........................#",
+        "#####D#######N########.###",
+        "#.......#.........#......#",
+        "#..O....#....C....#..@...#",
+        "#.....f.#.........#..h...E",
+        "###%#####..*...*..#..F...#",
+        "#*.*#####.........#......#",
+        "##########################",
+      ] },
+    { name: "MAGAZYN", theme: "store", dir: "S", letters: [2, 3],
+      tip: "PSST! PĘKNIĘTĄ ŚCIANĘ ROZBIJESZ TRZEMA STRZAŁAMI. CIEKAWE, CO JEST ZA NIĄ...",
+      map: [
+        "############################",
+        "#......x.....#........#***.#",
+        "#.P....x..*..#..x.x.x.#*@*.#",
+        "#......x.....#........##%###",
+        "#..C...D..*..R..x.C.x.x....#",
+        "#......x.....#.............#",
+        "#xx.xxxx..r..#..x.x.x.x.b..#",
+        "#......x..o..#............Q#",
+        "#......xxxxxxx##############",
+        "#..........................#",
+        "#..o.....d.........h.......#",
+        "#..........................#",
+        "####N########.######B#######",
+        "#.......#.........#........#",
+        "#...C...#..x...x..#...*.*..#",
+        "#.......#..x.C.x..#..*.*.*.#",
+        "#..*....#..x...x..#...*.*..#",
+        "#.......#.........#.....d..E",
+        "#.@...F.#.h..O....#.W......#",
+        "############################",
+      ] },
+    { name: "REAKTOR", theme: "toxic", dir: "S", letters: [4],
+      tip: "UWAŻAJ NA ZIELONE KAŁUŻE! A TOKSYCZNE KOTY TRZEBA TRAFIĆ DWA RAZY...",
+      map: [
+        "##############################",
+        "#.....#..........#...........#",
+        "#.P...#..~...~...#..*..C..*..#",
+        "#.....D..........G...........#",
+        "#..C..#...a..t...#..*.....*..#",
+        "#.....#.....r....#.......y...#",
+        "###.##########################",
+        "#....o.......................#",
+        "#..~....d.......h.....h...~..#",
+        "#..g.........................#",
+        "####.#######R######.##########",
+        "#........#.......#...........#",
+        "#..*.*...#...C...#..~.....~..#",
+        "#........#.......N.....C.....#",
+        "#..*.*.o.#..~.~..#....a......#",
+        "#........#.......#...........#",
+        "#####.####.......######Y######",
+        "#**#.....#.......#...........#",
+        "#**%..C..D...@...#..O..F..C..#",
+        "#**#.....#.......#...........E",
+        "####.t..Q#...c...#.....a.....#",
+        "##############################",
+      ] },
+  ];
+  const DIRS = { E: 0, S: Math.PI / 2, W: Math.PI, N: -Math.PI / 2 };
+
+  const KEY_INFO = {
+    r: { name: "CZERWONY", doors: "CZERWONE", main: "#e83b3b", light: "#ff9a8a", dark: "#7c1414" },
+    b: { name: "NIEBIESKI", doors: "NIEBIESKIE", main: "#3b74f0", light: "#9ec0ff", dark: "#142a7c" },
+    g: { name: "ZIELONY", doors: "ZIELONE", main: "#2fc45a", light: "#9dffb8", dark: "#0e5a24" },
+    y: { name: "ŻÓŁTY", doors: "ŻÓŁTE", main: "#f2c81a", light: "#fff2a0", dark: "#7a5a00" },
+  };
+
+  // ---------- Computer tasks ----------
+  // The same kinds of tasks as in Liczożerca: the result r is at most max.
+  const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const TASKS = {
+    add: { name: "DODAWANIE", sym: "+", gen(max) { const r = randInt(2, max), a = randInt(1, r - 1); return [a, r - a, r]; } },
+    sub: { name: "ODEJMOWANIE", sym: "-", gen(max) { const r = randInt(1, max - 1), a = randInt(r + 1, max); return [a, a - r, r]; } },
+    mul: { name: "MNOŻENIE", sym: "×", gen(max) {
+      // prefer real multiplications (no ×1): pick a result that has a pair of factors >= 2
+      const results = [];
+      for (let n = 4; n <= max; n++) for (let a = 2; a * a <= n; a++) if (n % a === 0) { results.push(n); break; }
+      const r = results[randInt(0, results.length - 1)], pairs = [];
+      for (let a = 2; a * 2 <= r; a++) if (r % a === 0) pairs.push([a, r / a]);
+      const [a, b] = pairs[randInt(0, pairs.length - 1)];
+      return [a, b, r];
+    } },
+    div: { name: "DZIELENIE", sym: ":", gen(max) { const r = randInt(1, max), b = randInt(2, 9); return [r * b, b, r]; } },
+  };
+  const TASK_MODES = { ...Object.fromEntries(Object.entries(TASKS).map(([k, t]) => [k, { name: t.name, sym: t.sym }])),
+                       all: { name: "WSZYSTKO", sym: "+-×:" } };
+  const rangeMax = n => n * 10;
+  // the same settings as in the 2D laboratory
+  let taskSettings = { op: "add", range: 1 };
+  try {
+    const saved = JSON.parse(localStorage.getItem("laboratorium-tasks") || "null");
+    if (saved && TASK_MODES[saved.op] && saved.range >= 1 && saved.range <= NUM_RANGES) taskSettings = { op: saved.op, range: saved.range };
+  } catch (e) { /* ignore */ }
+  const saveTaskSettings = () => { try { localStorage.setItem("laboratorium-tasks", JSON.stringify(taskSettings)); } catch (e) { /* ignore */ } };
+
+  function genTask() {
+    const keys = Object.keys(TASKS);
+    const op = taskSettings.op === "all" ? keys[randInt(0, keys.length - 1)] : taskSettings.op;
+    const [a, b, r] = TASKS[op].gen(rangeMax(taskSettings.range));
+    return { text: `${a} ${TASKS[op].sym} ${b} = ?`, answer: r };
+  }
+  function newTask(used) {
+    let t = genTask();
+    for (let i = 0; i < 50 && used.has(t.text); i++) t = genTask();
+    used.add(t.text);
+    return t;
+  }
+
+  // ---------- Character (the same one as in the 2D laboratory) ----------
+  const HAIR_COLORS = [["CZARNE", "#23222b"], ["BRĄZOWE", "#6e3f1c"], ["BLOND", "#f0c75a"], ["RUDE", "#d4581f"],
+                       ["SIWE", "#d9dbe6"], ["NIEBIESKIE", "#3d7bff"], ["RÓŻOWE", "#ff6fb8"], ["ZIELONE", "#3ec46d"]];
+  const SHIRT_COLORS = [["CZERWONA", "#d63a3a"], ["NIEBIESKA", "#2f6fe0"], ["ZIELONA", "#2fa84a"], ["ŻÓŁTA", "#efc21c"],
+                        ["FIOLETOWA", "#8a4fd8"], ["POMARAŃCZOWA", "#f07a1a"], ["RÓŻOWA", "#f06fb0"], ["BIAŁA", "#e6e6e6"]];
+  const PANTS_COLORS = [["NIEBIESKIE", "#2e4a9e"], ["CZARNE", "#26262e"], ["BRĄZOWE", "#6b4a2b"], ["SZARE", "#70757f"],
+                        ["ZIELONE", "#3b6b34"], ["CZERWONE", "#a12a2a"], ["FIOLETOWE", "#5c3a8e"], ["BIAŁE", "#d8d8d8"]];
+
+  // 12 x 22 sprites facing right: S skin, E eyes, M mouth, T/t shirt, P/p pants, B shoes.
+  const HEAD = [
+    "............",
+    "............",
+    "...SSSSSS...",
+    "...SSSSSS...",
+    "...SSSSSS...",
+    "...SESSES...",
+    "...SESSES...",
+    "...SSSSSS...",
+    "...SSMMSS...",
+    "....SSSS....",
+    ".....SS.....",
+  ];
+  const BODY = {
+    stand: [
+      "...TTTTTT...",
+      "..TTTTTTTT..",
+      "..TTTTTTTT..",
+      "..tTTTTTTt..",
+      "..STTTTTTS..",
+      "...PPPPPP...",
+      "...PPPPPP...",
+      "...PP..PP...",
+      "...PP..PP...",
+      "...pp..pp...",
+      "...BBB.BBB..",
+    ],
+    walk: [
+      "...TTTTTT...",
+      "..TTTTTTTT..",
+      ".tTTTTTTTTt.",
+      ".STTTTTTTTS.",
+      "...TTTTTT...",
+      "...PPPPPP...",
+      "..PPP..PPP..",
+      "..PP....PP..",
+      ".PP......PP.",
+      ".pp......pp.",
+      "BBB......BBB",
+    ],
+    jump: [
+      ".TTTTTTTTTT.",
+      "..TTTTTTTT..",
+      "...TTTTTT...",
+      "...TTTTTT...",
+      "...tTTTTt...",
+      "...PPPPPP...",
+      "..PPP..PPP..",
+      "..PP....PP..",
+      ".BBB....BBB.",
+      "............",
+      "............",
+    ],
+  };
+  const JUMP_NECK = ".S...SS...S.";   // hands up next to the neck
+  // Overlays on the sprite: H hair, h darker hair ("." keeps what's under it).
+  const HAIR = {
+    short: { name: "KRÓTKIE", rows: [
+      "............",
+      "....HHHHH...",
+      "..HHHHHHHH..",
+      "..HHHHHHHH..",
+      "..HHHh..H...",
+      "..HH........",
+      "..Hh........",
+    ] },
+    spiky: { name: "JEŻYK", rows: [
+      "..H.H.H.H...",
+      "..HHHHHHHH..",
+      ".HHHHHHHHHH.",
+      "..HHHHHHHH..",
+      "..HHh...H...",
+      "..Hh........",
+    ] },
+    long: { name: "DŁUGIE", rows: [
+      "............",
+      "....HHHHH...",
+      "..HHHHHHHH..",
+      ".HHHHHHHHHH.",
+      ".HHHHh..HH..",
+      ".HHH.....H..",
+      ".HHH........",
+      ".HHH........",
+      ".HHH........",
+      ".HHH........",
+      ".HHh........",
+      ".HHh........",
+      "..hh........",
+    ] },
+    ponytail: { name: "KUCYK", rows: [
+      "............",
+      "....HHHHH...",
+      "..HHHHHHHH..",
+      ".HHHHHHHHHH.",
+      "HHHHh...H...",
+      "HHh.........",
+      "HH..........",
+      "HH..........",
+      "Hh..........",
+      ".h..........",
+    ] },
+    curly: { name: "KRĘCONE", rows: [
+      "...HHHHH....",
+      "..HhHHHhH...",
+      ".HHHHHHHHH..",
+      "HHhHHHHHHhH.",
+      "HHHH.....HH.",
+      "HhH.......H.",
+      "HHH.........",
+      ".Hh.........",
+    ] },
+    mohawk: { name: "IROKEZ", rows: [
+      ".....HH.....",
+      "....HHHH....",
+      "....HhHH....",
+      "....hHHh....",
+    ] },
+  };
+  // A bow (in the shirt's colour), eyelashes and rosy cheeks.
+  const GIRL = [
+    "............",
+    ".R.R........",
+    "..R.........",
+    ".R.R........",
+    "........E...",
+    "............",
+    "............",
+    "...c....c...",
+  ];
+  const OUTLINE = "#0a0a14";
+
+  const DEFAULT_LOOK = { gender: "boy", hair: "short", hairColor: 1, shirt: 0, pants: 0 };
+  let look = { ...DEFAULT_LOOK };
+  try {
+    const saved = JSON.parse(localStorage.getItem("laboratorium-look") || "null");
+    if (saved && HAIR[saved.hair] && ["boy", "girl"].includes(saved.gender) &&
+        HAIR_COLORS[saved.hairColor] && SHIRT_COLORS[saved.shirt] && PANTS_COLORS[saved.pants]) look = saved;
+  } catch (e) { /* ignore */ }
+  const saveLook = () => { try { localStorage.setItem("laboratorium-look", JSON.stringify(look)); } catch (e) { /* ignore */ } };
+
+  function shade(hex, f) {
+    const n = parseInt(hex.slice(1), 16);
+    const ch = s => { const v = (n >> s) & 255; return Math.max(0, Math.min(255, Math.round(f < 0 ? v * (1 + f) : v + (255 - v) * f))); };
+    return "#" + [16, 8, 0].map(s => ch(s).toString(16).padStart(2, "0")).join("");
+  }
+
+  // A sprite from a template: each pixel of `rows` is looked up in `pal`
+  // ("." and unknown letters are transparent), with a 1px dark outline.
+  function makeSprite(rows, pal) {
+    const w = rows[0].length, h = rows.length;
+    const c = document.createElement("canvas");
+    c.width = w + 2; c.height = h + 2;
+    const x = c.getContext("2d");
+    const on = (i, j) => pal[rows[j][i]] !== undefined;
+    x.fillStyle = OUTLINE;
+    for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+      if (!on(i, j)) continue;
+      x.fillRect(i, j + 1, 3, 1);
+      x.fillRect(i + 1, j, 1, 3);
+    }
+    for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+      if (!on(i, j)) continue;
+      x.fillStyle = pal[rows[j][i]];
+      x.fillRect(i + 1, j + 1, 1, 1);
+    }
+    return c;
+  }
+
+  function overlay(grid, rows) {
+    rows.forEach((r, j) => [...r].forEach((ch, i) => { if (ch !== ".") grid[j][i] = ch; }));
+  }
+
+  function characterSprites(lk) {
+    const hair = HAIR_COLORS[lk.hairColor][1], shirt = SHIRT_COLORS[lk.shirt][1], pants = PANTS_COLORS[lk.pants][1];
+    const pal = {
+      S: "#f1c19a", E: "#1d1d2e", M: "#b5483f", c: "#f39a9a", B: "#3b2a22",
+      T: shirt, t: shade(shirt, -0.25), P: pants, p: shade(pants, -0.3),
+      H: hair, h: shade(hair, -0.3), R: lk.shirt === 6 ? "#ffffff" : shirt,
+    };
+    const frame = name => {
+      const grid = HEAD.concat(BODY[name]).map(r => [...r]);
+      if (name === "jump") grid[10] = [...JUMP_NECK];
+      overlay(grid, HAIR[lk.hair].rows);
+      if (lk.gender === "girl") overlay(grid, GIRL);
+      return makeSprite(grid.map(r => r.join("")), pal);
+    };
+    return { stand: frame("stand"), walk: frame("walk"), jump: frame("jump") };
+  }
+
+  // Keys: K key colour, k shine.
+  const KEY_ROWS = [
+    ".KKK........",
+    "KkkKK.......",
+    "Kk.KKKKKKKKK",
+    "KK.KK...K.K.",
+    ".KKK....K.K.",
+  ];
+  const keySprites = {};
+  for (const [c, info] of Object.entries(KEY_INFO)) keySprites[c] = makeSprite(KEY_ROWS, { K: info.main, k: info.light });
+
+  // Pistol lying in the lab (G metal, g shine, D dark, W wooden grip), the
+  // small one in the player's hand, and a heart for the lives.
+  const PISTOL_ROWS = [
+    "GGGGGGGGGGG.",
+    "GggggggggggG",
+    "GGGGGGGGGGGG",
+    "DDDWWWD.D...",
+    "..DWWWDDD...",
+    "..WWWW......",
+    "..WWWW......",
+    "..WWW.......",
+  ];
+  const PISTOL_PAL = { G: "#8d96a8", g: "#d6dcea", D: "#3a3f4d", W: "#7a4a24" };
+  const pistolSprite = makeSprite(PISTOL_ROWS, PISTOL_PAL);
+  const HAND_GUN_ROWS = [
+    "GGGGGG",
+    "WWDD..",
+    "WW....",
+  ];
+  const handGun = makeSprite(HAND_GUN_ROWS, PISTOL_PAL);
+  const HEART_ROWS = [
+    ".RR...RR.",
+    "RrRR.RRRR",
+    "RrRRRRRRR",
+    "RRRRRRRRR",
+    ".RRRRRRR.",
+    "..RRRRR..",
+    "...RRR...",
+    "....R....",
+  ];
+
+  // Mutants from the lab, facing right, two frames each: walking legs, or the
+  // wagging tail of the pig butt. D/d fur, e eye, N nose, T tongue,
+  // P/p pig skin, W eye white, S/n snout, c tail, G green mutant spots.
+  const MUTANT_PAL = {
+    D: "#9a6a3a", d: "#5e3c1e", e: "#ff3b3b", N: "#1d1d2e", T: "#ff7a9a",
+    P: "#f29ab0", p: "#c96a86", W: "#ffffff", S: "#e07a96", n: "#7a2a40", c: "#c96a86", G: "#8fd16a",
+  };
+  // The toxic zone's mutants: K/k fur, F fangs, f the sheep's dark face and legs, w/v wool, h horns.
+  // E is a glowing eye (its colour is the mutant's `glow`).
+  const MUTANT_PAL2 = { K: "#3a3a48", k: "#22222c", n: "#ff7a9a", F: "#ffffff", f: "#2a2228", w: "#d8d4c8", v: "#a8a498", h: "#8a7a5a", G: "#8fd16a" };
+  const MUTANTS = {
+    d: { name: "PSA", speed: 13, frames: [[
+      "...........d.d.......",
+      "...........DDDD......",
+      "..........DDDeDDN....",
+      "..........DDDDDTT....",
+      "d.........dDDd.......",
+      ".d.......dDDd...d.d..",
+      ".dDDDDDDDDDDDD.DDDD..",
+      "..DDDDDDDDDDDDDDDeDDN",
+      "..DDDDDDDDDDDDDDDDDTT",
+      "..DdDDDDDDDdDD.......",
+      "..DD.DD...DD.DD......",
+      "..dd.dd...dd.dd......",
+    ], [
+      "...........d.d.......",
+      "...........DDDD......",
+      "..........DDDeDDN....",
+      "..........DDDDDTT....",
+      "d.........dDDd.......",
+      ".d.......dDDd...d.d..",
+      ".dDDDDDDDDDDDD.DDDD..",
+      "..DDDDDDDDDDDDDDDeDDN",
+      "..DDDDDDDDDDDDDDDDDTT",
+      "..DdDDDDDDDdDD.......",
+      "...DD.DD...DD.DD.....",
+      "...dd.dd...dd.dd.....",
+    ]] },
+    h: { name: "ŚWINIĘ", speed: 9, frames: [[
+      "...........p.p..",
+      "..........pPPPp.",
+      "...PPPPPPPWWWPP.",
+      "c.PPPPPPPPWeWPSS",
+      ".cPPPPPPPPWWWPSn",
+      "..PPPPPPPPPPPPSS",
+      "..PPPPPPPPPPPPP.",
+      "..pPPPPPPPPPPPp.",
+      "...PP.PP..PP.PP.",
+      "...pp.pp..pp.pp.",
+    ], [
+      "...........p.p..",
+      "..........pPPPp.",
+      "...PPPPPPPWWWPP.",
+      "c.PPPPPPPPWeWPSS",
+      ".cPPPPPPPPWWWPSn",
+      "..PPPPPPPPPPPPSS",
+      "..PPPPPPPPPPPPP.",
+      "..pPPPPPPPPPPPp.",
+      "..PP..PP.PP..PP.",
+      "..pp..pp.pp..pp.",
+    ]].map(f => f.map(r => r.replace("e", "N"))) },
+    u: { name: "ŚWIŃSKI TYŁEK", speed: 0, frames: [[
+      ".....cc.......",
+      "....c..c......",
+      ".....c.c......",
+      "..PPPPPPPPPP..",
+      ".PPGPPPpPPPPP.",
+      "PPPPPPPpPPPGPP",
+      "PPPPPPPpPPPPPP",
+      "PPGPPPPpPPPPPP",
+      ".PPPPPPpPPPPP.",
+      "..pPPp...pPPp.",
+      "..pp......pp..",
+    ], [
+      ".......cc.....",
+      "......c..c....",
+      "......c.c.....",
+      "..PPPPPPPPPP..",
+      ".PPGPPPpPPPPP.",
+      "PPPPPPPpPPPGPP",
+      "PPPPPPPpPPPPPP",
+      "PPGPPPPpPPPPPP",
+      ".PPPPPPpPPPPP.",
+      "..pPPp...pPPp.",
+      "..pp......pp..",
+    ]] },
+  };
+  const CAT_LEGS = [["...KK.KK....KK.KK....", "...kk.kk....kk.kk...."], ["....KK.KK....KK.KK...", "....kk.kk....kk.kk..."]];
+  const CAT = [
+    "...........K.K.......",
+    "...........KKKK......",
+    "..k.......KKEKKn.....",
+    ".k........KKKKFF.....",
+    ".k.......kKKKK...K.K.",
+    ".k......kKKKK....KKKK",
+    "..kKKKKKKKKKK...KKEKn",
+    "...KKKKKKKKKKKKKKKKFF",
+    "...KKKKKKKKKKKKKKKK..",
+    "...KkKKKKKKKkKKK.....",
+  ];
+
+  // H/h hair, S skin, N nose, G glasses, g lens, k tie, W/w coat, p trousers,
+  // B shoes; R/r her hair, L lips, u blouse;
+  // C cap, T/t shirt, P/q jeans, K/c the visible bit of the butt.
+  const PEOPLE_PAL = {
+    H: "#e8e8f0", h: "#a9abb8", S: "#f2c29a", N: "#d9966c", G: "#2a2a35", g: "#bfe6ff", k: "#d63a3a",
+    W: "#f4f6fa", w: "#c2c8d6", p: "#3a3f52", B: "#3a2416",
+    C: "#d63a3a", T: "#e07a1a", t: "#a8540c", P: "#34508f", q: "#22356a", K: "#f2c29a", c: "#9a5a3a",
+    R: "#7a4a24", r: "#4f2e14", L: "#d63a6a", u: "#8a4fd8",
+  };
+  // In the toxic zone the professors are half lizards: green scaly skin and yellow eyes behind the glasses (and a tail).
+  const LIZARD_PAL = { ...PEOPLE_PAL, S: "#7cbf45", s: "#5a9a30", N: "#4f8a2a", g: "#f0e040", L: "#3f7a22" };
+  const scaly = rows => rows.map((r, j) => [...r].map((ch, i) => ch === "S" && (i + j * 2) % 3 === 0 ? "s" : ch).join(""));
+  const PROFESSOR_SHE = [
+    "....rRr.......",
+    "....RRR.......",
+    "..RRRRRRR.....",
+    ".RRSSSSSSR....",
+    ".RSSSSSSSSR...",
+    ".RSGGGSGGGS...",
+    ".RSGgGSGgGS...",
+    ".RSSSSSSSSSN..",
+    ".RRSSSLLSS....",
+    ".RR.SSSSS.....",
+    "....SSSS......",
+    "..WWWuuWWW....",
+    ".WWWWuuWWWW...",
+    ".WWWWWWWWwWSS.",
+    ".WWWWWWWWw....",
+    ".WWwWWWWWW....",
+    ".WWwWWWWWW....",
+    ".WWWWWWWWW....",
+    ".wWWWWWWWw....",
+    "..SS...SS.....",
+    "..SS...SS.....",
+    "..SS...SS.....",
+    "..BBB..BBB....",
+  ];
+  const SHE_SIPS = { 10: "....SSSS..SS..", 11: "..WWWuuWWWWW..", 12: ".WWWWuuWWWWW..", 13: ".WWWWWWWWwW..." };
+  const PROFESSOR = [
+    "...H.HH.H.....",
+    "..HHHHHHHH....",
+    ".HHSSSSSSHH...",
+    ".HSSSSSSSSH...",
+    "..SGGGSGGGS...",
+    "..SGgGSGgGS...",
+    "..SSSSSSSSSN..",
+    "..SSSHHHHS....",
+    "...SSSSSS.....",
+    "....SSSS......",
+    "..WWWkkWWW....",
+    ".WWWWkkWWWW...",
+    ".WWWWWWWWwWSS.",
+    ".WWWWWWWWw....",
+    ".WWwWWWWWW....",
+    ".WWwWWWWWW....",
+    ".WWWWWWWWW....",
+    ".WWWWWWWWW....",
+    ".wWWWWWWWw....",
+    "..pp...pp.....",
+    "..pp...pp.....",
+    "..pp...pp.....",
+    "..BBB..BBB....",
+  ];
+
+  const GLYPHS = {
+    N: ["#...#", "##..#", "#.#.#", "#.#.#", "#..##", "#...#", "#...#"],
+    A: [".###.", "#...#", "#...#", "#####", "#...#", "#...#", "#...#"],
+    U: ["#...#", "#...#", "#...#", "#...#", "#...#", "#...#", ".###."],
+    K: ["#...#", "#..#.", "#.#..", "##...", "#.#..", "#..#.", "#...#"],
+  };
+  const LETTER_COLORS = [["#ff4b4b", "#ffb0a0"], ["#ffb21a", "#fff0a0"], ["#3dff6e", "#c8ffd0"], ["#4f9bff", "#c0dcff"], ["#d070ff", "#f0c8ff"]];
+  const letterSprites = [...WORD].map((ch, i) => {
+    const rows = GLYPHS[ch].flatMap((r, j) => {
+      const big = [...r].map(c => c === "#" ? (j === 0 ? "ll" : "LL") : "..").join("");
+      return [big, big.replace(/l/g, "L")];
+    });
+    return makeSprite(rows, { L: LETTER_COLORS[i][0], l: LETTER_COLORS[i][1] });
+  });
+  const letterImages = letterSprites.map(c => c.toDataURL());
+  const diamondSprite = makeSprite([
+    ".bWb.",
+    "bWbbb",
+    "BbbbB",
+    ".BbB.",
+    "..B..",
+  ], { W: "#ffffff", b: "#6fe8ff", B: "#2a9fd0" });
+
+  // A floppy disk (B body, S metal shutter, h its hole, L label, l writing)
+  // and a compact disc (C silver, r/y/c rainbow shine, o the hole).
+  const DISKS = {
+    F: { name: "DYSKIETKA", sprite: makeSprite([
+      "BBBBBBBBBBB.",
+      "BBBSSSSShSBB",
+      "BBBSSSSShSBB",
+      "BBBSSSSSSSBB",
+      "BBBBBBBBBBBB",
+      "BBLLLLLLLLBB",
+      "BBLllllllLBB",
+      "BBLLLLLLLLBB",
+      "BBLlllllLLBB",
+      "BBLLLLLLLLBB",
+      "BBLLLLLLLLBB",
+    ], { B: "#2f4fc8", S: "#c8ccd6", h: "#2f4fc8", L: "#f2f2f2", l: "#d63a3a" }) },
+    O: { name: "PŁYTA CD", sprite: makeSprite([
+      "...CCCCC...",
+      "..CrrCCCC..",
+      ".CrryCCCCC.",
+      "CCryCCCCCCC",
+      "CCCCC.CCCCC",
+      "CCCC.o.CCCC",
+      "CCCCC.CCCCC",
+      "CCCCCCCccCC",
+      ".CCCCCccCC.",
+      "..CCCCCCC..",
+      "...CCCCC...",
+    ], { C: "#d6dcea", r: "#ff8bd0", y: "#fff2a0", c: "#6fe8ff", o: "#141a2c" }) },
+  };
+  const heartImage = makeSprite(HEART_ROWS, { R: "#ff3b3b", r: "#ffb0a0" }).toDataURL();
+  const pistolImage = pistolSprite.toDataURL();
+
+  // A mirrored copy of a sprite (the pixel art faces right; a mutant walking left on the screen is flipped).
+  function mirror(c) {
+    const m = document.createElement("canvas");
+    m.width = c.width; m.height = c.height;
+    const g = m.getContext("2d");
+    g.translate(c.width, 0); g.scale(-1, 1); g.drawImage(c, 0, 0);
+    return m;
+  }
+
+  // Mutants in 3D: h pig, d dog, a toxic cat (2 shots).
+  const ENEMIES = {
+    h: { name: "ŚWINIA", caught: "ŚWINIA CIĘ DOPADŁA!", hp: 1, speed: 0.7, chase: 1.25, frames: MUTANTS.h.frames.map(f => makeSprite(f, MUTANT_PAL)), blood: "#f29ab0", beaten: "ŚWINIA POKONANA!" },
+    d: { name: "PIES", caught: "PIES CIĘ DOPADŁ!", hp: 1, speed: 0.9, chase: 1.6, frames: MUTANTS.d.frames.map(f => makeSprite(f, MUTANT_PAL)), blood: "#9a6a3a", beaten: "PIES POKONANY!" },
+    a: { name: "KOT", caught: "KOT CIĘ PODRAPAŁ!", hp: 2, speed: 0.9, chase: 1.7, frames: CAT_LEGS.map(l => makeSprite(CAT.concat(l), { ...MUTANT_PAL2, E: "#6dff3a" })),
+         blood: "#6dff3a", beaten: "TOKSYCZNY KOT POKONANY!" },
+  };
+
+  // Things in the way (s, scale): pixel art standing on the floor.
+  const DECOR = {
+    t: makeSprite([
+      ".GGGGGGGGGG.", "GggggggggggG", ".GGGGGGGGGG.", ".g........g.", ".gLLLLLLLLg.", ".gLLlLLLLLg.", ".gLLLLLLlLg.",
+      ".gLlLLLLLLg.", ".gLLLLlLLLg.", ".gLLLLLLLLg.", ".gLLLlLLLLg.", ".gLLLLLLLLg.", ".gLLLLLLLLg.", ".gLLLLLLlLg.",
+      ".gLlLLLLLLg.", ".GGGGGGGGGG.", "GGGGGGGGGGGG", "GDDDDDDDDDDG", "GGGGGGGGGGGG",
+    ], { G: "#8d96a8", g: "#c8d0de", L: "#3dff6e", l: "#c8ffd0", D: "#3a3f4d" }),
+    W: makeSprite([
+      "..BBBB..", ".BbbbbB.", ".BbBBbB.", ".BbbbbB.", "..BBBB..", "WWWWWWWW", "WwwwwwwW", "WwRwBwwW", "WwwwwwwW",
+      "WWWWWWWW", "WwwwwwwW", "WwwwwwwW", "WwwwwwwW", "WwwwwwwW", "WWWWWWWW",
+    ], { B: "#4f9bff", b: "#a8d4ff", W: "#e6e6ee", w: "#c2c8d6", R: "#d63a3a" }),
+    c: makeSprite([
+      ".YYYYYYYY.", "YyyyyyyyyY", "YYYKKKKYYY", "YYKKYYKKYY", "YYYKYYKYYY", "YYYYKKYYYY", "YYYYYYYYYY", "yyyyyyyyyy",
+      "YYYYYYYYYY", "YYYYYYYYYY", ".YYYYYYYY.", "LLL...LLLL",
+    ], { Y: "#e8c21a", y: "#a8860a", K: "#1d1d2e", L: "#6dff3a" }),
+    f: makeSprite([
+      "....g.......M.......", "...ggg.....MMM....R.", "...gLg....MMMMM..RRR", "..gLLLg...MMMMM..RRR", "..ggggg....MMM...RRR",
+      "WWWWWWWWWWWWWWWWWWWW", "wwwwwwwwwwwwwwwwwwww", ".D................D.", ".D................D.", ".D................D.",
+      ".D................D.", ".D................D.",
+    ], { g: "#c8d0de", L: "#3dff6e", M: "#d070ff", R: "#ff6b3b", W: "#e6e6ee", w: "#9aa0b0", D: "#5a6070" }),
+    s: makeSprite([
+      "DDDDDDDDDDDD", "DKKKKKKKKKKD", "DKgKrKKKKKKD", "DKKKKKKKKKKD", "DDDDDDDDDDDD", "DKKKKKKKKKKD", "DKgKgKKKKKKD",
+      "DKKKKKKKKKKD", "DDDDDDDDDDDD", "DKKKKKKKKKKD", "DKrKgKKKKKKD", "DKKKKKKKKKKD", "DDDDDDDDDDDD", "DKKKKKKKKKKD",
+      "DKgKKKKKKKKD", "DKKKKKKKKKKD", "DDDDDDDDDDDD", "DKKKKKKKKKKD", "DKgKrKKKKKKD", "DKKKKKKKKKKD", "DDDDDDDDDDDD",
+    ], { D: "#4a5068", K: "#1d2030", g: "#3dff6e", r: "#ff3b3b" }),
+  };
+
+  // The pistol held in the hand, seen from behind: G metal, g shine, D dark, W grip, S/s skin, T/t sleeve.
+  const GUN_FP = [
+    "........gGGg........",
+    "........GDDG........",
+    "........GGGG........",
+    ".......gGGGGg.......",
+    ".......GGGGGG.......",
+    ".......GggggG.......",
+    "......DGGGGGGD......",
+    "......DDDWWDDD......",
+    "......SSSWWWSS......",
+    ".....SSSSWWWSSS.....",
+    "....SSSSSSSSSSSS....",
+    "....SsSSSSSSSSsS....",
+    "....SSSSSSSSSSSS....",
+    ".....SSSSSSSSSS.....",
+    ".....tTTTTTTTTt.....",
+    "....TTTTTTTTTTTT....",
+    "....TTTTTTTTTTTT....",
+    "...TTTTTTTTTTTTTT...",
+    "...TTTTTTTTTTTTTT...",
+    "..tTTTTTTTTTTTTTTt..",
+  ];
+  function gunSprite(lk) {
+    const shirt = SHIRT_COLORS[lk.shirt][1];
+    return makeSprite(GUN_FP, { ...PISTOL_PAL, S: "#f1c19a", s: "#d9a07a", T: shirt, t: shade(shirt, -0.25) });
+  }
+
+  // ---------- Sound (tiny chiptune blips) ----------
+  let audio = null, soundOn = true;
+  try { soundOn = localStorage.getItem("laboratorium-sound") !== "off"; } catch (e) { /* ignore */ }
+  function beep(freq, dur, type = "square", vol = 0.06, slideTo = null, delay = 0) {
+    if (!soundOn) return;
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const t0 = audio.currentTime + delay;
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, t0);
+      if (slideTo) o.frequency.linearRampToValueAtTime(slideTo, t0 + dur);
+      g.gain.setValueAtTime(vol, t0);
+      g.gain.linearRampToValueAtTime(0, t0 + dur);
+      o.connect(g).connect(audio.destination);
+      o.start(t0); o.stop(t0 + dur + 0.02);
+    } catch (e) { /* audio unavailable */ }
+  }
+  const sfx = {
+    key()    { [660, 880, 1320].forEach((f, i) => beep(f, 0.08, "square", 0.05, null, i * 0.07)); },
+    door()   { beep(160, 0.4, "sawtooth", 0.05, 520); },
+    locked() { beep(120, 0.18, "square", 0.05, 80); },
+    boot()   { [880, 660, 990].forEach((f, i) => beep(f, 0.05, "square", 0.035, null, i * 0.06)); },
+    type()   { beep(1300, 0.02, "square", 0.025); },
+    good()   { [523, 659, 784, 1046].forEach((f, i) => beep(f, 0.08, "square", 0.06, null, i * 0.07)); },
+    bad()    { beep(220, 0.35, "sawtooth", 0.07, 70); },
+    alarm()  { [660, 880, 660, 880, 1046].forEach((f, i) => beep(f, 0.16, "square", 0.05, null, 0.35 + i * 0.17)); },
+    win()    { [523, 659, 784, 659, 784, 1046].forEach((f, i) => beep(f, 0.12, "square", 0.06, null, i * 0.11)); },
+    start()  { [262, 330, 392, 523].forEach((f, i) => beep(f, 0.09, "square", 0.05, null, i * 0.08)); },
+    shoot()  { beep(900, 0.09, "square", 0.05, 180); beep(120, 0.08, "sawtooth", 0.04, 60); },
+    empty()  { beep(1500, 0.02, "square", 0.03); beep(1100, 0.02, "square", 0.03, null, 0.05); },
+    hit()    { beep(400, 0.05, "triangle", 0.04, 200); },
+    gun()    { [330, 494, 659, 988].forEach((f, i) => beep(f, 0.07, "square", 0.05, null, i * 0.06)); },
+    disk()   { beep(660, 0.06, "square", 0.04); beep(990, 0.08, "square", 0.04, null, 0.06); },
+    gem()    { beep(1800, 0.05, "square", 0.03); beep(2400, 0.06, "square", 0.03, null, 0.04); },
+    letter() { [784, 988, 1175, 1568].forEach((f, i) => beep(f, 0.08, "triangle", 0.06, null, i * 0.07)); },
+    life()   { [523, 784, 1046, 1568].forEach((f, i) => beep(f, 0.1, "triangle", 0.06, null, i * 0.09)); },
+    splat()  { beep(180, 0.25, "sawtooth", 0.06, 40); beep(700, 0.12, "square", 0.04, 1400, 0.05); },
+    hurt()   { beep(300, 0.4, "sawtooth", 0.07, 60); },
+    over()   { [392, 330, 262, 196].forEach((f, i) => beep(f, 0.2, "square", 0.06, null, i * 0.2)); },
+    grunt()  { beep(140, 0.15, "sawtooth", 0.04, 90); },
+  };
+
+  // ---------- Level parsing ----------
+  const WALLS = "#1234x";
+  function parseLevel(def) {
+    const rows = def.map, h = rows.length, w = rows[0].length;
+    const W = {
+      def, name: def.name, theme: def.theme || "lab", w, h, cells: new Array(w * h).fill("."),
+      computers: [], keys: [], doors: [], items: [], enemies: [], decor: [], cracks: [], profs: [],
+      puddles: new Set(), doorAt: new Map(), crackAt: new Map(), exit: null, start: null,
+      seen: new Uint8Array(w * h),
+    };
+    let letter = 0;
+    rows.forEach((row, y) => {
+      if (row.length !== w) throw new Error(`${def.name}: row ${y} is ${row.length} long, not ${w}`);
+      [...row].forEach((ch, x) => {
+        const i = y * w + x;
+        if (WALLS.includes(ch)) W.cells[i] = ch;
+        else if (ch === "%") { W.cells[i] = "%"; const k = { x, y, hits: 0, broken: false, shake: 0 }; W.cracks.push(k); W.crackAt.set(i, k); }
+        else if (ch === "C") { W.cells[i] = "C"; W.computers.push({ x, y, solved: false, task: null }); }
+        else if ("RGBYNDE".includes(ch)) {
+          W.cells[i] = "D";
+          const d = { x, y, kind: ch, open: false, anim: 0, unlocked: ch !== "E" };
+          W.doors.push(d); W.doorAt.set(i, d);
+          if (ch === "E") W.exit = d;
+        }
+        else if ("rgby".includes(ch)) W.keys.push({ x, y, color: ch });
+        else if ("*FOo".includes(ch)) W.items.push({ x, y, kind: ch });
+        else if (ch === "@") W.items.push({ x, y, kind: "@", idx: def.letters[letter++] });
+        else if (ENEMIES[ch]) W.enemies.push({ kind: ch, x: x + 0.5, y: y + 0.5, hp: ENEMIES[ch].hp, dir: randInt(0, 3) * Math.PI / 2,
+                                               turn: 1 + Math.random() * 2, chase: 0, stun: 0, flash: 0, anim: Math.random(), right: true, dead: false });
+        else if (DECOR[ch]) { W.cells[i] = "X"; W.decor.push({ x, y, kind: ch }); }
+        else if (ch === "Q") { W.cells[i] = "X"; W.profs.push({ x, y, told: 0 }); }
+        else if (ch === "~") W.puddles.add(i);
+        else if (ch === "P") W.start = { x: x + 0.5, y: y + 0.5, a: DIRS[def.dir || "E"] };
+      });
+    });
+    // a door slides sideways into the walls on its two sides
+    for (const d of W.doors) d.spanX = WALLS.includes(cellAt(W, d.x - 1, d.y)) && WALLS.includes(cellAt(W, d.x + 1, d.y));
+    return W;
+  }
+  const cellAt = (W, x, y) => x < 0 || y < 0 || x >= W.w || y >= W.h ? "#" : W.cells[y * W.w + x];
+  // can't be walked through: walls, crates, computers, things, a closed (or still opening) door, an unbroken crack
+  function solidIn(W, x, y) {
+    const c = cellAt(W, x, y);
+    if (c === ".") return false;
+    if (c === "D") return W.doorAt.get(y * W.w + x).anim < 0.85;
+    return true;
+  }
+  const solidAt = (x, y) => solidIn(world, x, y);
+
+  // Walks a ray over the grid from (ox, oy) along (dx, dy) until stop(cx, cy): -> { t, cx, cy } or null.
+  function castRay(ox, oy, dx, dy, maxDist, stop = solidAt) {
+    if (!dx) dx = 1e-9;
+    if (!dy) dy = 1e-9;
+    let cx = Math.floor(ox), cy = Math.floor(oy);
+    const sx = dx > 0 ? 1 : -1, sy = dy > 0 ? 1 : -1;
+    const tdx = Math.abs(1 / dx), tdy = Math.abs(1 / dy);
+    let tx = (dx > 0 ? cx + 1 - ox : ox - cx) * tdx, ty = (dy > 0 ? cy + 1 - oy : oy - cy) * tdy, t = 0;
+    while (true) {
+      if (tx < ty) { t = tx; tx += tdx; cx += sx; } else { t = ty; ty += tdy; cy += sy; }
+      if (t > maxDist) return null;
+      if (stop(cx, cy)) return { t, cx, cy };
+    }
+  }
+  const lineOfSight = (ax, ay, bx, by) => {
+    const d = Math.hypot(bx - ax, by - ay);
+    return !castRay(ax, ay, (bx - ax) / d, (by - ay) / d, d);
+  };
+
+  // Moves a circle, one axis at a time, so it slides along walls.
+  function moveCircle(o, dx, dy, r) {
+    const free = (x, y) => !solidAt(Math.floor(x - r), Math.floor(y - r)) && !solidAt(Math.floor(x + r), Math.floor(y - r)) &&
+                           !solidAt(Math.floor(x - r), Math.floor(y + r)) && !solidAt(Math.floor(x + r), Math.floor(y + r));
+    if (free(o.x + dx, o.y)) o.x += dx;
+    if (free(o.x, o.y + dy)) o.y += dy;
+  }
+
+  // ---------- Textures (small pixel-art pictures drawn here, 32 x 32) ----------
+  const px = (c, x, y, w, h, color) => { c.fillStyle = color; c.fillRect(x, y, w, h); };
+  let seed = 1;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const hash = (x, y) => ((x * 73856093) ^ (y * 19349663)) >>> 0;
+  function canvasOf(draw, w = 32, h = w) {
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    seed = 7;
+    draw(c.getContext("2d"), w, h);
+    return c;
+  }
+  function texture(c, repeat = false) {
+    const t = new THREE.CanvasTexture(c);
+    t.magFilter = THREE.NearestFilter;
+    t.minFilter = THREE.NearestMipmapLinearFilter;
+    t.colorSpace = THREE.SRGBColorSpace;
+    if (repeat) t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    return t;
+  }
+  function speckle(g, n, colors) {
+    for (let i = 0; i < n; i++) px(g, Math.floor(rnd() * 32), Math.floor(rnd() * 32), 1, 1, colors[i % colors.length]);
+  }
+  // metal panels: two per tile, a band across, rivets
+  function panels(g, base, light, dark, band) {
+    px(g, 0, 0, 32, 32, base);
+    speckle(g, 60, [shade(base, 0.06), shade(base, -0.06)]);
+    px(g, 0, 0, 32, 1, light); px(g, 0, 31, 32, 1, dark);
+    px(g, 0, 0, 1, 32, light); px(g, 31, 0, 1, 32, dark);
+    px(g, 15, 0, 1, 32, dark); px(g, 16, 0, 1, 32, light);
+    px(g, 0, 22, 32, 3, band); px(g, 0, 25, 32, 1, dark);
+    for (const x of [3, 12, 19, 28]) { px(g, x, 3, 1, 1, light); px(g, x, 28, 1, 1, light); }
+  }
+  const THEMES = {
+    lab:   { fog: 0x060818, wall: ["#5a6a8c", "#7d8db0", "#3d4a68", "#2b5cff"], floor: ["#6c7280", "#585e6c", "#7c8290"], ceil: "#2a3040" },
+    store: { fog: 0x140e08, wall: null, floor: ["#7a7468", "#686256", "#8a8478"], ceil: "#3a2a1a" },
+    toxic: { fog: 0x04160a, wall: ["#4a5a4a", "#66786a", "#2e3a30", "#3a8a2a"], floor: ["#3e4a40", "#323c34", "#4a584c"], ceil: "#1e2820" },
+  };
+  function makeTextures(theme) {
+    const T = THEMES[theme], X = {};
+    const wall = g => {
+      if (T.wall) {
+        panels(g, ...T.wall);
+        if (theme === "toxic") for (let i = 0; i < 6; i++) {          // slime dripping from the top
+          const x = Math.floor(rnd() * 30), len = 3 + Math.floor(rnd() * 14);
+          px(g, x, 0, 2, len, "#4fd82a"); px(g, x, len, 2, 2, "#8aff5a"); px(g, x, 0, 1, len, "#7aff4a");
+        }
+      } else {                                                       // bricks
+        px(g, 0, 0, 32, 32, "#5a3a2a");
+        for (let r = 0; r < 4; r++) for (let b = 0; b < 3; b++) {
+          const x = b * 12 - (r % 2) * 6, y = r * 8;
+          const col = ["#9a4e32", "#8a442c", "#a85a3a"][Math.floor(rnd() * 3)];
+          px(g, x + 1, y + 1, 10, 6, col); px(g, x + 1, y + 1, 10, 1, shade(col, 0.15));
+          if (x < 0) px(g, x + 37, y + 1, 10, 6, col);
+        }
+        speckle(g, 40, ["#6a3a24", "#b8704a"]);
+      }
+    };
+    X.wall = canvasOf(wall);
+    X.pipes = canvasOf(g => {
+      wall(g);
+      for (const x of [5, 21]) {
+        px(g, x, 0, 6, 32, "#8d96a8"); px(g, x + 1, 0, 1, 32, "#d6dcea"); px(g, x + 5, 0, 1, 32, "#4a5068");
+        px(g, x - 1, 8, 8, 3, "#5a6070"); px(g, x - 1, 24, 8, 3, "#5a6070");
+      }
+      px(g, 11, 15, 10, 4, "#8d96a8"); px(g, 13, 13, 4, 2, "#d63a3a"); px(g, 12, 12, 6, 1, "#ff6b5b");
+    });
+    X.sign = canvasOf(g => {
+      wall(g);
+      const c = theme === "toxic" ? "#6dff3a" : "#ffd800";
+      for (let j = 0; j < 14; j++) px(g, 16 - Math.floor(j * 0.6), 5 + j, 1 + Math.floor(j * 1.2), 1, c);
+      px(g, 7, 19, 18, 1, "#1d1d2e");
+      px(g, 15, 9, 2, 6, "#1d1d2e"); px(g, 15, 16, 2, 2, "#1d1d2e");
+    });
+    X.servers = canvasOf(g => {
+      px(g, 0, 0, 32, 32, "#1d2030");
+      for (let y = 1; y < 32; y += 5) {
+        px(g, 1, y, 30, 4, "#2e3346"); px(g, 1, y, 30, 1, "#454c66");
+        for (let i = 0; i < 4; i++) if (rnd() < 0.7) px(g, 3 + i * 3, y + 2, 1, 1, rnd() < 0.7 ? "#3dff6e" : "#ff3b3b");
+        px(g, 20, y + 1, 9, 2, "#141824");
+      }
+    });
+    X.board = canvasOf(g => {
+      wall(g);
+      px(g, 3, 4, 26, 16, "#8a8f9a"); px(g, 4, 5, 24, 14, "#f4f6fa");
+      // a few sums written on it: little strokes
+      const pen = ["#2f4fc8", "#d63a3a", "#2fa84a"];
+      for (let r = 0; r < 3; r++) for (let i = 0; i < 6; i++) if (rnd() < 0.8) px(g, 6 + i * 3 + (i > 2 ? 2 : 0), 7 + r * 4, 2, 2, pen[r]);
+      px(g, 4, 19, 24, 1, "#5a6070"); px(g, 8, 18, 3, 1, "#d63a3a");
+    });
+    X.crate = canvasOf(g => {
+      px(g, 0, 0, 32, 32, "#6a4420");
+      px(g, 2, 2, 28, 28, "#a8743a");
+      for (let y = 2; y < 30; y += 7) px(g, 2, y, 28, 1, "#8a5a2a");
+      for (let i = 0; i < 26; i++) { px(g, 3 + i, 3 + i, 2, 2, "#7a4e24"); px(g, 27 - i, 3 + i, 2, 2, "#7a4e24"); }
+      px(g, 0, 0, 32, 2, "#c89050"); px(g, 0, 0, 2, 32, "#c89050");
+      speckle(g, 30, ["#946226", "#b88444"]);
+    });
+    X.crack = canvasOf(g => {
+      g.drawImage(X.wall, 0, 0);
+      const line = [[16, 2], [14, 7], [18, 11], [13, 16], [17, 21], [12, 26], [15, 31]];
+      for (let i = 0; i < line.length - 1; i++) {
+        const [x0, y0] = line[i], [x1, y1] = line[i + 1];
+        for (let s = 0; s <= 8; s++) px(g, Math.round(x0 + (x1 - x0) * s / 8), Math.round(y0 + (y1 - y0) * s / 8), 2, 1, "#0a0a14");
+      }
+      for (const [x, y, dx] of [[14, 7, -1], [18, 11, 1], [17, 21, 1], [13, 16, -1]])
+        for (let s = 0; s < 6; s++) px(g, x + dx * s, y + Math.floor(s / 2), 1, 1, "#14141e");
+    });
+    X.jamb = canvasOf(g => {                                       // the sides of a doorway: dark metal, a hazard stripe at the bottom
+      px(g, 0, 0, 32, 32, "#30364e");
+      speckle(g, 40, ["#3a4058", "#262a3e"]);
+      for (let y = 4; y < 22; y += 6) px(g, 0, y, 32, 1, "#454c66");
+      for (let x = 0; x < 32; x += 8) { px(g, x, 25, 4, 5, "#e8c21a"); px(g, x + 4, 25, 4, 5, "#1d1d2e"); }
+      px(g, 0, 0, 1, 32, "#454c66"); px(g, 31, 0, 1, 32, "#141824");
+    });
+    X.floor = canvasOf(g => {
+      const [a, b, c] = T.floor;
+      for (let j = 0; j < 2; j++) for (let i = 0; i < 2; i++) {
+        px(g, i * 16, j * 16, 16, 16, (i + j) % 2 ? a : b);
+        px(g, i * 16, j * 16, 16, 1, c); px(g, i * 16, j * 16, 1, 16, c);
+      }
+      speckle(g, 50, [shade(a, -0.12), shade(a, 0.1)]);
+      if (theme === "toxic") for (let i = 0; i < 3; i++) px(g, Math.floor(rnd() * 28), Math.floor(rnd() * 28), 4, 3, "#2a6a1e");
+    });
+    X.ceil = canvasOf(g => {
+      px(g, 0, 0, 32, 32, T.ceil);
+      px(g, 0, 0, 32, 1, shade(T.ceil, -0.4)); px(g, 0, 0, 1, 32, shade(T.ceil, -0.4));
+      px(g, 0, 16, 32, 1, shade(T.ceil, -0.25)); px(g, 16, 0, 1, 32, shade(T.ceil, -0.25));
+      speckle(g, 30, [shade(T.ceil, 0.1)]);
+    });
+    X.lamp = canvasOf(g => {
+      px(g, 0, 0, 32, 32, "#8d96a8"); px(g, 2, 2, 28, 28, "#fffbe8"); px(g, 2, 15, 28, 2, "#d8d4c0");
+    });
+    X.puddle = canvasOf(g => {
+      for (let j = 0; j < 32; j++) for (let i = 0; i < 32; i++) {
+        const d = Math.hypot(i - 15.5, (j - 15.5) * 1.2) + Math.sin(i * 0.9) * 1.5 + Math.cos(j * 0.7) * 1.5;
+        if (d < 14) px(g, i, j, 1, 1, d < 4 ? "#b8ff8a" : d < 11 ? "#4fd82a" : "#2a8a1a");
+      }
+      for (let i = 0; i < 5; i++) px(g, 8 + Math.floor(rnd() * 16), 8 + Math.floor(rnd() * 16), 2, 2, "#e8ffd0");
+    });
+    // doors: a colour band and a keyhole, wood, a keypad, or the exit (locked red, open green)
+    for (const [c, info] of Object.entries(KEY_INFO)) X["door" + c.toUpperCase()] = canvasOf(g => {
+      panels(g, "#7a8296", "#a0a8bc", "#4a5068", info.main);
+      px(g, 4, 4, 24, 10, info.main); px(g, 4, 4, 24, 2, info.light); px(g, 4, 13, 24, 1, info.dark);
+      px(g, 13, 15, 6, 6, info.dark); px(g, 15, 16, 2, 2, "#0a0a14"); px(g, 15.5, 18, 1, 2, "#0a0a14");
+    });
+    X.doorD = canvasOf(g => {
+      px(g, 0, 0, 32, 32, "#8a5a2a");
+      for (let x = 0; x < 32; x += 8) { px(g, x, 0, 1, 32, "#6a4018"); px(g, x + 3, 0, 1, 32, "#a06a34"); }
+      px(g, 4, 4, 24, 10, "#7a4e24"); px(g, 4, 18, 24, 10, "#7a4e24"); px(g, 5, 5, 22, 1, "#a06a34"); px(g, 5, 19, 22, 1, "#a06a34");
+      px(g, 25, 15, 3, 3, "#e8c21a");
+    });
+    X.doorN = canvasOf(g => {
+      panels(g, "#6a7286", "#9098ac", "#3a4058", "#3dff6e");
+      px(g, 10, 3, 12, 18, "#1d2030"); px(g, 11, 4, 10, 4, "#062a13"); px(g, 12, 5, 8, 2, "#3dff6e");
+      for (let r = 0; r < 3; r++) for (let i = 0; i < 3; i++) px(g, 11 + i * 4, 10 + r * 4, 2, 2, "#c8d0de");
+    });
+    const exitDoor = (col, light, icon) => canvasOf(g => {
+      panels(g, "#7a8296", "#a0a8bc", "#4a5068", col);
+      px(g, 5, 3, 22, 13, col); px(g, 5, 3, 22, 1, light);
+      icon(g);
+    });
+    X.doorE = exitDoor("#c82a2a", "#ff7a6a", g => {               // a big X: locked
+      for (let i = 0; i < 9; i++) { px(g, 11 + i, 5 + i, 2, 1, "#ffffff"); px(g, 20 - i, 5 + i, 2, 1, "#ffffff"); }
+    });
+    X.doorEopen = exitDoor("#1e9a3a", "#8affb0", g => {           // an arrow and a running figure: the way out
+      px(g, 8, 9, 10, 2, "#ffffff"); for (let i = 0; i < 4; i++) px(g, 15 + i, 6 + i, 1, 7 - i * 2, "#ffffff");
+      px(g, 21, 5, 2, 2, "#ffffff"); px(g, 21, 7, 2, 4, "#ffffff"); px(g, 19, 11, 2, 2, "#ffffff"); px(g, 23, 11, 2, 2, "#ffffff");
+    });
+    X.daylight = canvasOf(g => { px(g, 0, 0, 32, 32, "#fffbe0"); px(g, 0, 20, 32, 12, "#bfe6ff"); });
+    // a computer: a beige cabinet with a screen on every side - a blinking "?" until solved, then OK
+    const screen = (fg, glyph) => canvasOf(g => {
+      px(g, 0, 0, 32, 32, "#cfc8ab"); px(g, 0, 0, 32, 1, "#ece6cc"); px(g, 31, 0, 1, 32, "#a39c80");
+      px(g, 3, 3, 26, 18, "#2b2a22"); px(g, 5, 5, 22, 14, "#031a0c");
+      glyph(g, fg);
+      for (let y = 6; y < 19; y += 2) px(g, 5, y, 22, 1, "rgba(0,0,0,.25)");
+      px(g, 4, 24, 24, 4, "#b8b194"); for (let i = 0; i < 6; i++) px(g, 5 + i * 4, 25, 3, 2, "#8a846e");
+      px(g, 26, 22, 2, 1, fg);
+    });
+    const big = (g, rows, x0, col) => rows.forEach((r, j) => [...r].forEach((ch, i) => { if (ch === "#") px(g, x0 + i * 2, 6 + j * 2, 2, 2, col); }));
+    X.screenQ = screen("#3dff6e", (g, c) => big(g, GLYPH_QUESTION, 11, c));
+    X.screenOK = screen("#ffd800", (g, c) => { big(g, GLYPH_O, 6, c); big(g, GLYPHS.K, 16, c); });
+    X.cabinet = canvasOf(g => { px(g, 0, 0, 32, 32, "#cfc8ab"); speckle(g, 30, ["#bfb89b", "#ddd6bb"]); });
+    return X;
+  }
+  const GLYPH_QUESTION = [".###.", "#...#", "....#", "...#.", "..#..", ".....", "..#.."];
+  const GLYPH_O = [".###.", "#...#", "#...#", "#...#", "#...#", "#...#", ".###."];
+
+  // ---------- 3D scene ----------
+  const canvas = document.getElementById("game");
+  let renderer = null;
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: false });
+    renderer.setPixelRatio(1);
+    renderer.setSize(VIEW_W, VIEW_H, false);
+  } catch (e) { renderer = null; }
+  const camera = new THREE.PerspectiveCamera(FOV, VIEW_W / VIEW_H, 0.05, 40);
+  let scene = null;
+  const texCache = new Map();
+  const spriteTex = c => {                       // one texture per sprite canvas
+    if (!texCache.has(c)) {
+      const t = texture(c);
+      t.minFilter = THREE.NearestFilter; t.generateMipmaps = false;
+      texCache.set(c, t);
+    }
+    return texCache.get(c);
+  };
+  function billboard(c, scale = 1, lift = 0) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: spriteTex(c), alphaTest: 0.5 }));
+    s.center.set(0.5, 0);
+    s.scale.set(c.width * PX * scale, c.height * PX * scale, 1);
+    s.userData.lift = lift;
+    return s;
+  }
+
+  // The level's walls (only the faces that can be seen), floor, ceiling, lamps, doors, computers and sprites.
+  function buildScene(W) {
+    const T = THEMES[W.theme];
+    const X = makeTextures(W.theme);
+    const tex = {};
+    for (const [k, c] of Object.entries(X)) tex[k] = texture(c, k === "floor" || k === "ceil");
+    W.tex = tex;
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(T.fog);
+    scene.fog = new THREE.Fog(T.fog, 1.5, 11);
+    scene.add(new THREE.AmbientLight(0xffffff, 1.6));
+    W.light = new THREE.PointLight(0xfff0dd, 2.2, 7, 1.2);
+    scene.add(W.light);
+
+    // walls: a quad for every face of a wall next to a tile that isn't a wall
+    const faces = {};
+    const quad = (key, cx, cy, nx, ny, shadeF) => {
+      const f = faces[key] || (faces[key] = { pos: [], uv: [], col: [], idx: [] });
+      // looking at the face from outside (along -n), its right is (-n) x up = (ny, -nx) in (x, z = map y)
+      const rx = ny, ry = -nx;
+      const ox = cx + 0.5 + nx * 0.5, oy = cy + 0.5 + ny * 0.5;
+      const bl = [ox - rx * 0.5, oy - ry * 0.5], br = [ox + rx * 0.5, oy + ry * 0.5];
+      const n = f.pos.length / 3;
+      f.pos.push(bl[0], 0, bl[1], br[0], 0, br[1], br[0], 1, br[1], bl[0], 1, bl[1]);
+      f.uv.push(0, 0, 1, 0, 1, 1, 0, 1);
+      for (let i = 0; i < 4; i++) f.col.push(shadeF, shadeF, shadeF);
+      f.idx.push(n, n + 1, n + 2, n, n + 2, n + 3);
+    };
+    const isWall = (x, y) => WALLS.includes(cellAt(W, x, y)) && x >= 0 && y >= 0 && x < W.w && y < W.h;
+    for (let y = 0; y < W.h; y++) for (let x = 0; x < W.w; x++) {
+      const c = W.cells[y * W.w + x];
+      if (!WALLS.includes(c)) continue;
+      for (const [nx, ny] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
+        const ax = x + nx, ay = y + ny;
+        if (ax < 0 || ay < 0 || ax >= W.w || ay >= W.h || isWall(ax, ay)) continue;
+        let key;
+        if (cellAt(W, ax, ay) === "D") key = "jamb";
+        else if (c === "x") key = "crate";
+        else if (c !== "#") key = { 1: "pipes", 2: "sign", 3: "servers", 4: "board" }[c];
+        else {
+          const v = hash(x * 4 + nx + 2, y * 4 + ny + 2) % 23;
+          key = W.theme === "store" ? (v < 2 ? "crate" : "wall")
+              : v === 0 ? "pipes" : v === 1 ? "sign" : v === 2 && W.theme === "lab" ? "board" : v === 3 && W.theme === "lab" ? "servers" : "wall";
+        }
+        quad(key, x, y, nx, ny, ny ? 0.78 : 1);
+      }
+    }
+    for (const [key, f] of Object.entries(faces)) {
+      const g = new THREE.BufferGeometry();
+      g.setAttribute("position", new THREE.Float32BufferAttribute(f.pos, 3));
+      g.setAttribute("uv", new THREE.Float32BufferAttribute(f.uv, 2));
+      g.setAttribute("color", new THREE.Float32BufferAttribute(f.col, 3));
+      g.setIndex(f.idx);
+      g.computeVertexNormals();
+      scene.add(new THREE.Mesh(g, new THREE.MeshLambertMaterial({ map: tex[key], vertexColors: true })));
+    }
+
+    // floor and ceiling, one texture repeat per tile
+    for (const [key, y, rot] of [["floor", 0, -Math.PI / 2], ["ceil", 1, Math.PI / 2]]) {
+      const t = tex[key];
+      t.repeat.set(W.w, W.h);
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(W.w, W.h), new THREE.MeshLambertMaterial({ map: t }));
+      m.rotation.x = rot; m.position.set(W.w / 2, y, W.h / 2);
+      scene.add(m);
+    }
+    // ceiling lamps over some open tiles
+    const lampMat = new THREE.MeshBasicMaterial({ map: tex.lamp, fog: true });
+    const lampGeo = new THREE.PlaneGeometry(0.5, 0.5);
+    for (let y = 1; y < W.h - 1; y++) for (let x = 1; x < W.w - 1; x++) {
+      if (x % 4 !== 2 || y % 3 !== 1 || WALLS.includes(cellAt(W, x, y))) continue;
+      const m = new THREE.Mesh(lampGeo, lampMat);
+      m.rotation.x = Math.PI / 2; m.position.set(x + 0.5, 0.995, y + 0.5);
+      scene.add(m);
+    }
+    // toxic puddles, glowing a little
+    const pudMat = new THREE.MeshBasicMaterial({ map: tex.puddle, transparent: true, alphaTest: 0.3 });
+    W.puddleMat = pudMat;
+    for (const i of W.puddles) {
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 0.95), pudMat);
+      m.rotation.x = -Math.PI / 2; m.position.set(i % W.w + 0.5, 0.012, Math.floor(i / W.w) + 0.5);
+      scene.add(m);
+    }
+
+    // doors: a thin slab that slides into the wall
+    const jambMat = new THREE.MeshLambertMaterial({ map: tex.jamb });
+    for (const d of W.doors) {
+      const face = new THREE.MeshLambertMaterial({ map: tex["door" + d.kind] });
+      d.face = face;
+      const geo = d.spanX ? new THREE.BoxGeometry(1, 1, 0.1) : new THREE.BoxGeometry(0.1, 1, 1);
+      const mats = d.spanX ? [jambMat, jambMat, jambMat, jambMat, face, face] : [face, face, jambMat, jambMat, jambMat, jambMat];
+      d.mesh = new THREE.Mesh(geo, mats);
+      d.mesh.position.set(d.x + 0.5, 0.5, d.y + 0.5);
+      scene.add(d.mesh);
+      if (d.kind === "E") {                     // daylight behind the exit
+        const out = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex.daylight, fog: false }));
+        const ex = d.x === 0 ? -1 : d.x === W.w - 1 ? 1 : 0, ey = d.y === 0 ? -1 : d.y === W.h - 1 ? 1 : 0;
+        out.position.set(d.x + 0.5 + ex * 0.5, 0.5, d.y + 0.5 + ey * 0.5);
+        out.lookAt(d.x + 0.5, 0.5, d.y + 0.5);
+        scene.add(out);
+      }
+    }
+    // computers
+    const cab = new THREE.MeshLambertMaterial({ map: tex.cabinet });
+    W.screenQ = new THREE.MeshBasicMaterial({ map: tex.screenQ });
+    W.screenOK = new THREE.MeshBasicMaterial({ map: tex.screenOK });
+    for (const c of W.computers) {
+      c.mesh = new THREE.Mesh(new THREE.BoxGeometry(0.66, 0.84, 0.66), [W.screenQ, W.screenQ, cab, cab, W.screenQ, W.screenQ]);
+      c.mesh.position.set(c.x + 0.5, 0.42, c.y + 0.5);
+      scene.add(c.mesh);
+    }
+    // cracked walls: a whole block each (the walls around it have faces facing it, for when it breaks)
+    for (const k of W.cracks) {
+      k.mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ map: tex.crack }));
+      k.mesh.position.set(k.x + 0.5, 0.5, k.y + 0.5);
+      scene.add(k.mesh);
+    }
+
+    // sprites: things lying on the floor float and bob a little
+    const place = (s, x, y) => { s.position.set(x, s.userData.lift, y); scene.add(s); return s; };
+    for (const k of W.keys) k.sprite = place(billboard(keySprites[k.color], 1.4, 0.18), k.x + 0.5, k.y + 0.5);
+    for (const it of W.items) {
+      const spr = it.kind === "*" ? billboard(diamondSprite, 2, 0.2)
+                : it.kind === "@" ? billboard(letterSprites[it.idx], 1.1, 0.15)
+                : it.kind === "o" ? billboard(pistolSprite, 0.9, 0.12)
+                : billboard(DISKS[it.kind].sprite, 1.2, 0.15);
+      it.sprite = place(spr, it.x + 0.5, it.y + 0.5);
+    }
+    for (const d of W.decor) place(billboard(DECOR[d.kind], d.kind === "f" ? 1.25 : 1.1), d.x + 0.5, d.y + 0.5);
+    const lizard = W.theme === "toxic";
+    for (const p of W.profs) {
+      const art = makeSprite(lizard ? scaly(PROFESSOR) : PROFESSOR, lizard ? LIZARD_PAL : PEOPLE_PAL);
+      place(billboard(art, 1), p.x + 0.5, p.y + 0.5);
+    }
+    for (const e of W.enemies) {
+      const info = ENEMIES[e.kind];
+      e.frames = info.frames.map(f => [spriteTex(f), spriteTex(mirror(f))]);
+      e.sprite = billboard(info.frames[0], 1.15);
+      e.sprite.material = new THREE.SpriteMaterial({ map: e.frames[0][0], alphaTest: 0.5 });
+      place(e.sprite, e.x, e.y);
+    }
+  }
+
+  // Little bits flying (blood, chips of a wall, sparks), each a tiny sprite.
+  const dotTex = new Map();
+  function burst(x, y, z, color, n = 12, speed = 1.6) {
+    if (!dotTex.has(color)) dotTex.set(color, spriteTex(canvasOf(g => px(g, 0, 0, 2, 2, color), 2)));
+    for (let i = 0; i < n; i++) {
+      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: dotTex.get(color) }));
+      s.scale.set(0.05, 0.05, 1);
+      s.position.set(x, z, y);
+      scene.add(s);
+      const a = Math.random() * Math.PI * 2, v = speed * (0.4 + Math.random() * 0.6);
+      particles.push({ s, vx: Math.cos(a) * v, vz: Math.sin(a) * v, vy: 0.6 + Math.random() * 1.6, life: 0.4 + Math.random() * 0.4 });
+    }
+  }
+  function updateParticles(dt) {
+    for (const p of particles) {
+      p.vy -= 6 * dt;
+      p.s.position.x += p.vx * dt; p.s.position.z += p.vz * dt;
+      p.s.position.y = Math.max(0.02, p.s.position.y + p.vy * dt);
+      p.life -= dt;
+      if (p.life <= 0) { scene.remove(p.s); p.s.material.dispose(); }
+    }
+    particles = particles.filter(p => p.life > 0);
+  }
+
+  // ---------- DOM ----------
+  const $ = id => document.getElementById(id);
+  const hud2d = $("hud2d"), ctx = hud2d.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
+  const overlayEl = $("overlay"), toastEl = $("toast");
+  const tInput = $("tInput"), tMsg = $("tMsg"), monitor = $("monitor");
+  const coarse = window.matchMedia("(pointer: coarse)").matches;
+
+  // ---------- Game state ----------
+  // menu | creator | hof | intro | playing | paused | terminal | done | over | entry
+  let state = "menu";
+  let world = null, player = null, sprites = characterSprites(look), gunArt = gunSprite(look);
+  let inventory = new Set(), usedTasks = new Set();
+  let run = null;               // the pistol, bullets, lives and points go with the player from level to level
+  let fireCooldown = 0, hurtTimer = 0, gunHint = 0, recoil = 0, flash = 0;
+  let levelHurt = false, levelTime = 0, levelMistakes = 0;
+  let particles = [], popups = [];
+  let nearComputer = null, activeComputer = null, terminalLock = false, pendingSolve = false;
+  let nearPin = null, activePin = null;
+  let lockedCooldown = 0, seenTimer = 0, bigMap = false;
+  let menuLevel = 0;
+  let overlayAction = null;
+  const held = { fwd: false, back: false, turnL: false, turnR: false, strL: false, strR: false };
+  const pressed = { use: false, fire: false };
+  let mouseTurn = 0;            // mouse / finger movement waiting to turn the player
+
+  const fmtTime = s => {
+    s = Math.floor(s);
+    return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+  };
+  const escapeHtml = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const girl = () => look.gender === "girl";
+  const dist = (o, x, y) => Math.hypot(o.x - x, o.y - y);
+
+  // ---------- Update ----------
+  function update(dt) {
+    levelTime += dt; run.time += dt;
+    if (hurtTimer > 0) hurtTimer -= dt;
+    if (fireCooldown > 0) fireCooldown -= dt;
+    if (lockedCooldown > 0) lockedCooldown -= dt;
+    if (gunHint > 0) gunHint -= dt;
+    if (recoil > 0) recoil -= dt;
+    if (flash > 0) flash -= dt;
+
+    // turning and walking
+    player.a += ((held.turnR ? 1 : 0) - (held.turnL ? 1 : 0)) * TURN_SPEED * dt + mouseTurn;
+    mouseTurn = 0;
+    const ca = Math.cos(player.a), sa = Math.sin(player.a);
+    const fw = (held.fwd ? 1 : 0) - (held.back ? 1 : 0), st = (held.strR ? 1 : 0) - (held.strL ? 1 : 0);
+    let mx = fw * ca - st * sa, my = fw * sa + st * ca;
+    const len = Math.hypot(mx, my);
+    if (len > 1) { mx /= len; my /= len; }
+    const ox = player.x, oy = player.y;
+    moveCircle(player, mx * MOVE_SPEED * dt, my * MOVE_SPEED * dt, RADIUS);
+    player.walk += Math.hypot(player.x - ox, player.y - oy);
+
+    if (fireCooldown <= 0 && pressed.fire) shoot();
+    pressed.fire = false;
+
+    updateEnemies(dt);
+    if (state !== "playing") return;
+
+    // a toxic puddle under the feet
+    if (world.puddles.has(Math.floor(player.y) * world.w + Math.floor(player.x))) loseLife("TOKSYCZNA KAŁUŻA!");
+    if (state !== "playing") return;
+
+    pickUp();
+    doors(dt);
+    if (state !== "playing") return;
+    for (const k of world.cracks) if (k.shake > 0) k.shake -= dt;
+
+    // what's in front of the player to use
+    nearComputer = nearPin = null;
+    let best = USE_DIST;
+    const facing = (x, y) => {
+      const d = Math.hypot(x - player.x, y - player.y);
+      return d < best && ((x - player.x) * ca + (y - player.y) * sa) / d > Math.cos(0.75) ? d : 0;
+    };
+    for (const c of world.computers) {
+      const d = !c.solved && facing(c.x + 0.5, c.y + 0.5);
+      if (d) { best = d; nearComputer = c; }
+    }
+    for (const dr of world.doors) {
+      const d = dr.kind === "N" && !dr.open && facing(dr.x + 0.5, dr.y + 0.5);
+      if (d) { best = d; nearPin = dr; nearComputer = null; }
+    }
+    const useKey = coarse ? "UŻYJ" : "E";
+    if (nearComputer) toast(`NACIŚNIJ ${useKey}, ABY WŁĄCZYĆ KOMPUTER`, 0.15, 0);
+    else if (nearPin) toast(`DRZWI NA PIN! NACIŚNIJ ${useKey} I ROZWIĄŻ ${PIN_TASKS} ZADANIA`, 0.15, 0);
+    else {
+      const k = world.cracks.find(k => !k.broken && dist(player, k.x + 0.5, k.y + 0.5) < 1.6);
+      if (k) toast(run.pistol ? "TA ŚCIANA JEST PĘKNIĘTA... STRZEL W NIĄ!" : "TA ŚCIANA JEST PĘKNIĘTA...", 0.15, 0);
+    }
+    for (const p of world.profs) {
+      if (p.told > 0) p.told -= dt;
+      if (dist(player, p.x + 0.5, p.y + 0.5) < 1.7 && p.told <= 0) { toast(`PROFESOR: ${world.def.tip}`, 5, 2); p.told = 9; }
+    }
+    if (pressed.use) {
+      pressed.use = false;
+      if (nearComputer) { openTerminal(nearComputer); return; }
+      if (nearPin) { openPinPad(nearPin); return; }
+    }
+
+    seenTimer -= dt;
+    if (seenTimer <= 0) { seenTimer = 0.12; markSeen(); }
+    for (const p of popups) p.life -= dt;
+    popups = popups.filter(p => p.life > 0);
+  }
+
+  function pickUp() {
+    const near = (x, y) => dist(player, x + 0.5, y + 0.5) < 0.5;
+    for (const k of world.keys) {
+      if (k.taken || !near(k.x, k.y)) continue;
+      k.taken = true; scene.remove(k.sprite);
+      inventory.add(k.color);
+      sfx.key();
+      toast(`MASZ ${KEY_INFO[k.color].name} KLUCZ!`, 2.5, 2, "good");
+      updateHudKeys();
+    }
+    for (const it of world.items) {
+      if (it.taken || !near(it.x, it.y)) continue;
+      it.taken = true; scene.remove(it.sprite);
+      if (it.kind === "*") { sfx.gem(); addPoints(PTS_DIAMOND); }
+      else if (it.kind === "F" || it.kind === "O") { sfx.disk(); addPoints(PTS_DISK); toast(`${DISKS[it.kind].name}! +${PTS_DISK} PUNKTY`, 1.8, 1, "good"); }
+      else if (it.kind === "o") {
+        const first = !run.pistol;
+        run.pistol = true; run.ammo += AMMO_PER_PISTOL;
+        updateHudAmmo(); sfx.gun();
+        toast(first ? `MASZ PISTOLET! NABOJE: ${run.ammo}. STRZELASZ ${coarse ? "PRZYCISKIEM STRZAŁ" : "SPACJĄ ALBO KLIKNIĘCIEM"}.`
+                    : `+${AMMO_PER_PISTOL} NABOJÓW! MASZ ICH TERAZ ${run.ammo}.`, 3, 2, "good");
+      } else if (it.kind === "@") {
+        run.letters[it.idx] = true;
+        sfx.letter();
+        updateHudLetters();
+        const have = run.letters.filter(Boolean).length;
+        if (have === WORD.length) { toast(`${WORD}! WSZYSTKIE LITERY - BONUS +${PTS_WORD} PUNKTÓW!`, 3.5, 3, "good"); addPoints(PTS_WORD); }
+        else toast(`LITERA ${WORD[it.idx]}! MASZ ${have} Z ${WORD.length} LITER SŁOWA ${WORD}.`, 3, 2, "good");
+      }
+    }
+  }
+
+  function doors(dt) {
+    for (const d of world.doors) {
+      if (d.open) {
+        if (d.anim < 1) {
+          d.anim = Math.min(1, d.anim + dt * 1.4);
+          const o = d.anim * 0.94;
+          d.mesh.position.set(d.x + 0.5 + (d.spanX ? o : 0), 0.5, d.y + 0.5 + (d.spanX ? 0 : o));
+        }
+        continue;
+      }
+      if (dist(player, d.x + 0.5, d.y + 0.5) > 0.95) continue;
+      if (d.kind === "D") openDoor(d);
+      else if (d.kind === "E") {
+        if (d.unlocked) openDoor(d);
+        else if (lockedCooldown <= 0) {
+          lockedCooldown = 1.2; sfx.locked();
+          toast(`WYJŚCIE ZAMKNIĘTE! ROZWIĄŻ ZADANIA NA WSZYSTKICH KOMPUTERACH (${world.computers.filter(c => c.solved).length}/${world.computers.length}).`, 2.5, 2, "bad");
+        }
+      } else if (d.kind !== "N") {
+        const info = KEY_INFO[d.kind.toLowerCase()];
+        if (inventory.has(d.kind.toLowerCase())) { openDoor(d); toast(`${info.doors} DRZWI OTWARTE!`, 2, 2, "good"); }
+        else if (lockedCooldown <= 0) { lockedCooldown = 1.2; sfx.locked(); toast(`DRZWI ZAMKNIĘTE! POTRZEBNY ${info.name} KLUCZ.`, 2.2, 2, "bad"); }
+      }
+    }
+    const e = world.exit;
+    if (e && e.open && Math.floor(player.x) === e.x && Math.floor(player.y) === e.y) levelComplete();
+  }
+  function openDoor(d) { d.open = true; sfx.door(); }
+
+  // Mutants walk around; one that sees the player comes after them (slower than the player walks).
+  function updateEnemies(dt) {
+    for (const e of world.enemies) {
+      if (e.dead) continue;
+      e.anim += dt;
+      if (e.flash > 0) { e.flash -= dt; if (e.flash <= 0) e.sprite.material.color.set(0xffffff); }
+      const info = ENEMIES[e.kind];
+      const dx = player.x - e.x, dy = player.y - e.y, d = Math.hypot(dx, dy);
+      if (e.stun > 0) { e.stun -= dt; continue; }
+      if (d < SIGHT && lineOfSight(e.x, e.y, player.x, player.y)) {
+        if (e.chase <= 0 && d < 5) sfx.grunt();
+        e.chase = 2.5;
+      } else e.chase -= dt;
+      let vx, vy, sp;
+      if (e.chase > 0 && hurtTimer <= 0) { vx = dx / d; vy = dy / d; sp = info.chase; }
+      else {
+        vx = Math.cos(e.dir); vy = Math.sin(e.dir); sp = info.speed;
+        e.turn -= dt;
+        if (e.turn <= 0 || solidAt(Math.floor(e.x + vx * 0.6), Math.floor(e.y + vy * 0.6))) {
+          const open = [0, 1, 2, 3].map(i => i * Math.PI / 2)
+            .filter(a => !solidAt(Math.floor(e.x + Math.cos(a) * 0.8), Math.floor(e.y + Math.sin(a) * 0.8)));
+          if (open.length) e.dir = open[randInt(0, open.length - 1)];
+          e.turn = 1.5 + Math.random() * 3;
+        }
+      }
+      const ox = e.x, oy = e.y;
+      moveCircle(e, vx * sp * dt, vy * sp * dt, ENEMY_R);
+      // which way it walks on the screen: its art faces right, so walking left it is flipped
+      const across = (e.x - ox) * -Math.sin(player.a) + (e.y - oy) * Math.cos(player.a);
+      if (Math.abs(across) > 1e-4) e.right = across > 0;
+      if (d < TOUCH_DIST && hurtTimer <= 0) { loseLife(info.caught); e.stun = 1.5; }
+    }
+  }
+
+  function shoot() {
+    if (!run.pistol) {
+      if (gunHint <= 0) { gunHint = 2.5; toast("NIE MASZ PISTOLETU - POSZUKAJ GO!", 2.2, 2, "bad"); }
+      return;
+    }
+    if (run.ammo <= 0) {
+      fireCooldown = FIRE_COOLDOWN; sfx.empty();
+      toast("BRAK NABOJÓW! ZNAJDŹ KOLEJNY PISTOLET.", 2.2, 2, "bad");
+      return;
+    }
+    run.ammo--; fireCooldown = FIRE_COOLDOWN; recoil = 0.12; flash = 0.06;
+    updateHudAmmo(); sfx.shoot();
+    const ca = Math.cos(player.a), sa = Math.sin(player.a);
+    const wall = castRay(player.x, player.y, ca, sa, 30);
+    const wallT = wall ? wall.t : 30;
+    let hit = null;
+    for (const e of world.enemies) {
+      if (e.dead) continue;
+      const rx = e.x - player.x, ry = e.y - player.y, t = rx * ca + ry * sa, off = Math.abs(-rx * sa + ry * ca);
+      if (t > 0 && t < wallT + 0.3 && off < 0.32 && (!hit || t < hit.t)) hit = { e, t };
+    }
+    if (hit) { hitEnemy(hit.e); return; }
+    if (!wall) return;
+    const hx = player.x + ca * (wall.t - 0.05), hy = player.y + sa * (wall.t - 0.05);
+    const k = world.crackAt.get(wall.cy * world.w + wall.cx);
+    if (k && !k.broken) { hitCrack(k, hx, hy); return; }
+    sfx.hit();
+    burst(hx, hy, EYE, "#ffd800", 6, 0.8);
+  }
+  function hitEnemy(e) {
+    const info = ENEMIES[e.kind];
+    e.hp--;
+    burst(e.x, e.y, 0.3, info.blood, e.hp > 0 ? 6 : 18);
+    if (e.hp > 0) {
+      e.flash = 0.15; e.stun = 0.4; e.sprite.material.color.set(0xff6060);
+      sfx.hit(); beep(160, 0.12, "sawtooth", 0.05, 90);
+      toast("TRAFIONY! JESZCZE JEDEN STRZAŁ!", 1.6, 2);
+      return;
+    }
+    e.dead = true;
+    scene.remove(e.sprite);
+    burst(e.x, e.y, 0.3, "#8fd16a", 8);
+    sfx.splat();
+    toast(info.beaten, 1.6, 2, "good");
+  }
+  function hitCrack(k, hx, hy) {
+    k.hits++; k.shake = 0.18;
+    burst(hx, hy, EYE, "#66729c", 10);
+    if (k.hits < CRACK_HITS) {
+      sfx.hit(); beep(90, 0.12, "sawtooth", 0.05, 50);
+      toast(k.hits === 1 ? "ŚCIANA PĘKA!" : "JESZCZE TROCHĘ I SIĘ ROZPADNIE!", 1.6, 2);
+      return;
+    }
+    breakCrack(k);
+    sfx.splat(); beep(70, 0.5, "sawtooth", 0.07, 30);
+    burst(k.x + 0.5, k.y + 0.5, 0.5, "#454f72", 24, 2.2);
+    toast("ŚCIANA ROZBITA! ZA NIĄ JEST UKRYTA SKRYTKA!", 2.8, 3, "good");
+  }
+  function breakCrack(k) {
+    k.broken = true;
+    world.cells[k.y * world.w + k.x] = ".";
+    scene.remove(k.mesh);
+  }
+
+  // The map remembers what the player has seen: rays all around, as far as the walls.
+  function markSeen() {
+    const W = world;
+    const mark = (x, y) => { if (x >= 0 && y >= 0 && x < W.w && y < W.h) W.seen[y * W.w + x] = 1; };
+    mark(Math.floor(player.x), Math.floor(player.y));
+    for (let i = 0; i < 72; i++) {
+      const a = i / 72 * Math.PI * 2, dx = Math.cos(a), dy = Math.sin(a);
+      castRay(player.x, player.y, dx, dy, 9, (cx, cy) => { mark(cx, cy); return solidAt(cx, cy) && cellAt(W, cx, cy) !== "X" && cellAt(W, cx, cy) !== "C"; });
+    }
+  }
+
+  // ---------- Drawing ----------
+  function render(now) {
+    if (!world || !renderer) return;
+    const t = now / 1000;
+    const bob = Math.sin(player.walk * 7) * 0.012;
+    camera.position.set(player.x, EYE + bob, player.y);
+    camera.rotation.set(0, -player.a - Math.PI / 2, 0);
+    world.light.position.set(player.x, 0.7, player.y);
+    // things on the floor bob up and down, keys and letters spin a little
+    for (const list of [world.keys, world.items]) for (const it of list) {
+      if (it.taken) continue;
+      it.sprite.position.y = it.sprite.userData.lift + Math.sin(t * 3 + it.x + it.y) * 0.04;
+    }
+    for (const e of world.enemies) {
+      if (e.dead) continue;
+      e.sprite.position.set(e.x, 0, e.y);
+      const f = e.frames[Math.floor(e.anim * (e.chase > 0 ? 7 : 4)) % e.frames.length];
+      const map = f[e.right ? 0 : 1];
+      if (e.sprite.material.map !== map) { e.sprite.material.map = map; e.sprite.material.needsUpdate = true; }
+    }
+    for (const k of world.cracks) if (!k.broken) k.mesh.position.x = k.x + 0.5 + (k.shake > 0 ? Math.sin(t * 90) * 0.02 : 0);
+    // the computers' "?" blinks
+    const blink = Math.floor(t * 2) % 2 === 0;
+    world.screenQ.color.setScalar(blink ? 1 : 0.55);
+    if (world.puddleMat) world.puddleMat.map.offset.set(Math.sin(t) * 0.02, Math.cos(t * 0.8) * 0.02);
+    renderer.render(scene, camera);
+    draw2d(t);
+  }
+
+  function draw2d(t) {
+    const c = ctx;
+    c.clearRect(0, 0, VIEW_W, VIEW_H);
+    // the pistol in the hand (with a flash when it fires)
+    if (run && run.pistol) {
+      const sw = gunArt.width * 3, sh = gunArt.height * 3;
+      const walkBob = Math.sin(player.walk * 7);
+      const gx = Math.round(VIEW_W / 2 + 34 + walkBob * 4 - sw / 2), gy = Math.round(VIEW_H - sh + 8 + Math.abs(walkBob) * 4 - (recoil > 0 ? 8 : 0));
+      if (flash > 0) {
+        c.fillStyle = "#fff2a0"; c.fillRect(gx + sw / 2 - 9, gy - 14, 18, 14);
+        c.fillStyle = "#ffd800"; c.fillRect(gx + sw / 2 - 5, gy - 22, 10, 26);
+      }
+      c.drawImage(gunArt, gx, gy, sw, sh);
+      c.fillStyle = "rgba(255,255,255,.75)";
+      c.fillRect(VIEW_W / 2 - 4, VIEW_H / 2, 3, 1); c.fillRect(VIEW_W / 2 + 2, VIEW_H / 2, 3, 1);
+      c.fillRect(VIEW_W / 2, VIEW_H / 2 - 4, 1, 3); c.fillRect(VIEW_W / 2, VIEW_H / 2 + 2, 1, 3);
+    }
+    if (bigMap) drawMap(c, true);
+    else drawMap(c, false);
+    // red when hurt, then blinking edges while it can't happen again
+    if (hurtTimer > SAFE_TIME - 0.35) { c.fillStyle = "rgba(255,40,40,.35)"; c.fillRect(0, 0, VIEW_W, VIEW_H); }
+    else if (hurtTimer > 0 && Math.floor(t * 6) % 2 === 0) {
+      c.fillStyle = "rgba(255,40,40,.5)";
+      c.fillRect(0, 0, VIEW_W, 3); c.fillRect(0, VIEW_H - 3, VIEW_W, 3); c.fillRect(0, 0, 3, VIEW_H); c.fillRect(VIEW_W - 3, 0, 3, VIEW_H);
+    }
+  }
+
+  // The map of what's been seen: small in the corner, or (TAB / MAPA) the whole level in the middle. North is up.
+  function drawMap(c, whole) {
+    const W = world;
+    let s, x0, y0, cx0, cy0, cw, ch;
+    if (whole) {
+      s = Math.floor(Math.min((VIEW_W - 20) / W.w, (VIEW_H - 20) / W.h));
+      cw = W.w; ch = W.h; cx0 = 0; cy0 = 0;
+      x0 = Math.floor((VIEW_W - W.w * s) / 2); y0 = Math.floor((VIEW_H - W.h * s) / 2);
+      c.fillStyle = "rgba(0,0,10,.85)"; c.fillRect(x0 - 4, y0 - 4, W.w * s + 8, W.h * s + 8);
+    } else {
+      s = 3; cw = ch = 21;
+      cx0 = Math.floor(player.x) - 10; cy0 = Math.floor(player.y) - 10;
+      x0 = VIEW_W - cw * s - 6; y0 = 6;
+      c.fillStyle = "rgba(0,0,10,.55)"; c.fillRect(x0 - 2, y0 - 2, cw * s + 4, ch * s + 4);
+    }
+    for (let j = 0; j < ch; j++) for (let i = 0; i < cw; i++) {
+      const x = cx0 + i, y = cy0 + j;
+      if (x < 0 || y < 0 || x >= W.w || y >= W.h) continue;
+      const idx = y * W.w + x;
+      if (!W.seen[idx]) continue;
+      const cell = W.cells[idx];
+      let col = null;
+      if (WALLS.includes(cell) || cell === "%") col = cell === "x" ? "#8a5a2a" : "#5a6a8c";
+      else if (cell === "C") col = W.computers.find(k => k.x === x && k.y === y).solved ? "#3dff6e" : "#ffd800";
+      else if (cell === "D") {
+        const d = W.doorAt.get(idx);
+        col = d.open ? "#20243a" : d.kind === "E" ? (d.unlocked ? "#3dff6e" : "#ff3b3b") : d.kind === "N" ? "#c8d0de" : d.kind === "D" ? "#a06a34" : KEY_INFO[d.kind.toLowerCase()].main;
+      } else if (W.puddles.has(idx)) col = "#4fd82a";
+      else col = "#20243a";
+      c.fillStyle = col;
+      c.fillRect(x0 + i * s, y0 + j * s, s, s);
+    }
+    if (whole) for (const k of W.keys) if (!k.taken && W.seen[k.y * W.w + k.x]) {
+      c.fillStyle = KEY_INFO[k.color].light; c.fillRect(x0 + k.x * s + s / 4, y0 + k.y * s + s / 4, s / 2, s / 2);
+    }
+    // the player: a dot and which way they look
+    const pxl = x0 + (player.x - cx0) * s, pyl = y0 + (player.y - cy0) * s;
+    c.strokeStyle = "#ffffff"; c.lineWidth = 1;
+    c.beginPath(); c.moveTo(pxl, pyl); c.lineTo(pxl + Math.cos(player.a) * s * 2, pyl + Math.sin(player.a) * s * 2); c.stroke();
+    c.fillStyle = "#ff8bd0"; c.fillRect(Math.round(pxl) - 1, Math.round(pyl) - 1, 3, 3);
+    if (whole) {
+      c.fillStyle = "#ffd800"; c.font = "8px Tiny5, monospace"; c.textAlign = "center";
+      c.fillText("MAPA - N ↑", VIEW_W / 2, y0 - 6 > 6 ? y0 - 6 : 8);
+    }
+  }
+
+  // ---------- Toast messages ----------
+  let toastTimer = 0, toastPrio = 0;
+  function toast(text, secs = 2.2, prio = 1, cls = "") {
+    if (toastTimer > 0 && prio < toastPrio) return;
+    if (toastEl.textContent !== text) toastEl.textContent = text;
+    toastEl.className = "toast" + (cls ? " " + cls : "");
+    toastTimer = secs; toastPrio = prio;
+  }
+  function hideToast() { toastTimer = 0; toastEl.classList.add("hidden"); }
+
+  // ---------- HUD ----------
+  function updateHud() {
+    if (!world) return;
+    $("hudLevel").textContent = `${run.level + 1}/${LEVELS.length}`;
+    $("hudTime").textContent = fmtTime(run.time);
+    $("hudTasks").textContent = `${world.computers.filter(c => c.solved).length}/${world.computers.length}`;
+    updateHudLives(); updateHudAmmo();
+    $("hudScore").textContent = run.score;
+    updateHudLetters();
+  }
+  let hudLettersShown = "";
+  function updateHudLetters() {
+    const key = run.letters.join();
+    if (hudLettersShown === key) return;
+    hudLettersShown = key;
+    $("hudLetters").innerHTML = [...WORD].map((ch, i) =>
+      `<img src="${letterImages[i]}" alt="${ch}" title="${ch}" class="${run.letters[i] ? "" : "missing"}">`).join("");
+  }
+  function updateHudKeys() {
+    const colors = [...new Set(world.keys.map(k => k.color))];
+    $("hudKeys").innerHTML = colors.length
+      ? colors.map(c => `<img src="${keyImages[c]}" alt="${KEY_INFO[c].name} KLUCZ" title="${KEY_INFO[c].name} KLUCZ" class="${inventory.has(c) ? "" : "missing"}">`).join("")
+      : `<span class="none">BRAK</span>`;
+  }
+  let hudLivesShown = -1, hudAmmoShown = -1;
+  function updateHudLives() {
+    if (hudLivesShown === run.lives) return;
+    hudLivesShown = run.lives;
+    $("hudLives").innerHTML = Array.from({ length: START_LIVES }, (_, i) =>
+      `<img src="${heartImage}" alt="" class="${i < run.lives ? "" : "lost"}">`).join("");
+    $("hudLives").title = `ŻYCIA: ${run.lives}`;
+  }
+  function updateHudAmmo() {
+    const v = run.pistol ? run.ammo : null;
+    if (hudAmmoShown === v) return;
+    hudAmmoShown = v;
+    const el = $("hudAmmo");
+    el.innerHTML = run.pistol ? `<img src="${pistolImage}" alt="PISTOLET"><span class="val">${run.ammo}</span>` : `<span class="none">BRAK</span>`;
+    el.classList.toggle("empty", !!run.pistol && run.ammo === 0);
+    $("btnFire").classList.toggle("hidden", !run.pistol);
+  }
+  const keyImages = {};
+  for (const c of Object.keys(KEY_INFO)) keyImages[c] = keySprites[c].toDataURL();
+
+  // ---------- Overlay inside the board ----------
+  function showOverlay(html, action) {
+    overlayEl.innerHTML = html;
+    overlayEl.classList.remove("hidden");
+    overlayAction = action;
+    const btn = overlayEl.querySelector("[data-primary]");
+    if (btn) btn.addEventListener("click", () => action && action());
+    overlayEl.querySelectorAll("[data-menu]").forEach(b => b.addEventListener("click", goMenu));
+    overlayEl.querySelectorAll("[data-hof]").forEach(b => b.addEventListener("click", () =>
+      showHallOfFame(result ? result.op : taskSettings.op, result && result.entry, true)));
+  }
+  function hideOverlay() { overlayEl.classList.add("hidden"); overlayEl.innerHTML = ""; overlayAction = null; }
+
+  // ---------- Flow ----------
+  function showScreen(name) {
+    $("menu").classList.toggle("hidden", name !== "menu");
+    $("creator").classList.toggle("hidden", name !== "creator");
+    $("hofScreen").classList.toggle("hidden", name !== "hof");
+    const inGame = name === "game";
+    ["hud", "board", "below"].forEach(id => $(id).classList.toggle("hidden", !inGame));
+    document.body.classList.toggle("in-game", inGame);
+  }
+  const releaseMouse = () => { if (document.pointerLockElement) document.exitPointerLock(); };
+
+  function goMenu() {
+    closeTerminal(true);
+    hideOverlay(); hideToast(); releaseMouse();
+    state = "menu"; world = null; run = null; result = null; bigMap = false;
+    showScreen("menu");
+    buildMenu();
+  }
+
+  function startRun(level) {
+    run = { startLevel: level, level, time: 0, mistakes: 0, lives: START_LIVES, pistol: false, ammo: 0,
+            score: 0, nextLife: LIFE_EVERY, letters: [...WORD].map(() => false), op: taskSettings.op, range: taskSettings.range };
+    hudLivesShown = -1; hudAmmoShown = -1; hudLettersShown = "";
+    sfx.start();
+    showScreen("game");
+    loadLevel(level);
+  }
+
+  function loadLevel(i) {
+    run.level = i;
+    if (scene) for (const p of particles) p.s.material.dispose();
+    world = parseLevel(LEVELS[i]);
+    world.computers.forEach((c, n) => { c.n = n + 1; });
+    buildScene(world);
+    player = { x: world.start.x, y: world.start.y, a: world.start.a, walk: 0 };
+    inventory = new Set(); usedTasks = new Set(); particles = []; popups = [];
+    fireCooldown = 0; hurtTimer = 0; levelHurt = false; recoil = flash = 0; bigMap = false;
+    levelTime = 0; levelMistakes = 0; nearComputer = nearPin = null;
+    sprites = characterSprites(look); gunArt = gunSprite(look);
+    markSeen();
+    updateHud(); updateHudKeys(); hideToast();
+    const nKeys = world.keys.length;
+    state = "intro";
+    showOverlay(`
+      <div class="big">POZIOM ${i + 1}: ${escapeHtml(world.name)}</div>
+      <div>KOMPUTERY DO ODBLOKOWANIA: <span class="sub">${world.computers.length}</span>${nKeys ? ` · KLUCZE: <span class="sub">${nKeys}</span>` : ""}</div>
+      <div>ZADANIA: <span class="sub">${TASK_MODES[taskSettings.op].name}</span> · WYNIK DO <span class="sub">${rangeMax(taskSettings.range)}</span></div>
+      ${world.theme === "toxic" ? `<div style="color:#6dff3a">STREFA SKAŻONA! TUTAJ NAWET PROFESOROWIE SIĘ ZMIENILI...</div>` : ""}
+      ${world.enemies.length ? `<div style="color:var(--red)">UWAGA, MUTANTY! UCIEKAJ ALBO STRZELAJ${world.enemies.some(e => e.hp > 1) ? " - TOKSYCZNE KOTY TRZEBA TRAFIĆ DWA RAZY" : ""}.</div>` : ""}
+      ${world.puddles.size ? `<div style="color:#6dff3a">NIE WCHODŹ W TOKSYCZNE KAŁUŻE!</div>` : ""}
+      <div>ŻYCIA: <span class="sub">${run.lives}</span> · ${run.pistol ? `NABOJE: <span class="sub">${run.ammo}</span>` : "PISTOLET: <span class=\"sub\">POSZUKAJ GO!</span>"}</div>
+      <div class="dim">ROZWIĄŻ ZADANIA NA WSZYSTKICH KOMPUTERACH, A OTWORZY SIĘ WYJŚCIE.<br>${coarse ? "PRZESUWAJ PALCEM PO OBRAZIE, ŻEBY SIĘ ROZGLĄDAĆ." : "KLIKNIJ W OBRAZ, ŻEBY ROZGLĄDAĆ SIĘ MYSZĄ (ESC ODDAJE MYSZ)."}</div>
+      <button class="main-btn" data-primary>START</button>`, play);
+    if (!renderer) showOverlay(`<div class="big" style="color:var(--red)">BRAK 3D</div>
+      <div>TA PRZEGLĄDARKA NIE POTRAFI WYŚWIETLIĆ GRAFIKI 3D (WEBGL).</div>
+      <div class="btns"><button class="main-btn alt" data-menu>MENU</button></div>`);
+  }
+
+  function play() {
+    hideOverlay();
+    Object.keys(held).forEach(k => { held[k] = false; });
+    pressed.use = pressed.fire = false; mouseTurn = 0;
+    document.querySelectorAll(".touch button.on").forEach(b => b.classList.remove("on"));
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    state = "playing";
+  }
+
+  function pause() {
+    if (state !== "playing") return;
+    state = "paused";
+    releaseMouse();
+    showOverlay(`<div class="big">PAUZA</div>
+      <div class="btns"><button class="main-btn" data-primary>GRAJ DALEJ</button><button class="main-btn alt" data-menu>MENU</button></div>`, play);
+  }
+
+  function levelComplete() {
+    state = "done";
+    releaseMouse();
+    sfx.win();
+    hideToast();
+    const last = run.level === LEVELS.length - 1;
+    const scoreBefore = run.score;
+    const [limit, bonus] = LEVEL_BONUS.find(([lim]) => levelTime < lim);
+    addPoints(bonus);
+    if (!levelHurt) addPoints(PTS_NO_HARM);
+    const stats = `CZAS POZIOMU: <span class="sub">${fmtTime(levelTime)}</span> · BŁĘDNE ODPOWIEDZI: <span class="sub">${levelMistakes}</span>`;
+    const points = `<div>UKOŃCZENIE POZIOMU${limit < Infinity ? ` W MNIEJ NIŻ ${limit / 60} MIN.` : ""}: <span class="sub">+${bonus}</span>
+      ${levelHurt ? "" : `· BEZ UTRATY ŻYCIA: <span class="sub">+${PTS_NO_HARM}</span>`}</div>
+      <div>PUNKTY: <span class="sub">${scoreBefore}</span> → <span style="color:var(--yellow)">${run.score}</span></div>`;
+    if (!last) {
+      showOverlay(`
+        <div class="big">POZIOM ${run.level + 1} UKOŃCZONY!</div>
+        <div>${stats}</div>${points}
+        <div class="btns"><button class="main-btn" data-primary>NASTĘPNY POZIOM</button><button class="main-btn alt" data-menu>MENU</button></div>`,
+        () => loadLevel(run.level + 1));
+    } else {
+      endRun(true, `<div>${stats}</div>${points}`);
+    }
+  }
+
+  // Points; every LIFE_EVERY of them gives a life back (never more than START_LIVES).
+  function addPoints(n) {
+    run.score += n;
+    while (run.score >= run.nextLife) {
+      run.nextLife += LIFE_EVERY;
+      if (run.lives < START_LIVES) {
+        run.lives++;
+        sfx.life();
+        toast(`${run.nextLife - LIFE_EVERY} PUNKTÓW - DODATKOWE ŻYCIE!`, 2.5, 3, "good");
+      }
+    }
+    updateHud();
+  }
+
+  function loseLife(why = "AUĆ!") {
+    if (hurtTimer > 0 || state !== "playing") return;
+    run.lives = Math.max(0, run.lives - 1);
+    levelHurt = true;
+    updateHudLives();
+    sfx.hurt();
+    if (run.lives > 0) { hurtTimer = SAFE_TIME; toast(`${why} ZOSTAŁO ŻYĆ: ${run.lives}`, 2, 3, "bad"); return; }
+    sfx.over();
+    endRun(false);
+  }
+
+  // ---------- Hall of fame (shared by everyone - the gry API, /api/sala_slawy/laboratorium3d/) ----------
+  // One list per kind of task (as chosen in the menu); score = points, time = whole seconds of the run,
+  // level = the task difficulty (1-10), completed = escaped from the last level.
+  const HOF_URL = (location.protocol === "file:" ? "https://gry.billy.local" : "") + "/api/sala_slawy/laboratorium3d/";
+  const HOF_SIZE = 10;
+  let hof = null;
+  let hofRequest = 0;
+  let lastName = "";
+  try { lastName = localStorage.getItem("laboratorium-name") || ""; } catch (e) { /* ignore */ }
+  const hofTime = e => e.time ?? Infinity;
+  const hofCompare = (a, b) => b.score - a.score || hofTime(a) - hofTime(b) || a.id - b.id;
+  async function hofLoad() {
+    const res = await fetch(HOF_URL + "?limit=" + HOF_SIZE, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    hof = Object.fromEntries(Object.keys(TASK_MODES).map(k => [k, data.categories?.[k] ?? []]));
+  }
+  async function hofPost(entry) {
+    const res = await fetch(HOF_URL, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(entry),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "HTTP " + res.status);
+    return data;
+  }
+  function hofRank(r) {
+    if (r.score <= 0 || !hof) return 0;
+    const list = hof[r.op];
+    let rank = list.findIndex(e => hofCompare({ score: r.score, time: Math.floor(r.time), id: Infinity }, e) < 0);
+    if (rank === -1) rank = list.length;
+    return rank < HOF_SIZE ? rank + 1 : 0;
+  }
+
+  let result = null;
+  function endRun(completed, extra = "") {
+    state = "over";
+    releaseMouse();
+    hideToast();
+    result = { completed, score: run.score, time: run.time, op: run.op, range: run.range, level: run.level,
+               startLevel: run.startLevel, mistakes: run.mistakes, letters: run.letters.filter(Boolean).length,
+               extra, entry: null, hofError: false };
+    const r = result;
+    if (r.score <= 0) { showResult(); return; }
+    showOverlay(`${resultHtml(r)}<div class="blink">ŁADOWANIE SALI SŁAWY...</div>`);
+    hofLoad()
+      .then(() => { if (result === r && state === "over") (hofRank(r) ? showNameEntry() : showResult()); })
+      .catch(() => { if (result === r && state === "over") { r.hofError = true; showResult(); } });
+  }
+  function resultHtml(r) {
+    const head = r.completed
+      ? `<div class="big">MISJA UKOŃCZONA!</div>
+         <div>${girl() ? "BRAWO, AGENTKO! UCIEKŁAŚ" : "BRAWO, AGENCIE! UCIEKŁEŚ"} Z TAJNEGO LABORATORIUM.</div>`
+      : `<div class="big" style="color:var(--red)">KONIEC GRY</div>
+         <div>${girl() ? "STRACIŁAŚ" : "STRACIŁEŚ"} WSZYSTKIE ŻYCIA NA POZIOMIE ${r.level + 1}.</div>`;
+    return `${head}${r.extra}
+      <div>PUNKTY: <span style="color:var(--yellow)">${r.score}</span> · ŁĄCZNY CZAS: <span class="sub">${fmtTime(r.time)}</span>
+        · LITERY: <span class="sub">${r.letters}/${WORD.length}</span> · BŁĘDY: <span class="sub">${r.mistakes}</span></div>`;
+  }
+  function showResult() {
+    const r = result;
+    showOverlay(`${resultHtml(r)}
+      ${r.hofError ? `<div style="color:var(--red)">SALA SŁAWY NIEDOSTĘPNA - BRAK POŁĄCZENIA Z SERWEREM</div>` : ""}
+      <div class="btns"><button class="main-btn" data-primary>JESZCZE RAZ</button><button class="main-btn alt" data-menu>MENU</button>
+      <button class="main-btn alt" data-hof>SALA SŁAWY</button></div>`, () => startRun(r.startLevel));
+  }
+  function showNameEntry() {
+    state = "entry";
+    const r = result;
+    showOverlay(`${resultHtml(r)}
+      <div style="color:var(--yellow)">JESTEŚ W SALI SŁAWY! MIEJSCE #${hofRank(r)}</div>
+      <form class="name-form" id="nameForm" autocomplete="off">
+        <label for="nameInput">WPISZ SWOJE IMIĘ:</label>
+        <input id="nameInput" maxlength="12" spellcheck="false" value="${escapeHtml(lastName)}">
+        <div class="btns"><button class="main-btn" type="submit">ZAPISZ</button>
+        <button class="main-btn alt" type="button" id="btnSkip" hidden>POMIŃ</button></div>
+        <div id="nameError" style="color:var(--red)"></div>
+      </form>`);
+    const input = $("nameInput"), form = $("nameForm");
+    setTimeout(() => { input.focus(); input.select(); }, 0);
+    form.onsubmit = async e => {
+      e.preventDefault();
+      const name = input.value.trim().toUpperCase().slice(0, 12) || (girl() ? "AGENTKA" : "AGENT");
+      lastName = name;
+      try { localStorage.setItem("laboratorium-name", name); } catch (err) { /* ignore */ }
+      const saveBtn = form.querySelector("[type=submit]");
+      saveBtn.disabled = true; saveBtn.textContent = "ZAPISYWANIE...";
+      try {
+        const saved = await hofPost({ name, score: r.score, category: r.op, time: Math.floor(r.time), level: r.range, completed: r.completed });
+        r.entry = saved.entry;
+      } catch (err) {
+        saveBtn.disabled = false; saveBtn.textContent = "SPRÓBUJ PONOWNIE";
+        $("nameError").textContent = "NIE UDAŁO SIĘ ZAPISAĆ (" + err.message + ")";
+        $("btnSkip").hidden = false;
+        return;
+      }
+      if (state !== "entry" || result !== r) return;
+      showHallOfFame(r.op, r.entry, true);
+    };
+    $("btnSkip").onclick = () => { state = "over"; showResult(); };
+  }
+
+  function showHallOfFame(op, highlight, afterGame, fetchFirst = true) {
+    closeTerminal(true);
+    hideOverlay(); hideToast(); releaseMouse();
+    state = "hof";
+    showScreen("hof");
+    const box = $("hofScreen");
+    const buttons = afterGame && result
+      ? `<div class="btns"><button class="main-btn" id="hofAgain">JESZCZE RAZ</button><button class="main-btn alt" id="hofMenu">MENU</button></div>`
+      : `<div class="btns"><button class="main-btn" id="hofMenu">WRÓĆ</button></div>`;
+    const show = body => {
+      const tabs = Object.entries(TASK_MODES).map(([k, m]) =>
+        `<button class="opt${k === op ? " sel" : ""}" data-tab="${k}"><b>${escapeHtml(m.sym)}</b>${escapeHtml(m.name)}</button>`).join("");
+      box.innerHTML = `<div class="menu-title">SALA SŁAWY</div><div class="ops">${tabs}</div>${body}${buttons}`;
+      box.querySelectorAll("[data-tab]").forEach(b => b.addEventListener("click", () => showHallOfFame(b.dataset.tab, highlight, afterGame, !hof)));
+      if ($("hofAgain")) $("hofAgain").onclick = () => startRun(result.startLevel);
+      $("hofMenu").onclick = goMenu;
+    };
+    if (fetchFirst) {
+      const req = ++hofRequest;
+      show(`<div class="blink">ŁADOWANIE...</div>`);
+      const stillHere = () => req === hofRequest && state === "hof";
+      hofLoad()
+        .then(() => { if (stillHere()) showHallOfFame(op, highlight, afterGame, false); })
+        .catch(err => { if (stillHere()) show(`<div style="color:var(--red)">BRAK POŁĄCZENIA Z SERWEREM (${escapeHtml(err.message)})</div>`); });
+      return;
+    }
+    const medal = ["gold", "silver", "bronze"];
+    const rows = Array.from({ length: HOF_SIZE }, (_, i) => {
+      const e = hof[op][i];
+      if (!e) return `<tr class="empty"><td class="num">${i + 1}.</td><td class="name">---</td><td class="num">-</td><td class="num">--:--</td><td class="num">-</td><td></td></tr>`;
+      const cls = [medal[i] || "", highlight && e.id === highlight.id ? "me" : ""].join(" ");
+      return `<tr class="${cls}"><td class="num">${i + 1}.</td><td class="name">${escapeHtml(e.name)}</td>
+        <td class="num">${e.score}</td><td class="num">${e.time == null ? "--:--" : fmtTime(e.time)}</td>
+        <td class="num">${e.level == null ? "-" : "DO " + rangeMax(e.level)}</td><td>${e.completed ? `<span class="fin">UCIECZKA</span>` : ""}</td></tr>`;
+    }).join("");
+    show(`<table class="hof"><tr><th class="num">#</th><th>IMIĘ</th><th class="num">PUNKTY</th><th class="num">CZAS</th><th class="num">WYNIKI</th><th></th></tr>${rows}</table>`);
+  }
+
+  // ---------- Computer terminal (also the keypad of a door with a PIN) ----------
+  function showTerminal() {
+    releaseMouse();
+    tInput.value = "";
+    tInput.readOnly = coarse;
+    tMsg.textContent = " "; tMsg.className = "t-msg";
+    $("terminal").classList.remove("hidden");
+    hideToast();
+    sfx.boot();
+    if (!coarse) setTimeout(() => tInput.focus(), 30);
+  }
+
+  function openTerminal(c) {
+    state = "terminal";
+    activeComputer = c; activePin = null;
+    terminalLock = false;
+    if (!c.task) c.task = newTask(usedTasks);
+    $("tHead").textContent = "LAB-OS 3.1";
+    $("tNum").textContent = `TERMINAL ${c.n}/${world.computers.length}`;
+    $("tLine1").textContent = "> SYSTEM ZABLOKOWANY.";
+    $("tLine2").textContent = "> PODAJ WYNIK, ABY GO ODBLOKOWAĆ:";
+    $("tPin").classList.add("hidden");
+    $("tQuestion").textContent = c.task.text;
+    showTerminal();
+  }
+
+  function openPinPad(d) {
+    state = "terminal";
+    activePin = d; activeComputer = null;
+    terminalLock = false;
+    if (!d.tasks) { d.tasks = Array.from({ length: PIN_TASKS }, () => newTask(usedTasks)); d.done = 0; }
+    $("tHead").textContent = "ZAMEK SZYFROWY";
+    $("tLine1").textContent = "> DRZWI ZAMKNIĘTE NA PIN.";
+    $("tLine2").textContent = `> ROZWIĄŻ ${PIN_TASKS} ZADANIA - WYNIKI TO PIN:`;
+    $("tPin").classList.remove("hidden");
+    showPinTask(d);
+    showTerminal();
+  }
+  function showPinTask(d) {
+    const cur = Math.min(d.done, PIN_TASKS - 1), t = d.tasks[cur];
+    $("tNum").textContent = `ZADANIE ${cur + 1}/${PIN_TASKS}`;
+    $("tPin").innerHTML = d.tasks.map((t, i) =>
+      `<span class="${i < d.done ? "ok" : i === d.done ? "cur" : ""}">${i < d.done ? t.answer : "?"}</span>`).join("");
+    $("tQuestion").textContent = d.done > cur ? t.text.replace("?", t.answer) : t.text;
+  }
+
+  function closeTerminal(silent = false) {
+    if (!activeComputer && !activePin) return;
+    $("terminal").classList.add("hidden");
+    tInput.blur();
+    const c = activeComputer, d = activePin;
+    activeComputer = null; activePin = null;
+    if (pendingSolve) { pendingSolve = false; if (!silent) (d ? pinAccepted(d) : afterSolve(c)); }
+    if (!silent && state === "terminal") play();
+  }
+
+  function clearMsg() { if (!terminalLock) { tMsg.textContent = " "; tMsg.className = "t-msg"; } }
+  function typeDigit(d) {
+    if (terminalLock || tInput.value.length >= 3) return;
+    tInput.value += d;
+    clearMsg();
+    sfx.type();
+  }
+
+  function submitAnswer() {
+    const c = activeComputer, d = activePin;
+    if ((!c && !d) || terminalLock) return;
+    const v = tInput.value.trim();
+    if (!v) return;
+    const task = c ? c.task : d.tasks[d.done];
+    if (Number(v) === task.answer) {
+      terminalLock = true;
+      sfx.good();
+      if (c) {
+        c.solved = true;
+        pendingSolve = true;
+        $("tQuestion").textContent = c.task.text.replace("?", c.task.answer);
+        tMsg.textContent = "> DOBRZE! DOSTĘP PRZYZNANY."; tMsg.className = "t-msg good";
+        setTimeout(() => { if (activeComputer === c) closeTerminal(); }, 1100);
+        return;
+      }
+      d.done++;
+      addPoints(PTS_TASK);
+      showPinTask(d);
+      $("tQuestion").textContent = task.text.replace("?", task.answer);
+      if (d.done < PIN_TASKS) {
+        tMsg.textContent = `> DOBRZE! ZOSTAŁO ZADAŃ: ${PIN_TASKS - d.done}.`; tMsg.className = "t-msg good";
+        setTimeout(() => {
+          if (activePin !== d) return;
+          terminalLock = false; tInput.value = "";
+          clearMsg(); showPinTask(d);
+        }, 900);
+      } else {
+        pendingSolve = true;
+        tMsg.textContent = "> PIN PRZYJĘTY! DRZWI OTWARTE."; tMsg.className = "t-msg good";
+        setTimeout(() => { if (activePin === d) closeTerminal(); }, 1200);
+      }
+    } else {
+      run.mistakes++; levelMistakes++;
+      tMsg.textContent = "> BŁĄD! SPRÓBUJ JESZCZE RAZ."; tMsg.className = "t-msg bad";
+      tInput.value = "";
+      monitor.classList.remove("shake"); void monitor.offsetWidth; monitor.classList.add("shake");
+      sfx.bad();
+    }
+  }
+
+  function pinAccepted(d) {
+    openDoor(d);
+    toast("PIN PRZYJĘTY! DRZWI OTWARTE!", 2.5, 2, "good");
+  }
+
+  function afterSolve(c) {
+    addPoints(PTS_TASK);
+    c.mesh.material = [world.screenOK, world.screenOK, c.mesh.material[2], c.mesh.material[3], world.screenOK, world.screenOK];
+    const left = world.computers.filter(c => !c.solved).length;
+    if (left === 0) {
+      world.exit.unlocked = true;
+      world.exit.face.map = world.tex.doorEopen;
+      sfx.alarm();
+      toast("WSZYSTKIE ZADANIA ROZWIĄZANE! WYJŚCIE JEST OTWARTE - ZNAJDŹ ZIELONE DRZWI!", 4, 3, "good");
+    } else {
+      toast(`ZADANIE ROZWIĄZANE! ZOSTAŁO: ${left}`, 2.5, 2, "good");
+    }
+  }
+
+  // keypad
+  const keypad = $("keypad");
+  ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].forEach(d => {
+    const b = document.createElement("button");
+    b.textContent = d;
+    b.addEventListener("click", () => typeDigit(d));
+    keypad.appendChild(b);
+  });
+  [["USUŃ", () => { if (!terminalLock) tInput.value = tInput.value.slice(0, -1); }], ["OK", submitAnswer]].forEach(([label, fn]) => {
+    const b = document.createElement("button");
+    b.textContent = label; b.className = label === "OK" ? "wide ok" : "wide";
+    b.addEventListener("click", fn);
+    keypad.appendChild(b);
+  });
+  keypad.addEventListener("mousedown", e => e.preventDefault());
+  tInput.addEventListener("input", () => { tInput.value = tInput.value.replace(/\D/g, "").slice(0, 3); clearMsg(); });
+  $("tClose").addEventListener("click", () => closeTerminal());
+  $("terminal").addEventListener("click", e => { if (e.target.id === "terminal") closeTerminal(); });
+
+  // ---------- Input ----------
+  const KEYMAP = {
+    ArrowUp: "fwd", KeyW: "fwd", ArrowDown: "back", KeyS: "back",
+    ArrowLeft: "turnL", ArrowRight: "turnR", KeyA: "strL", KeyD: "strR",
+    Space: "fire", KeyE: "use", Enter: "use", NumpadEnter: "use",
+  };
+
+  function toggleSound() {
+    soundOn = !soundOn;
+    try { localStorage.setItem("laboratorium-sound", soundOn ? "on" : "off"); } catch (e) { /* ignore */ }
+    $("btnSound").textContent = soundOn ? "DŹWIĘK: WŁ." : "DŹWIĘK: WYŁ.";
+  }
+
+  window.addEventListener("keydown", e => {
+    if (state === "entry" || state === "hof") return;
+    if (state === "terminal") {
+      if (e.code === "Escape") { e.preventDefault(); closeTerminal(); return; }
+      if (terminalLock) return;
+      if (e.key === "Enter") { e.preventDefault(); submitAnswer(); return; }
+      if (document.activeElement === tInput) { if (/^[0-9]$/.test(e.key)) sfx.type(); return; }
+      if (/^[0-9]$/.test(e.key)) { e.preventDefault(); typeDigit(e.key); }
+      else if (e.key === "Backspace") { e.preventDefault(); tInput.value = tInput.value.slice(0, -1); }
+      return;
+    }
+    if (e.code === "KeyM" && state !== "creator") { toggleSound(); return; }
+    if (state === "menu") {
+      if (e.code === "Enter" && document.activeElement === document.body) { e.preventDefault(); startRun(menuLevel); }
+      return;
+    }
+    if (state === "intro" || state === "paused" || state === "done" || state === "over") {
+      if (e.code === "Enter" || e.code === "Space") { e.preventDefault(); if (!e.repeat && overlayAction) overlayAction(); }
+      else if (state === "paused" && (e.code === "KeyP" || e.code === "Escape")) play();
+      return;
+    }
+    if (state !== "playing") return;
+    if (e.code === "KeyP" || e.code === "Escape") { pause(); return; }
+    if (e.code === "Tab") { e.preventDefault(); if (!e.repeat) bigMap = !bigMap; return; }
+    const action = KEYMAP[e.code];
+    if (!action) return;
+    e.preventDefault();
+    if (action === "use" || action === "fire") { if (!e.repeat) pressed[action] = true; return; }
+    held[action] = true;
+  });
+  window.addEventListener("keyup", e => {
+    const action = KEYMAP[e.code];
+    if (action && action in held) held[action] = false;
+  });
+  window.addEventListener("blur", () => { Object.keys(held).forEach(k => { held[k] = false; }); });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) pause(); });
+
+  // the mouse: a click in the picture catches it (then it turns the player, and a click shoots)
+  canvas.addEventListener("mousedown", e => {
+    if (state !== "playing" || coarse) return;
+    if (document.pointerLockElement === canvas) { pressed.fire = true; return; }
+    try { const p = canvas.requestPointerLock(); if (p && p.catch) p.catch(() => {}); } catch (err) { /* not supported */ }
+  });
+  document.addEventListener("mousemove", e => {
+    if (state === "playing" && document.pointerLockElement === canvas) mouseTurn += e.movementX * MOUSE_TURN;
+  });
+  // a finger dragged over the picture turns the player
+  let dragId = null, dragX = 0;
+  canvas.addEventListener("pointerdown", e => { if (e.pointerType === "touch") { dragId = e.pointerId; dragX = e.clientX; } });
+  canvas.addEventListener("pointermove", e => {
+    if (e.pointerId !== dragId || state !== "playing") return;
+    mouseTurn += (e.clientX - dragX) * DRAG_TURN * (VIEW_W / canvas.clientWidth);
+    dragX = e.clientX;
+  });
+  ["pointerup", "pointercancel"].forEach(ev => canvas.addEventListener(ev, e => { if (e.pointerId === dragId) dragId = null; }));
+
+  document.querySelectorAll(".touch [data-hold]").forEach(b => {
+    const action = b.dataset.hold;
+    const down = e => {
+      e.preventDefault();
+      b.classList.add("on");
+      if (state !== "playing") return;
+      if (action === "use" || action === "fire") pressed[action] = true;
+      else if (action === "map") bigMap = !bigMap;
+      else held[action] = true;
+    };
+    const up = e => { e.preventDefault(); b.classList.remove("on"); if (action in held) held[action] = false; };
+    b.addEventListener("pointerdown", down);
+    ["pointerup", "pointercancel", "pointerleave"].forEach(ev => b.addEventListener(ev, up));
+    b.addEventListener("contextmenu", e => e.preventDefault());
+  });
+  $("btnPause").addEventListener("click", pause);
+  $("btnSound").addEventListener("click", toggleSound);
+  $("btnSound").textContent = soundOn ? "DŹWIĘK: WŁ." : "DŹWIĘK: WYŁ.";
+
+  // ---------- Menu ----------
+  function buildMenu() {
+    const box = $("levelBtns");
+    box.innerHTML = "";
+    LEVELS.forEach((lv, i) => {
+      const b = document.createElement("button");
+      b.className = "opt" + (i === menuLevel ? " sel" : "");
+      b.innerHTML = `<b>${i + 1}</b>${escapeHtml(lv.name)}`;
+      b.addEventListener("click", () => { menuLevel = i; buildMenu(); });
+      box.appendChild(b);
+    });
+    const ops = $("opBtns");
+    ops.innerHTML = "";
+    Object.entries(TASK_MODES).forEach(([k, m]) => {
+      const b = document.createElement("button");
+      b.className = "opt" + (taskSettings.op === k ? " sel" : "");
+      b.innerHTML = `<b>${escapeHtml(m.sym)}</b>${escapeHtml(m.name)}`;
+      b.addEventListener("click", () => { taskSettings.op = k; saveTaskSettings(); buildMenu(); });
+      ops.appendChild(b);
+    });
+    const ranges = $("rangeBtns");
+    ranges.innerHTML = "";
+    for (let n = 1; n <= NUM_RANGES; n++) {
+      const b = document.createElement("button");
+      b.className = "opt" + (taskSettings.range === n ? " sel" : "");
+      b.textContent = n;
+      b.title = `WYNIK DO ${rangeMax(n)}`;
+      b.addEventListener("click", () => { taskSettings.range = n; saveTaskSettings(); buildMenu(); });
+      ranges.appendChild(b);
+    }
+    $("rangeHint").textContent = `WYNIK MAKSYMALNIE ${rangeMax(taskSettings.range)}` +
+      (taskSettings.op === "all" ? " · DZIAŁANIA LOSOWANE PRZY KAŻDYM KOMPUTERZE" : "");
+  }
+  $("btnPlay").addEventListener("click", () => startRun(menuLevel));
+  $("btnHofMenu").addEventListener("click", () => { result = null; showHallOfFame(taskSettings.op, null, false); });
+  $("btnCreator").addEventListener("click", () => { state = "creator"; showScreen("creator"); buildCreator(); });
+  $("btnDone").addEventListener("click", () => { saveLook(); sprites = characterSprites(look); gunArt = gunSprite(look); state = "menu"; showScreen("menu"); buildMenu(); });
+  $("btnRandom").addEventListener("click", () => {
+    const pick = arr => Math.floor(Math.random() * arr.length);
+    look = {
+      gender: Math.random() < 0.5 ? "boy" : "girl", hair: Object.keys(HAIR)[pick(Object.keys(HAIR))],
+      hairColor: pick(HAIR_COLORS), shirt: pick(SHIRT_COLORS), pants: pick(PANTS_COLORS),
+    };
+    buildCreator();
+  });
+
+  // ---------- Character creator ----------
+  function drawSpriteTo(cv, spr) {
+    const c = cv.getContext("2d");
+    c.clearRect(0, 0, cv.width, cv.height);
+    c.drawImage(spr, 0, 0);
+  }
+
+  function buildCreator() {
+    sprites = characterSprites(look);
+    const choice = (box, items, isSel, onPick, withSprite) => {
+      box.innerHTML = "";
+      items.forEach(([value, label, lk]) => {
+        const b = document.createElement("button");
+        b.className = "opt" + (isSel(value) ? " sel" : "");
+        if (withSprite) {
+          const cv = document.createElement("canvas");
+          cv.width = 14; cv.height = 24;
+          drawSpriteTo(cv, characterSprites(lk).stand);
+          b.appendChild(cv);
+        }
+        b.appendChild(document.createTextNode(label));
+        b.addEventListener("click", () => { onPick(value); buildCreator(); });
+        box.appendChild(b);
+      });
+    };
+    choice($("optGender"), [["boy", "CHŁOPIEC", { ...look, gender: "boy" }], ["girl", "DZIEWCZYNKA", { ...look, gender: "girl" }]],
+      v => look.gender === v, v => { look.gender = v; }, true);
+    choice($("optHair"), Object.entries(HAIR).map(([k, h]) => [k, h.name, { ...look, hair: k }]),
+      v => look.hair === v, v => { look.hair = v; }, true);
+    const swatches = (box, colors, field) => {
+      box.innerHTML = "";
+      colors.forEach(([name, hex], i) => {
+        const b = document.createElement("button");
+        b.className = "swatch" + (look[field] === i ? " sel" : "");
+        b.style.background = hex;
+        b.title = name; b.setAttribute("aria-label", name);
+        b.addEventListener("click", () => { look[field] = i; buildCreator(); });
+        box.appendChild(b);
+      });
+    };
+    swatches($("optHairColor"), HAIR_COLORS, "hairColor");
+    swatches($("optShirt"), SHIRT_COLORS, "shirt");
+    swatches($("optPants"), PANTS_COLORS, "pants");
+  }
+
+  function animatePreviews(t) {
+    const frame = Math.floor(t / 280) % 2 === 0 ? sprites.walk : sprites.stand;
+    if (state === "creator") drawSpriteTo($("preview"), frame);
+    if (state === "menu") drawSpriteTo($("menuHero"), frame);
+  }
+
+  // ---------- Main loop ----------
+  let last = performance.now(), acc = 0;
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (state === "playing") {
+      acc += dt;
+      while (acc >= STEP && state === "playing") { update(STEP); acc -= STEP; }
+      updateHud();
+    } else {
+      acc = 0;
+      if (state === "terminal") { levelTime += dt; run.time += dt; updateHud(); }
+    }
+    if (world && scene) updateParticles(dt);
+    if (toastTimer > 0 && (state === "playing" || state === "terminal")) {
+      toastTimer -= dt;
+      toastEl.classList.toggle("hidden", toastTimer <= 0);
+    }
+    if (state === "menu" || state === "creator") animatePreviews(now);
+    else if (world) render(now);
+    requestAnimationFrame(frame);
+  }
+
+  // For tests: the levels, the map logic and the state.
+  window.LAB3D = {
+    LEVELS, WALLS, parseLevel, cellAt, solidIn, castRay, update, STEP, startRun, loadLevel, play, levelComplete, breakCrack, afterSolve,
+    get state() { return state; }, get world() { return world; }, get player() { return player; }, get run() { return run; },
+    get inventory() { return inventory; }, held, pressed, renderer, get nearComputer() { return nearComputer; }, get nearPin() { return nearPin; },
+    toggleMap() { bigMap = !bigMap; },
+  };
+
+  buildMenu();
+  showScreen("menu");
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

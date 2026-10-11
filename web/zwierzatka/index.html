@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zagubione Zwierzątka</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Tiny5&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07140b;
+    --panel: #0d2414;
+    --wall: #3fa04a;
+    --yellow: #ffd800;
+    --green: #6dff7a;
+    --red: #ff5a4a;
+    --orange: #ff9a3a;
+    --cyan: #6fe8ff;
+    --text: #f4f4ec;
+    --dim: #8ab894;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: "Nunito", "Segoe UI", sans-serif; font-weight: 800; font-size: 16px; line-height: 1.5;
+    display: flex; justify-content: center; min-height: 100vh; padding: 16px;
+  }
+  .wrap {
+    display: flex; flex-direction: column; gap: 12px; align-items: stretch;
+    width: min(960px, 100%, calc((100vh - 330px) * 5 / 3 + 16px));
+    min-width: min(100%, 320px);
+    margin: auto 0;
+  }
+  h1 {
+    margin: 0; text-align: center; font-family: "Tiny5", monospace; font-weight: normal;
+    font-size: 40px; letter-spacing: 3px; line-height: 1.1; color: var(--yellow);
+    text-shadow: 3px 3px 0 #a0521a, 6px 6px 0 #3a1a06;
+  }
+  .frame { border: 4px solid var(--wall); background: var(--panel); box-shadow: 0 0 0 4px #000, 0 0 0 8px #143a1c; }
+  .hud { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px 12px; }
+  .hud .label { color: var(--dim); font-size: 12px; display: block; line-height: 1.2; }
+  .hud .val { font-size: 21px; line-height: 1.3; font-weight: 900; }
+  #hudLevel { color: var(--orange); }
+  #hudTime { color: var(--cyan); }
+  #hudFound { color: var(--green); }
+  #hudScore { color: var(--yellow); }
+
+  /* where to go: the animal and the words */
+  .dirbox { display: flex; align-items: center; gap: 14px; padding: 8px 12px; min-height: 92px; }
+  #dirIcon { width: 42px; height: 42px; flex: none; image-rendering: pixelated; }
+  .dirtext { flex: 1; min-width: 0; }
+  #dirMain { font-size: clamp(19px, 3.4vw, 30px); line-height: 1.15; color: var(--yellow); font-weight: 900; }
+  #dirSub { font-size: clamp(13px, 1.9vw, 17px); color: var(--cyan); margin-top: 2px; }
+  #dirHint { font-size: clamp(12px, 1.7vw, 15px); color: var(--orange); }
+
+  .board { position: relative; background: #000; line-height: 0; }
+  canvas#game { display: block; width: 100%; height: auto; aspect-ratio: 5 / 3; image-rendering: pixelated; image-rendering: crisp-edges; }
+  .overlay {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 10px; text-align: center; background: rgba(4, 14, 7, .84); line-height: 1.45; padding: 12px; overflow-y: auto;
+    font-size: clamp(13px, 2.1vw, 18px);
+  }
+  .overlay .big { font-size: clamp(22px, 4.4vw, 38px); line-height: 1.1; color: var(--yellow); font-weight: 900; }
+  .overlay .sub { color: var(--cyan); }
+  .overlay .dim { color: var(--dim); font-size: .9em; }
+  .hidden { display: none !important; }
+  .toast {
+    position: absolute; left: 50%; top: 5%; transform: translateX(-50%); max-width: 92%;
+    padding: 5px 12px; line-height: 1.3; text-align: center; font-size: clamp(12px, 2vw, 17px);
+    background: rgba(8, 30, 14, .93); border: 3px solid var(--yellow); box-shadow: 3px 3px 0 #000; pointer-events: none;
+  }
+  .toast.good { border-color: var(--green); color: var(--green); }
+
+  .below { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .help { color: var(--dim); font-size: 13px; flex: 1 1 300px; }
+  .help b { color: var(--text); }
+  .row { display: flex; gap: 8px; }
+
+  button { font-family: inherit; font-weight: 800; cursor: pointer; }
+  button.main-btn { font-size: 18px; color: #000; background: var(--yellow); border: none; padding: 9px 16px; box-shadow: 4px 4px 0 #a0521a; }
+  button.main-btn.alt { background: #1f4a2a; color: var(--text); box-shadow: 4px 4px 0 #000; }
+  button.main-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #a0521a; }
+  .btn-small { font-size: 14px; color: var(--text); background: #143a1c; border: 3px solid #2a6a34; padding: 4px 10px; box-shadow: 3px 3px 0 #000; }
+  .btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+
+  .screen { padding: 18px; display: flex; flex-direction: column; gap: 14px; align-items: center; text-align: center; }
+  .menu-title { color: var(--orange); font-size: 19px; font-weight: 900; }
+  .menu-top { display: flex; gap: 20px; align-items: center; text-align: left; max-width: 680px; }
+  .menu-top p { margin: 0; font-size: 15px; line-height: 1.6; }
+  .menu-top p b { color: var(--yellow); }
+  canvas.hero { width: 84px; height: 144px; image-rendering: pixelated; flex: none; }
+  .levels { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; max-width: 620px; }
+  .opt {
+    font-family: inherit; color: var(--text); background: #143a1c; cursor: pointer;
+    border: 3px solid #2a6a34; padding: 8px 6px; font-size: 14px; line-height: 1.3; box-shadow: 3px 3px 0 #000;
+  }
+  .opt b { display: block; font-size: 24px; color: var(--yellow); }
+  .opt small { display: block; color: var(--dim); font-size: 12px; }
+  .opt:hover { border-color: var(--green); }
+  .opt.sel { border-color: var(--yellow); background: #3a3000; }
+  .compass-legend { display: grid; grid-template-columns: repeat(3, minmax(0, 150px)); gap: 6px; }
+  .compass-legend div { background: #143a1c; border: 2px solid #2a6a34; padding: 4px 6px; font-size: 13px; line-height: 1.25; }
+  .compass-legend div b { display: block; color: var(--yellow); font-size: 18px; font-weight: 900; }
+  .compass-legend .mid { background: none; border: none; color: var(--dim); display: flex; align-items: center; justify-content: center; }
+  .menu-hint { font-size: 13px; color: var(--dim); max-width: 660px; }
+  .menu-hint b { color: var(--cyan); }
+
+  table.hof { border-collapse: collapse; width: 100%; max-width: 640px; font-size: 17px; line-height: 1.5; }
+  table.hof th { color: var(--dim); font-size: 13px; text-align: left; padding: 2px 8px; border-bottom: 3px solid #2a6a34; }
+  table.hof td { padding: 2px 8px; text-align: left; white-space: nowrap; }
+  table.hof .num { text-align: right; }
+  table.hof .name { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+  table.hof tr:nth-child(even) td { background: rgba(63, 160, 74, .1); }
+  table.hof tr.empty td { color: #2f5a36; }
+  table.hof tr.gold td { color: var(--yellow); }
+  table.hof tr.silver td { color: #e0e0f0; }
+  table.hof tr.bronze td { color: #ffab6b; }
+  table.hof tr.me td { background: #4a3a00; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .blink { animation: blink 1s steps(1) infinite; }
+  table.hof .fin { color: var(--green); font-size: 13px; }
+  .name-form { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .name-form input {
+    font-family: inherit; font-weight: 900; font-size: 22px; text-align: center; width: 10em; text-transform: uppercase;
+    color: var(--yellow); background: #143a1c; border: 3px solid var(--yellow); padding: 2px 8px; outline: none;
+  }
+
+  .creator { display: flex; gap: 24px; align-items: flex-start; justify-content: center; flex-wrap: wrap; width: 100%; }
+  .preview { padding: 14px 20px 0; background: #1f4a2a; border: 3px solid #2a6a34; border-bottom: 10px solid #6b4a2b; line-height: 0; }
+  .preview canvas { width: 140px; height: 240px; image-rendering: pixelated; }
+  .opts { display: flex; flex-direction: column; gap: 12px; text-align: left; flex: 1 1 320px; max-width: 560px; }
+  .opts .label { display: block; color: var(--cyan); font-size: 14px; margin-bottom: 4px; }
+  .choices { display: flex; flex-wrap: wrap; gap: 8px; }
+  .choices .opt { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 8px; font-size: 13px; }
+  .choices canvas { width: 28px; height: 48px; image-rendering: pixelated; }
+  .swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+  .swatch { width: 34px; height: 34px; border: 3px solid #2a6a34; box-shadow: 3px 3px 0 #000; padding: 0; }
+  .swatch.sel { border-color: var(--yellow); outline: 3px solid #000; outline-offset: -6px; }
+
+  /* touch: a pad with the eight directions */
+  .touch { display: none; justify-content: center; user-select: none; -webkit-user-select: none; }
+  .dpad { display: grid; grid-template-columns: repeat(3, 64px); grid-template-rows: repeat(3, 52px); gap: 6px; }
+  .dpad button {
+    font-size: 16px; font-weight: 900; color: var(--text); background: #143a1c; border: 3px solid #2a6a34;
+    box-shadow: 3px 3px 0 #000; touch-action: none;
+  }
+  .dpad button.on { border-color: var(--yellow); background: #3a3000; }
+  .dpad .mid { background: none; border: none; box-shadow: none; color: var(--dim); font-size: 12px; }
+  @media (pointer: coarse) {
+    body.in-game .touch { display: flex; }
+    .help .keys-only { display: none; }
+  }
+  @media (max-width: 720px) {
+    h1 { font-size: 26px; }
+    .hud .val { font-size: 17px; }
+    .hud .label { font-size: 11px; }
+    .menu-top { flex-direction: column; text-align: center; }
+    .levels { grid-template-columns: repeat(2, 1fr); }
+    table.hof { font-size: 14px; line-height: 1.3; }
+    table.hof th, table.hof td { padding: 1px 4px; }
+    table.hof .name { max-width: 110px; }
+    .screen { padding: 12px; }
+    .dirbox { gap: 10px; min-height: 0; }
+    #dirIcon { width: 32px; height: 32px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>ZAGUBIONE ZWIERZĄTKA</h1>
+
+  <section class="screen frame" id="menu">
+    <div class="menu-top">
+      <canvas class="hero" id="menuHero" width="14" height="24"></canvas>
+      <p>ZWIERZĄTKA SIĘ <b>ZGUBIŁY</b>! POMÓŻ JE ODNALEŹĆ. NIE WIDAĆ ICH NA EKRANIE - IDŹ TAM, GDZIE MÓWI <b>WSKAZÓWKA</b>, NA PRZYKŁAD <b>„IDŹ NA PÓŁNOCNY WSCHÓD”</b>. <b>GÓRA EKRANU TO ZAWSZE PÓŁNOC</b>. GDY PODEJDZIESZ BLISKO, ZWIERZĄTKO WYJDZIE Z UKRYCIA. DO RZEKI NIE DA SIĘ WEJŚĆ - SZUKAJ <b>MOSTÓW</b>. ZA KAŻDE ZNALEZIONE ZWIERZĄTKO DOSTAJESZ <b>PUNKTY</b>, A ZA SZYBKIE ZNALEZIENIE - BONUS.</p>
+    </div>
+    <div class="menu-title">KIERUNKI ŚWIATA</div>
+    <div class="compass-legend" id="legend"></div>
+    <div class="menu-title">WYBIERZ POZIOM</div>
+    <div class="levels" id="levelBtns"></div>
+    <div class="btns">
+      <button class="main-btn" id="btnPlay">GRAJ</button>
+      <button class="main-btn alt" id="btnCreator">ZMIEŃ POSTAĆ</button>
+      <button class="main-btn alt" id="btnHofMenu">SALA SŁAWY</button>
+    </div>
+    <div class="menu-hint"><b>STRZAŁKI / W A S D</b> CHODZENIE (DWIE NARAZ - NA UKOS) &nbsp; <b>P</b> PAUZA &nbsp; <b>M</b> DŹWIĘK</div>
+  </section>
+
+  <section class="screen frame hidden" id="hofScreen"></section>
+
+  <section class="screen frame hidden" id="creator">
+    <div class="menu-title">STWÓRZ SWOJĄ POSTAĆ</div>
+    <div class="creator">
+      <div class="preview"><canvas id="preview" width="14" height="24"></canvas></div>
+      <div class="opts">
+        <div><span class="label">POSTAĆ</span><div class="choices" id="optGender"></div></div>
+        <div><span class="label">FRYZURA</span><div class="choices" id="optHair"></div></div>
+        <div><span class="label">KOLOR WŁOSÓW</span><div class="swatches" id="optHairColor"></div></div>
+        <div><span class="label">KOLOR KOSZULKI</span><div class="swatches" id="optShirt"></div></div>
+        <div><span class="label">KOLOR SPODNI</span><div class="swatches" id="optPants"></div></div>
+      </div>
+    </div>
+    <div class="btns">
+      <button class="main-btn alt" id="btnRandom">LOSUJ</button>
+      <button class="main-btn" id="btnDone">GOTOWE</button>
+    </div>
+  </section>
+
+  <div class="hud frame hidden" id="hud">
+    <div><span class="label">POZIOM</span><span class="val" id="hudLevel">1</span></div>
+    <div><span class="label">CZAS</span><span class="val" id="hudTime">00:00</span></div>
+    <div><span class="label">ZWIERZĄTKA</span><span class="val" id="hudFound">0/0</span></div>
+    <div><span class="label">PUNKTY</span><span class="val" id="hudScore">0</span></div>
+  </div>
+  <div class="dirbox frame hidden" id="dirbox">
+    <canvas id="dirIcon" width="16" height="16"></canvas>
+    <div class="dirtext">
+      <div id="dirMain">&nbsp;</div>
+      <div id="dirSub">&nbsp;</div>
+      <div id="dirHint"></div>
+    </div>
+  </div>
+  <div class="board frame hidden" id="board">
+    <canvas id="game" width="320" height="192"></canvas>
+    <div class="toast hidden" id="toast"></div>
+    <div class="overlay hidden" id="overlay"></div>
+  </div>
+  <div class="touch" id="touch">
+    <div class="dpad">
+      <button data-dir="NW">NW</button><button data-dir="N">N</button><button data-dir="NE">NE</button>
+      <button data-dir="W">W</button><button class="mid" disabled>IDŹ</button><button data-dir="E">E</button>
+      <button data-dir="SW">SW</button><button data-dir="S">S</button><button data-dir="SE">SE</button>
+    </div>
+  </div>
+  <div class="below hidden" id="below">
+    <div class="help"><span class="keys-only"><b>STRZAŁKI / W A S D</b> CHODZENIE · <b>P</b> PAUZA · <b>M</b> DŹWIĘK</span></div>
+    <div class="row">
+      <button class="btn-small" id="btnPause">PAUZA</button>
+      <button class="btn-small" id="btnSound">DŹWIĘK: WŁ.</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  // ---------- Settings ----------
+  const TILE = 16;
+  const VIEW_W = 320, VIEW_H = 192;     // canvas pixels: 20 x 12 tiles
+  const STEP = 1 / 120;                 // physics step (s)
+  const WALK_SPEED = 74;                // px/s
+  const REVEAL = 60;                    // px: this close, the lost animal comes out of hiding
+  const CATCH = 14;                     // px: this close, it is found
+  const MIN_AWAY = 14 * TILE;           // a new animal hides at least this far away from the player
+  const NEXT_IN = 1.6;                  // s until the next animal gets lost
+  const PTS_ANIMAL = 100;               // every animal found
+  const PTS_FAST = 60;                  // ...plus this, less a point for every second it took
+  const PTS_LEVEL = 200;                // all the animals of a level found
+
+  // The eight directions, as atan2 counts them: anticlockwise from the east.
+  const DIRS = [
+    { code: "E", name: "WSCHÓD" }, { code: "NE", name: "PÓŁNOCNY WSCHÓD" }, { code: "N", name: "PÓŁNOC" },
+    { code: "NW", name: "PÓŁNOCNY ZACHÓD" }, { code: "W", name: "ZACHÓD" }, { code: "SW", name: "POŁUDNIOWY ZACHÓD" },
+    { code: "S", name: "POŁUDNIE" }, { code: "SE", name: "POŁUDNIOWY WSCHÓD" },
+  ];
+  const DIR_VEC = { N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1], S: [0, 1], SW: [-1, 1], W: [-1, 0], NW: [-1, -1] };
+
+  // ---------- Small helpers ----------
+  const $ = id => document.getElementById(id);
+  const px = (c, x, y, w, h, color) => { c.fillStyle = color; c.fillRect(x, y, w, h); };
+  const hash = (x, y) => {
+    let h = (Math.imul(x | 0, 374761393) + Math.imul(y | 0, 668265263)) | 0;
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    return (h ^ (h >>> 16)) >>> 0;
+  };
+  function mulberry32(a) {
+    return () => {
+      a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  // smooth noise 0..1 over the map, changing every `cell` tiles
+  function noise(seed, x, y, cell) {
+    const gx = Math.floor(x / cell), gy = Math.floor(y / cell), fx = x / cell - gx, fy = y / cell - gy;
+    const v = (i, j) => hash(i + seed * 101, j - seed * 57) % 1000 / 1000, s = t => t * t * (3 - 2 * t);
+    const top = v(gx, gy) + (v(gx + 1, gy) - v(gx, gy)) * s(fx), bot = v(gx, gy + 1) + (v(gx + 1, gy + 1) - v(gx, gy + 1)) * s(fx);
+    return top + (bot - top) * s(fy);
+  }
+  const newCanvas = (w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; };
+  // a filled circle of pixels
+  function blob(c, cx, cy, r, color) {
+    for (let j = -r; j <= r; j++) { const half = Math.round(Math.sqrt(r * r - j * j)); px(c, cx - half, cy + j, half * 2 + 1, 1, color); }
+  }
+  function ellipse(c, cx, cy, rx, ry, color) {
+    for (let j = -ry; j <= ry; j++) { const half = Math.round(rx * Math.sqrt(1 - (j / ry) ** 2)); px(c, cx - half, cy + j, half * 2 + 1, 1, color); }
+  }
+  function shade(hex, f) {
+    const n = parseInt(hex.slice(1), 16);
+    const ch = s => { const v = (n >> s) & 255; return Math.max(0, Math.min(255, Math.round(f < 0 ? v * (1 + f) : v + (255 - v) * f))); };
+    return "#" + [16, 8, 0].map(s => ch(s).toString(16).padStart(2, "0")).join("");
+  }
+  const fmtTime = s => { s = Math.floor(s); return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); };
+  const escapeHtml = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  // ---------- Character (the same as in Tajne Laboratorium) ----------
+  const HAIR_COLORS = [["CZARNE", "#23222b"], ["BRĄZOWE", "#6e3f1c"], ["BLOND", "#f0c75a"], ["RUDE", "#d4581f"],
+                       ["SIWE", "#d9dbe6"], ["NIEBIESKIE", "#3d7bff"], ["RÓŻOWE", "#ff6fb8"], ["ZIELONE", "#3ec46d"]];
+  const SHIRT_COLORS = [["CZERWONA", "#d63a3a"], ["NIEBIESKA", "#2f6fe0"], ["ZIELONA", "#2fa84a"], ["ŻÓŁTA", "#efc21c"],
+                        ["FIOLETOWA", "#8a4fd8"], ["POMARAŃCZOWA", "#f07a1a"], ["RÓŻOWA", "#f06fb0"], ["BIAŁA", "#e6e6e6"]];
+  const PANTS_COLORS = [["NIEBIESKIE", "#2e4a9e"], ["CZARNE", "#26262e"], ["BRĄZOWE", "#6b4a2b"], ["SZARE", "#70757f"],
+                        ["ZIELONE", "#3b6b34"], ["CZERWONE", "#a12a2a"], ["FIOLETOWE", "#5c3a8e"], ["BIAŁE", "#d8d8d8"]];
+  // 12 x 22: S skin, E eyes, M mouth, T/t shirt, P/p pants, B shoes.
+  const HEAD = [
+    "............", "............", "...SSSSSS...", "...SSSSSS...", "...SSSSSS...", "...SESSES...",
+    "...SESSES...", "...SSSSSS...", "...SSMMSS...", "....SSSS....", ".....SS.....",
+  ];
+  const BODY = {
+    stand: [
+      "...TTTTTT...", "..TTTTTTTT..", "..TTTTTTTT..", "..tTTTTTTt..", "..STTTTTTS..", "...PPPPPP...",
+      "...PPPPPP...", "...PP..PP...", "...PP..PP...", "...pp..pp...", "...BBB.BBB..",
+    ],
+    walk: [
+      "...TTTTTT...", "..TTTTTTTT..", ".tTTTTTTTTt.", ".STTTTTTTTS.", "...TTTTTT...", "...PPPPPP...",
+      "..PPP..PPP..", "..PP....PP..", ".PP......PP.", ".pp......pp.", "BBB......BBB",
+    ],
+  };
+  // walking towards the camera or away from it: one foot, then the other, a step behind (rows 18-21)
+  const FRONT_WALK = [
+    ["...PP..PP...", "...pp..PP...", "..BBB..pp...", ".......BBB.."],
+    ["...PP..PP...", "...PP..pp...", "...pp..BBB..", "..BBB......."],
+  ];
+  // Overlays on the sprite: H hair, h darker hair ("." keeps what's under it).
+  const HAIR = {
+    short: { name: "KRÓTKIE", back: 7, rows: ["............", "....HHHHH...", "..HHHHHHHH..", "..HHHHHHHH..", "..HHHh..H...", "..HH........", "..Hh........"] },
+    spiky: { name: "JEŻYK", back: 6, rows: ["..H.H.H.H...", "..HHHHHHHH..", ".HHHHHHHHHH.", "..HHHHHHHH..", "..HHh...H...", "..Hh........"] },
+    long: { name: "DŁUGIE", back: 9, rows: ["............", "....HHHHH...", "..HHHHHHHH..", ".HHHHHHHHHH.", ".HHHHh..HH..", ".HHH.....H..",
+      ".HHH........", ".HHH........", ".HHH........", ".HHH........", ".HHh........", ".HHh........", "..hh........"] },
+    ponytail: { name: "KUCYK", back: 7, rows: ["............", "....HHHHH...", "..HHHHHHHH..", ".HHHHHHHHHH.", "HHHHh...H...", "HHh.........",
+      "HH..........", "HH..........", "Hh..........", ".h.........."] },
+    curly: { name: "KRĘCONE", back: 8, rows: ["...HHHHH....", "..HhHHHhH...", ".HHHHHHHHH..", "HHhHHHHHHhH.", "HHHH.....HH.", "HhH.......H.", "HHH.........", ".Hh........."] },
+    mohawk: { name: "IROKEZ", back: 0, rows: [".....HH.....", "....HHHH....", "....HhHH....", "....hHHh...."] },
+  };
+  // A bow (in the shirt's colour), eyelashes and rosy cheeks.
+  const GIRL = ["............", ".R.R........", "..R.........", ".R.R........", "........E...", "............", "............", "...c....c..."];
+  const OUTLINE = "#0a0a14";
+
+  const DEFAULT_LOOK = { gender: "boy", hair: "short", hairColor: 1, shirt: 0, pants: 0 };
+  const validLook = s => s && HAIR[s.hair] && ["boy", "girl"].includes(s.gender) &&
+    HAIR_COLORS[s.hairColor] && SHIRT_COLORS[s.shirt] && PANTS_COLORS[s.pants];
+  let look = { ...DEFAULT_LOOK };
+  try {
+    // its own, or else the one made in Tajne Laboratorium
+    const saved = JSON.parse(localStorage.getItem("zwierzatka-look") || localStorage.getItem("laboratorium-look") || "null");
+    if (validLook(saved)) look = saved;
+  } catch (e) { /* ignore */ }
+  const saveLook = () => { try { localStorage.setItem("zwierzatka-look", JSON.stringify(look)); } catch (e) { /* ignore */ } };
+  const girl = () => look.gender === "girl";
+
+  // A sprite from a template: each pixel of `rows` is looked up in `pal`
+  // ("." and unknown letters are transparent), with a 1px dark outline.
+  function makeSprite(rows, pal) {
+    const w = Math.max(...rows.map(r => r.length)), h = rows.length;
+    rows = rows.map(r => r.padEnd(w, "."));
+    const c = newCanvas(w + 2, h + 2), x = c.getContext("2d");
+    const on = (i, j) => pal[rows[j][i]] !== undefined;
+    x.fillStyle = OUTLINE;
+    for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) if (on(i, j)) { x.fillRect(i, j + 1, 3, 1); x.fillRect(i + 1, j, 1, 3); }
+    for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) if (on(i, j)) { x.fillStyle = pal[rows[j][i]]; x.fillRect(i + 1, j + 1, 1, 1); }
+    return c;
+  }
+  const overlay = (grid, rows) => rows.forEach((r, j) => [...r].forEach((ch, i) => { if (ch !== ".") grid[j][i] = ch; }));
+
+  // The back of the head: hair over it (down to the style's `back` row), and the hair on both sides.
+  function backView(grid, lk) {
+    const g = grid.map(r => [...r]), style = lk.hair, last = HAIR[style].back;
+    const isHair = c => c === "H" || c === "h";
+    if (style !== "ponytail" && style !== "mohawk") {
+      for (let j = 0; j < 14; j++) for (let i = 0; i < 6; i++) {
+        const a = g[j][i], b = g[j][11 - i];
+        if (isHair(a) && b === ".") g[j][11 - i] = a; else if (isHair(b) && a === ".") g[j][i] = b;
+      }
+    }
+    // from behind, the hair is one colour, with only its lowest row darker
+    for (let j = 0; j < last; j++) for (let i = 1; i <= 10; i++) if (g[j][i] === "h") g[j][i] = "H";
+    for (let j = 2; j <= 10; j++) for (let i = 3; i <= 8; i++) {
+      if (!"SEMc".includes(g[j][i])) continue;
+      const hair = style === "mohawk" ? (i === 5 || i === 6) && j <= 8 : j <= last;
+      g[j][i] = hair ? (j === last ? "h" : "H") : "S";
+    }
+    if (style === "ponytail") {
+      for (let j = 3; j <= 10; j++) for (const i of [0, 1]) if (isHair(g[j][i])) g[j][i] = ".";
+      for (let j = 8; j <= 14; j++) for (const i of [5, 6]) g[j][i] = j === 14 ? "h" : "H";
+    }
+    if (style === "long") for (let j = last; j <= 13; j++) for (let i = 2; i <= 9; i++) g[j][i] = j === 13 ? "h" : "H";
+    return g;
+  }
+
+  // Seen from above at an angle: towards the camera (S), away from it (N), and to the side (E; W is E mirrored).
+  function characterSprites(lk) {
+    const hair = HAIR_COLORS[lk.hairColor][1], shirt = SHIRT_COLORS[lk.shirt][1], pants = PANTS_COLORS[lk.pants][1];
+    const pal = {
+      S: "#f1c19a", E: "#1d1d2e", M: "#b5483f", c: "#f39a9a", B: "#3b2a22",
+      T: shirt, t: shade(shirt, -0.25), P: pants, p: shade(pants, -0.3),
+      H: hair, h: shade(hair, -0.3), R: lk.shirt === 6 ? "#ffffff" : shirt,
+    };
+    const base = name => {
+      const grid = HEAD.concat(BODY[name]).map(r => [...r]);
+      overlay(grid, HAIR[lk.hair].rows);
+      if (lk.gender === "girl") overlay(grid, GIRL);
+      return grid;
+    };
+    const legs = (grid, rows) => { const g = grid.map(r => [...r]); rows.forEach((r, j) => { g[18 + j] = [...r]; }); return g; };
+    const mk = g => makeSprite(g.map(r => r.join("")), pal);
+    const front = base("stand"), fronts = [front, legs(front, FRONT_WALK[0]), legs(front, FRONT_WALK[1])];
+    return { S: fronts.map(mk), N: fronts.map(g => mk(backView(g, lk))), E: [mk(front), mk(base("walk"))] };
+  }
+
+  // ---------- The lost animals (sitting, facing the camera) ----------
+  const ANIMALS = [
+    { name: "LISEK", acc: "LISKA", pal: { O: "#e8762a", o: "#b8541a", W: "#fff4e8", K: "#2a1a14", N: "#1a1a1a" }, rows: [
+      ".K.........K.", ".oO.......Oo.", ".OOO.....OOO.", "..OOOOOOOOO..", "..OKOOOOOKO..", "..OOWWWWWOO..",
+      "...WWWNWWW...", "....WWWWW....", "...oOOOOOo...", "..OOOWWWOOO.OO", "..OOOWWWOOOOOW", "..OOOWWWOOO.OW", "...KK...KK...."] },
+    { name: "KOTEK", acc: "KOTKA", pal: { G: "#9aa0aa", g: "#6a707a", W: "#f4f4f4", P: "#ff9ab0", E: "#6ad040", K: "#1d1d2e" }, rows: [
+      ".G........G.", ".GG......GG.", ".GPG....GPG.", ".GGGGGGGGGG.", ".GgEGGGGEgG.", ".GGGGPPGGGG.", "..GGWWWWGG..",
+      "...GGWWGG...", "..GgGGGGgG..G", "..GGGWWGGG.G.", "..GgGWWGgGG..", "..WW....WW..."] },
+    { name: "PIESEK", acc: "PIESKA", pal: { B: "#c8823a", b: "#7a4a1e", W: "#ffffff", K: "#1a1a1a", T: "#ff7a8a", D: "#5a3416" }, rows: [
+      "..DD....DD..", ".DDBBBBBBDD.", ".DDBKBBKBDD.", ".DDBBBBBBDD.", "..DBWWWWBD..", "...WWKKWW...", "....WTTW....",
+      "...BBBBBB...", "..BBWWWWBB.b", "..BBWWWWBBb.", "..BBWWWWBB..", "..WW....WW.."] },
+    { name: "KRÓLICZEK", acc: "KRÓLICZKA", pal: { W: "#f4f2ee", g: "#c8c4bc", P: "#ffb0c0", K: "#2a1a2a", N: "#ff7a9a" }, rows: [
+      "...WP..PW...", "...WP..PW...", "...WP..PW...", "...WW..WW...", "..WWWWWWWW..", ".WWKWWWWKWW.", ".WWWWNNWWWW.",
+      "..WWWgWWWW..", "..gWWWWWWg..", ".WWWWWWWWWW.", ".WWWWWWWWWWW", "..gg....gg.."] },
+    { name: "JEŻYK", acc: "JEŻYKA", pal: { S: "#5a4030", s: "#8a6a4a", F: "#e8c8a0", K: "#1a1a1a", N: "#2a1a1a" }, rows: [
+      "..s.s.s.s.s..", ".sSsSsSsSsSs.", "sSSSSSSSSSSSs", "SSSSSSSSSSSSS", "SSSFFFFFFFSSS", "SSFFKFFFKFFSS", "SSFFFFFFFFFSS",
+      "SSSFFFNFFFSSS", ".SSSFFFFFSSS.", "..SSSSSSSSS..", "...FF...FF..."] },
+    { name: "WIEWIÓRKA", acc: "WIEWIÓRKĘ", f: true, pal: { R: "#c8601e", r: "#8a3a12", W: "#fff0e0", K: "#1a1a1a" }, rows: [
+      ".r..r....RRR.", ".RR.RR..RRRRR", ".RRRRR.RRrRRR", ".RKRKR.RRRRRR", ".RRRRR..RRrRR", "..WWW....RRRR", ".RRWRR...RRR.",
+      "RRWWWRR..RRR.", "RRWWWRRRRRR..", ".RWWWRRRRR...", ".RRRRR.......", ".KK.KK......."] },
+    { name: "KACZUSZKA", acc: "KACZUSZKĘ", f: true, pal: { Y: "#ffd83a", y: "#e8b020", O: "#ff8a1a", K: "#1a1a1a" }, rows: [
+      "....YYYY....", "...YYYYYY...", "...YKYYKY...", "...YYOOYY...", "....YOOY....", "..yYYYYYYy..", ".yYYYYYYYYy.",
+      ".YYYYYYYYYY.", ".yYYYYYYYYy.", "..YYYYYYYY..", "...OO..OO..."] },
+    { name: "SÓWKA", acc: "SÓWKĘ", f: true, pal: { B: "#8a5a32", b: "#5e3a1e", W: "#f8f0e0", E: "#ffd83a", K: "#1a1a1a", O: "#e8a030", F: "#d8b890" }, rows: [
+      ".b........b.", ".bB......Bb.", ".BBBBBBBBBB.", "BWWWBBBBWWWB", "WWEKWBBWKEWW", "BWWWBOOBWWWB", "BBBBBOOBBBBB",
+      "bBFFFFFFFFBb", "bBFbFFFFbFBb", "bBFFFbbFFFBb", ".bBFFFFFFBb.", "..bBBBBBBb..", "...OO..OO..."] },
+    { name: "SARENKA", acc: "SARENKĘ", f: true, pal: { F: "#c88a50", f: "#9a6232", W: "#fff4e0", K: "#1a1a1a", N: "#2a1a14" }, rows: [
+      ".f.......f..", ".FF.....FF..", "..FFFFFFF...", "..FKFFFKF...", "...FFFFF....", "...FWNWF....", "....WWW.....",
+      "...FFFFFFFFF", "...FWFFWFFWF", "...FFFWFFFFF", "...FF.....FF", "...f......f.", "...K......K."] },
+    { name: "ŻÓŁWIK", acc: "ŻÓŁWIKA", pal: { G: "#3f8a3a", g: "#2a5a26", L: "#6ab04a", S: "#a8c860", K: "#1a1a1a" }, rows: [
+      "....SSS.....", "...SKSKS....", "....SSS.....", "..S.ggg.S...", "..SgGLGLgS..", ".SgLGgGgLGgS", "..gGgLLgGg..",
+      "..gLGgGgLg..", "...gGLGLg...", "..S.ggg.S...", "......S....."] },
+    { name: "PAPUŻKA", acc: "PAPUŻKĘ", f: true, pal: { G: "#5ad040", g: "#3a9a2a", Y: "#f0e040", K: "#1a1a1a", O: "#e8a030", B: "#3a6ad0" }, rows: [
+      "....YYYY....", "...YYYYYY...", "...YKYYKY...", "...YYOOYY...", "....YOOY....", "...GGGGGG...", "..gGGGGGGg..",
+      "..gGGGGGGg..", "..gGgGGgGg..", "...GGGGGG...", "....BBBB....", "....OBBO....", ".....BB....."] },
+    { name: "ŚWINKA MORSKA", acc: "ŚWINKĘ MORSKĄ", f: true, pal: { W: "#f8f4ec", O: "#d8882a", K: "#2a2a2a", P: "#ffb0b0", E: "#1a1a1a" }, rows: [
+      "..PO....OP..", ".OOOOWWKKKK.", "OOEOOWWKKEKK", "OOOOWWWWKKKK", "OOOWWPPWWKKK", ".OWWWWWWWWK.", "OOOOWWWWKKKK",
+      "OOOOOWWKKKKK", ".OOOOWWKKKK.", "..WW....WW.."] },
+  ];
+  for (const a of ANIMALS) a.sprite = makeSprite(a.rows, a.pal);
+
+  // ---------- Things on the map ----------
+  // Tiles: . grass, , flowers, m mushrooms, ^ reeds, d dirt path, ~ water, b bridge (walked west-east),
+  // v bridge (walked north-south), a asphalt road, r gravel road, w pavement, p paving (garden paths, driveways), f fence,
+  // H house, C car (both drawn as one big thing over their tiles), T tree, P pine, B bush, R rock, S stump.
+  const WALKABLE = ".,m^dbvrwpa";
+  const HIDING = ".,m^d";
+  // what a solid tile blocks: [x, y, w, h] inside it (the rest of the tile can be walked over)
+  const SHAPES = { "~": [0, 0, 16, 16], f: [0, 0, 16, 16], H: [0, 0, 16, 16], C: [0, 0, 16, 16],
+                   T: [4, 9, 8, 7], P: [5, 9, 6, 7], B: [1, 4, 14, 12], R: [2, 5, 12, 11], S: [3, 8, 10, 8], "#": [0, 0, 16, 16] };
+
+  // `under`: what is under a car parked off the paving (tile index -> tile)
+  function newMap(w, h) { return { w, h, t: new Array(w * h).fill("."), under: {}, houses: [], cars: [], extras: [], start: null, grass: null }; }
+  const at = (m, x, y) => (x < 0 || y < 0 || x >= m.w || y >= m.h ? "#" : m.t[y * m.w + x]);
+  const put = (m, x, y, c) => { if (x >= 0 && y >= 0 && x < m.w && y < m.h) m.t[y * m.w + x] = c; };
+
+  // Trees in clumps (where the noise is high), meadows with flowers where it is low.
+  function plant(m, rng, o) {
+    for (let y = 0; y < m.h; y++) for (let x = 0; x < m.w; x++) {
+      if (at(m, x, y) !== ".") continue;
+      const n = noise(o.seed, x, y, 7), r = rng();
+      if (n < 0.28) { if (r < 0.12) put(m, x, y, ","); else if (r < 0.14) put(m, x, y, "B"); continue; }
+      const p = o.density * (0.4 + n);
+      if (r < p) put(m, x, y, rng() < o.pine ? "P" : "T");
+      else if (r < p + 0.035) put(m, x, y, "B");
+      else if (r < p + 0.035 + o.rocks) put(m, x, y, "R");
+      else if (r < p + 0.055 + o.rocks) put(m, x, y, rng() < 0.4 ? "S" : "m");
+      else if (r < p + 0.1 + o.rocks) put(m, x, y, ",");
+    }
+  }
+
+  // A river across the map: north to south (dir "v") or west to east ("h"), wobbling around `at`,
+  // with bridges (2 tiles wide) at the given places along it, and a path at both ends of each.
+  function river(m, rng, o) {
+    const vert = o.dir === "v", len = vert ? m.h : m.w, cross = vert ? m.w : m.h;
+    const from = o.from ?? 0, to = o.to ?? len - 1, wander = o.wander ?? 6;
+    const tile = (i, j) => (vert ? [j, i] : [i, j]);     // i: along the river, j: across it
+    const centers = [], ends = [];
+    let c = o.at, v = 0;
+    for (let i = from; i <= to; i++) {
+      v = Math.max(-0.55, Math.min(0.55, v + (rng() - 0.5) * 0.4));
+      if (Math.abs(c - o.at) > wander) v = -Math.sign(c - o.at) * 0.3;
+      c = Math.max(3, Math.min(cross - 4 - o.width, c + v));
+      centers[i] = Math.round(c);
+      for (let k = 0; k < o.width; k++) put(m, ...tile(i, centers[i] + k), "~");
+    }
+    for (const b of o.bridges || []) {
+      for (const i of [b, b + 1]) {
+        let lo = centers[i], hi = centers[i];
+        while (at(m, ...tile(i, lo - 1)) === "~") lo--;
+        while (at(m, ...tile(i, hi + 1)) === "~") hi++;
+        for (let k = lo; k <= hi; k++) put(m, ...tile(i, k), vert ? "b" : "v");
+        for (let k = 1; k <= 3; k++) for (const kk of [lo - k, hi + k]) if (!"~bvrwa".includes(at(m, ...tile(i, kk)))) put(m, ...tile(i, kk), "d");
+        if (i === b) ends.push(tile(i, lo - 3), tile(i, hi + 3));
+      }
+    }
+    return { centers, ends };
+  }
+
+  function lake(m, o) {
+    for (let y = o.y - o.ry - 3; y <= o.y + o.ry + 3; y++) for (let x = o.x - o.rx - 3; x <= o.x + o.rx + 3; x++) {
+      const d = ((x - o.x) / o.rx) ** 2 + ((y - o.y) / o.ry) ** 2 + (noise(o.seed, x, y, 3) - 0.5) * 0.6;
+      if (d < 1) put(m, x, y, "~");
+    }
+  }
+  function reeds(m, rng) {
+    for (let y = 0; y < m.h; y++) for (let x = 0; x < m.w; x++) {
+      if (!".,".includes(at(m, x, y))) continue;
+      if ([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => at(m, x + dx, y + dy) === "~") && rng() < 0.3) put(m, x, y, "^");
+    }
+  }
+
+  // A forest path: the shortest way that keeps out of the water (bridges are fine); trees on it are cut down.
+  // It starts from the nearest tile of the paths made before (m.net), so they branch like a tree.
+  function path(m, rng, a, b) {
+    const w = m.w, h = m.h, prev = new Int32Array(w * h).fill(-1), start = a[1] * w + a[0], goal = b[1] * w + b[0];
+    if (goal < 0 || goal >= w * h) return false;
+    m.net = m.net || new Set([start]);
+    const q = [...m.net];
+    for (const i of q) prev[i] = i;
+    const nb = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+    for (let qi = 0; qi < q.length && prev[goal] < 0; qi++) {
+      const i = q[qi], x = i % w, y = (i - x) / w;
+      for (let k = 3; k > 0; k--) { const j = Math.floor(rng() * (k + 1)); [nb[k], nb[j]] = [nb[j], nb[k]]; }
+      for (const [dx, dy] of nb) {
+        const nx = x + dx, ny = y + dy, j = ny * w + nx;
+        if (nx < 1 || ny < 1 || nx >= w - 1 || ny >= h - 1 || prev[j] >= 0 || "~fHC".includes(m.t[j])) continue;
+        prev[j] = i; q.push(j);
+      }
+    }
+    if (prev[goal] < 0) return false;
+    for (let i = goal; prev[i] !== i; i = prev[i]) { m.net.add(i); if (!"bvrwpa".includes(m.t[i])) m.t[i] = "d"; }
+    return true;
+  }
+  function clearAround(m, cx, cy, r) {
+    for (let y = cy - r; y <= cy + r; y++) for (let x = cx - r; x <= cx + r; x++)
+      if (!"~bvrwpafHC".includes(at(m, x, y)) && (x - cx) ** 2 + (y - cy) ** 2 <= r * r + 1) put(m, x, y, (x + y) % 5 ? "." : ",");
+  }
+
+  // ---------- Level 1: the housing estate ----------
+  // Two rows of 6 houses facing each other across a gravel road, all fenced in but for where the road goes out, west and east;
+  // asphalt roads to the west and to the south of it.
+  const ROOFS = ["#b5452f", "#4a4f5a", "#7a4a2a", "#3f6a4a", "#8a3a3a", "#5a5f7a", "#a85a2a", "#3a4a5a", "#6a3a2a", "#4a6a3a", "#9a4a3a", "#555a66"];
+  const WALLS = ["#efe3c4", "#f2f2ee", "#f0d890", "#cfe0ee", "#f0c8a8", "#d8ecc8", "#f4e8d8", "#e8d8f0", "#f8f0c8", "#d8e4f0", "#f0e0d0", "#e8f0e0"];
+  function buildEstate() {
+    const m = newMap(72, 54), rng = mulberry32(7);
+    m.grass = ["#5cae3e", "#4c9632", "#74c454"];
+    const L = 22, R = 68, T = 15, B = 36, ROAD = [25, 26];
+    plant(m, rng, { seed: 3, density: 0.17, pine: 0.3, rocks: 0.01 });
+    const v = river(m, rng, { dir: "v", at: 8, width: 3, wander: 3, bridges: [7, 40] });
+    const h = river(m, rng, { dir: "h", at: 45, width: 2, wander: 2, from: v.centers[45] + 1, bridges: [30, 47, 61] });
+    reeds(m, rng);
+    // the estate, and a strip of grass around its fence
+    for (let y = T - 1; y <= B + 1; y++) for (let x = L - 1; x <= R + 1; x++) put(m, x, y, ".");
+    for (let x = L; x <= R; x++) { put(m, x, T, "f"); put(m, x, B, "f"); }
+    for (let y = T; y <= B; y++) { put(m, L, y, "f"); put(m, R, y, "f"); }
+    // the roads: an asphalt one going north-south west of the estate, and one behind its south fence going east
+    // from it; the gravel road between the houses comes out of the fence on both sides - west to the first one,
+    // east and then south to the second one (a bridge where an asphalt road crosses a river)
+    const AX = [16, 17], AY = [38, 39], GX = [69, 70];
+    for (let y = 0; y < m.h; y++) for (const x of AX) put(m, x, y, "~bv".includes(at(m, x, y)) ? "v" : "a");
+    for (let x = AX[0]; x < m.w; x++) for (const y of AY) put(m, x, y, "~bv".includes(at(m, x, y)) ? "b" : "a");
+    for (let x = AX[1] + 1; x <= GX[1]; x++) for (const y of ROAD) put(m, x, y, "r");
+    for (let y = ROAD[0]; y < AY[0]; y++) for (const x of GX) put(m, x, y, "r");
+    for (let x = L; x <= R; x++) { put(m, x, ROAD[0] - 1, "w"); put(m, x, ROAD[1] + 1, "w"); }
+    // no trees right next to a road
+    for (let y = 0; y < m.h; y++) for (let x = 0; x < m.w; x++) if ("ar".includes(at(m, x, y)))
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if ("TPBRS".includes(at(m, x + dx, y + dy))) put(m, x + dx, y + dy, ".");
+    // the houses: the top row has its doors to the south, the bottom row to the north - both towards the road
+    // in the driveways: [house column (0 = the first from the west), model, colour]; the player lives in the 3rd one of the bottom row
+    const cars = {
+      top: [[1, "sedan", "#8a8e96"], [2, "suv", "#7a7e86"], [4, "sedan", "#1f2f6a"], [5, "suv", "#1e1e24"]],
+      bottom: [[2, "wagon", "#f4f4f4"], [3, "small", "#f4f4f4"], [3, "suv", "#7a4a2a"]],
+    };
+    // ...and parked on the gravel road, in front of a house of the top row: [house column, model, colour]
+    const onRoad = [[1, "sedan", "#c83a2a"], [2, "small", "#f4f4f4"], [4, "small", "#3a6ad0"]];
+    for (let i = 0; i < 6; i++) {
+      const hx = 25 + i * 7;
+      for (const [row, y, facing] of [["top", 18, "S"], ["bottom", 30, "N"]]) {
+        const house = { x: hx, y, w: 5, h: 4, door: 1, facing, roof: ROOFS[i + (row === "top" ? 0 : 6)], wall: WALLS[(i * 5 + (row === "top" ? 0 : 3)) % 12] };
+        m.houses.push(house);
+        for (let j = 0; j < 4; j++) for (let k = 0; k < 5; k++) put(m, hx + k, y + j, "H");
+        const yard = facing === "S" ? [22, 23] : [28, 29];
+        for (const yy of yard) put(m, hx + 1, yy, "p");
+        let slot = 0;
+        for (const [n, model, color] of cars[row]) if (n === i) {
+          const cx = hx + 3 + slot++;
+          for (const yy of yard) put(m, cx, yy, "C");
+          m.cars.push({ x: cx, y: yard[0], model, color, nose: facing === "S" ? "S" : "N" });
+        }
+        if (!slot) for (const yy of yard) put(m, hx + 3, yy, "p");
+        // the front garden: flowers; the back garden: a tree or a bush, now and then
+        for (const k of [0, 2, 4]) for (const yy of yard) if (at(m, hx + k, yy) === "." && rng() < 0.45) put(m, hx + k, yy, ",");
+        const back = facing === "S" ? 16 : 34;
+        if (rng() < 0.75) put(m, hx + 1 + Math.floor(rng() * 3), back + (facing === "S" ? 0 : 1), rng() < 0.6 ? "T" : "B");
+        if (rng() < 0.5) put(m, hx + 5 + Math.floor(rng() * 2), y + 1 + Math.floor(rng() * 2), "B");
+        m.extras.push({ kind: "mailbox", x: hx, y: facing === "S" ? 23 : 28 });
+      }
+    }
+    for (const [n, model, color] of onRoad) {
+      const x = 25 + n * 7 + 1;
+      for (const xx of [x, x + 1]) { put(m, xx, ROAD[0], "C"); m.under[ROAD[0] * m.w + xx] = "r"; }
+      m.cars.push({ x, y: ROAD[0], model, color, nose: "W" });
+    }
+    for (const [x, y] of [[23, 17], [24, 33], [66, 17], [66, 34], [23, 21], [66, 29]]) put(m, x, y, rng() < 0.5 ? "T" : "B");
+    m.home = m.houses.find(o => o.facing === "N" && o.x === 39);
+    m.start = [40, 29];
+    m.facing = "S";
+    // forest paths from the end of the road to the bridges and around
+    const from = [AX[0] - 1, ROAD[0] - 2];
+    for (const e of [...v.ends, ...h.ends]) path(m, rng, from, e);
+    for (const e of [[40, 4], [64, 6], [4, 50], [34, 50], [66, 50], [3, 14], [14, 34]]) path(m, rng, from, e);
+    return m;
+  }
+
+  // ---------- Levels 2-4: forests ----------
+  function buildForest(o) {
+    const m = newMap(o.w, o.h), rng = mulberry32(o.seed);
+    m.grass = o.grass;
+    plant(m, rng, o);
+    for (const l of o.lakes || []) lake(m, l);
+    const ends = [];
+    for (const r of o.rivers) ends.push(...river(m, rng, r).ends);
+    reeds(m, rng);
+    const [sx, sy] = o.start;
+    clearAround(m, sx, sy, 3);
+    m.start = [sx, sy];
+    m.facing = "S";
+    m.extras.push({ kind: "sign", x: sx + 1, y: sy - 1 });
+    for (const e of ends) path(m, rng, o.start, e);
+    for (let k = 0; k < o.trails; k++) {
+      const tx = 2 + Math.floor(rng() * (m.w - 4)), ty = 2 + Math.floor(rng() * (m.h - 4));
+      if (at(m, tx, ty) !== "~") path(m, rng, o.start, [tx, ty]);
+    }
+    return m;
+  }
+
+  const LEVELS = [
+    { name: "OSIEDLE", about: "DOMY, PŁOT I LAS DOOKOŁA", animals: 20, build: buildEstate },
+    { name: "LAS", about: "RZEKI I MOSTY", animals: 30, build: () => buildForest({
+      seed: 21, w: 76, h: 54, density: 0.17, pine: 0.35, rocks: 0.012, trails: 6, start: [7, 27],
+      grass: ["#52a23a", "#42902e", "#6ab84c"],
+      rivers: [{ dir: "v", at: 38, width: 3, bridges: [9, 40] }, { dir: "h", at: 15, width: 2, wander: 4, from: 42, bridges: [52, 66] }] }) },
+    { name: "NAD JEZIOREM", about: "DUŻE JEZIORO I TRZY RZEKI", animals: 30, build: () => buildForest({
+      seed: 33, w: 80, h: 56, density: 0.15, pine: 0.2, rocks: 0.01, trails: 7, start: [7, 28],
+      grass: ["#5aaa3c", "#4a9630", "#72c252"],
+      lakes: [{ x: 42, y: 27, rx: 12, ry: 8, seed: 9 }],
+      rivers: [{ dir: "v", at: 41, width: 2, wander: 3, from: 0, to: 20, bridges: [7] },
+               { dir: "v", at: 43, width: 2, wander: 3, from: 33, to: 55, bridges: [45] },
+               { dir: "h", at: 27, width: 2, wander: 3, from: 53, to: 79, bridges: [66] }] }) },
+    { name: "DZIKA PUSZCZA", about: "GĘSTY LAS, SKAŁY I RZEKI", animals: 30, build: () => buildForest({
+      seed: 47, w: 84, h: 60, density: 0.22, pine: 0.65, rocks: 0.03, trails: 9, start: [6, 30],
+      grass: ["#47923a", "#387e2e", "#5ea84a"],
+      rivers: [{ dir: "v", at: 22, width: 3, wander: 4, bridges: [10, 46] }, { dir: "v", at: 58, width: 3, wander: 4, bridges: [20, 50] },
+               { dir: "h", at: 32, width: 2, wander: 3, from: 26, to: 57, bridges: [35, 48] }] }) },
+  ];
+
+  // ---------- Pictures of the things (made once) ----------
+  function makeTree(v) {
+    const c = newCanvas(40, 46), g = c.getContext("2d");
+    const birch = v === 1, apple = v === 2;
+    const greens = birch ? ["#4f9a36", "#6ab84a", "#8ad06a"] : ["#2f7a2a", "#3f9a34", "#5cb848"];
+    px(g, 17, 26, 6, 18, birch ? "#ece8dc" : "#6b4423"); px(g, 21, 26, 2, 18, birch ? "#c8c4b8" : "#4a2e16");
+    px(g, 15, 42, 10, 2, birch ? "#ece8dc" : "#6b4423");
+    if (birch) for (const [i, j] of [[17, 31], [20, 35], [18, 39], [19, 28]]) px(g, i, j, 3, 1, "#2a2a2a");
+    const blobs = [[20, 18, 15], [11, 22, 8], [29, 22, 8]];
+    for (const [x, y, r] of blobs) blob(g, x, y, r + 1, "#163e16");
+    for (const [x, y, r] of blobs) blob(g, x, y, r, greens[0]);
+    blob(g, 17, 14, 10, greens[1]); blob(g, 27, 17, 6, greens[1]); blob(g, 9, 20, 4, greens[1]);
+    blob(g, 14, 10, 5, greens[2]); blob(g, 23, 9, 3, greens[2]);
+    for (let i = 0; i < 14; i++) { const k = hash(v * 31 + i, 7); px(g, 6 + k % 28, 6 + (k >>> 8) % 24, 1, 1, i % 2 ? greens[2] : "#1f5a1c"); }
+    if (apple) for (const [i, j] of [[10, 20], [26, 12], [30, 22], [18, 24], [15, 15]]) { px(g, i, j, 3, 3, "#d8302a"); px(g, i, j, 1, 1, "#ff9a8a"); }
+    return c;
+  }
+  function makePine(v) {
+    const c = newCanvas(32, 48), g = c.getContext("2d");
+    px(g, 14, 38, 4, 10, "#5a3a1e"); px(g, 16, 38, 2, 10, "#3e2612");
+    const tiers = [[39, 15], [31, 13], [23, 10], [15, 7]];
+    for (const [by, hw] of tiers) for (let j = 0; j < 14; j++) { const half = Math.round(hw * j / 13); px(g, 15 - half, by - 13 + j, half * 2 + 3, 1, "#0e2e14"); }
+    for (const [by, hw] of tiers) for (let j = 0; j < 14; j++) {
+      const half = Math.round(hw * j / 13);
+      px(g, 16 - half, by - 13 + j, half * 2 + 1, 1, j % 4 === 3 ? "#1f5a2c" : v ? "#2a7a3e" : "#266a36");
+      px(g, 16 - half, by - 13 + j, Math.max(1, Math.round(half * 0.6)), 1, v ? "#3a944c" : "#3a8a44");
+    }
+    return c;
+  }
+  function makeBush(v) {
+    const c = newCanvas(20, 17), g = c.getContext("2d");
+    const blobs = [[10, 9, 7], [5, 11, 4], [15, 11, 4]];
+    for (const [x, y, r] of blobs) blob(g, x, y, r + 1, "#163e16");
+    for (const [x, y, r] of blobs) blob(g, x, y, r, "#3a8a30");
+    blob(g, 8, 7, 4, "#4fa83e"); blob(g, 7, 5, 2, "#6cc454");
+    if (v) for (const [i, j] of [[6, 10], [12, 7], [14, 12], [9, 13], [11, 10]]) { px(g, i, j, 2, 2, v === 1 ? "#d8303a" : "#4a4ad8"); px(g, i, j, 1, 1, "#ffffff"); }
+    return c;
+  }
+  function makeRock() {
+    const c = newCanvas(16, 12), g = c.getContext("2d");
+    ellipse(g, 8, 6, 7, 5, "#3a3a40"); ellipse(g, 8, 6, 6, 4, "#8a8a92"); ellipse(g, 6, 4, 3, 2, "#aaaab2");
+    px(g, 9, 7, 3, 1, "#6a6a72"); px(g, 4, 2, 2, 1, "#c8c8d0");
+    return c;
+  }
+  function makeStump() {
+    const c = newCanvas(14, 11), g = c.getContext("2d");
+    px(g, 2, 4, 10, 6, "#5a3a1e"); px(g, 2, 9, 10, 1, "#3e2612");
+    ellipse(g, 7, 4, 5, 3, "#c89a5a"); ellipse(g, 7, 4, 3, 2, "#a87a40"); px(g, 7, 4, 1, 1, "#7a5228");
+    return c;
+  }
+  const SPRITES = { T: [0, 0, 0, 1, 1, 2].map(makeTree), P: [0, 1].map(makePine), B: [0, 1, 2, 0].map(makeBush), R: [makeRock()], S: [makeStump()] };
+  // where each picture's bottom middle is, from the bottom middle of its tile
+  const ANCHOR = { T: [20, 45], P: [16, 47], B: [10, 16], R: [8, 11], S: [7, 10] };
+
+  // A house from above and a bit from the south: its roof, and its south wall (with the door, if it faces south).
+  function makeHouse(o) {
+    const W = o.w * TILE, H = o.h * TILE, ox = 2, oy = 10, wallH = 22;
+    const c = newCanvas(W + 4, H + oy + 2), g = c.getContext("2d");
+    const roofBottom = oy + H - wallH, ridge = Math.round(roofBottom * 0.45);
+    // the south wall, with the windows (and the door)
+    px(g, ox, roofBottom, W, wallH, o.wall); px(g, ox, roofBottom + wallH - 3, W, 3, "#8a8a84"); px(g, ox, roofBottom, W, 2, shade(o.wall, -0.25));
+    const win = x => {
+      px(g, x, roofBottom + 5, 12, 10, "#ffffff"); px(g, x + 1, roofBottom + 6, 10, 8, "#8ec8f0");
+      px(g, x + 6, roofBottom + 6, 1, 8, "#ffffff"); px(g, x + 1, roofBottom + 10, 10, 1, "#ffffff"); px(g, x + 2, roofBottom + 7, 2, 1, "#d8f0ff");
+      px(g, x, roofBottom + 15, 12, 1, shade(o.wall, -0.3));
+    };
+    const doorX = ox + o.door * TILE + 3;
+    if (o.facing === "S") {
+      px(g, doorX - 1, roofBottom + 2, 12, 18, shade(o.wall, -0.35)); px(g, doorX, roofBottom + 3, 10, 17, "#7a4a24");
+      px(g, doorX + 1, roofBottom + 4, 8, 7, "#8a5a30"); px(g, doorX + 1, roofBottom + 12, 8, 6, "#8a5a30"); px(g, doorX + 7, roofBottom + 11, 2, 2, "#f2c81a");
+      win(ox + 22 + (o.door - 1) * TILE + 12); win(ox + W - 18);
+      if (o.door) win(ox + 3);
+    } else for (const x of [ox + 4, ox + W / 2 - 6, ox + W - 16]) win(x);
+    // the roof: two slopes, rows of tiles, the ridge, a chimney
+    px(g, 0, 0, W + 4, ridge, shade(o.roof, -0.28)); px(g, 0, ridge, W + 4, roofBottom - ridge, o.roof);
+    for (let y = 3; y < roofBottom; y += 5) {
+      px(g, 0, y, W + 4, 1, shade(o.roof, y < ridge ? -0.42 : -0.18));
+      for (let x = (y % 10 ? 3 : 8); x < W + 4; x += 10) px(g, x, y - 4, 1, 4, shade(o.roof, y < ridge ? -0.38 : -0.14));
+    }
+    px(g, 0, ridge - 1, W + 4, 3, shade(o.roof, 0.25)); px(g, 0, ridge + 2, W + 4, 1, shade(o.roof, -0.3));
+    px(g, 0, roofBottom - 2, W + 4, 2, shade(o.roof, -0.45)); px(g, 0, 0, W + 4, 1, shade(o.roof, -0.5));
+    px(g, 0, 0, 1, roofBottom, shade(o.roof, -0.5)); px(g, W + 3, 0, 1, roofBottom, shade(o.roof, -0.5));
+    const chX = ox + W - 18;
+    px(g, chX, ridge - 9, 9, 12, "#8a3a2a"); px(g, chX, ridge - 9, 9, 2, "#5a2a1e"); px(g, chX + 1, ridge - 7, 7, 1, "#a8503a"); px(g, chX + 4, ridge - 1, 1, 3, "#5a2a1e");
+    if (o.facing === "N") {
+      // the door is on the north side: a little roof over it sticks out, with a lamp
+      const px0 = ox + o.door * TILE - 1;
+      px(g, px0, 0, 18, 8, shade(o.roof, -0.1)); px(g, px0, 0, 18, 1, shade(o.roof, -0.5)); px(g, px0 + 8, 0, 2, 8, shade(o.roof, 0.2));
+      px(g, px0, 7, 18, 1, shade(o.roof, -0.5)); px(g, px0 + 2, 2, 2, 2, "#ffe680");
+    }
+    return c;
+  }
+  // A car from above, its nose to the north (to the south, it is drawn upside down).
+  const CAR_SIZES = { small: [12, 21], sedan: [13, 27], wagon: [13, 29], suv: [15, 30] };
+  function makeCar(model, color) {
+    const [w, len] = CAR_SIZES[model], c = newCanvas(w + 4, len + 2), g = c.getContext("2d");
+    const white = color === "#f4f4f4", dark = shade(color, white ? -0.2 : -0.35), light = shade(color, 0.35);
+    const glass = "#2a3a52", x0 = 2;
+    for (const wy of [4, len - 10]) { px(g, 0, wy, 3, 6, "#141414"); px(g, w + 1, wy, 3, 6, "#141414"); }
+    px(g, x0, 1, w, len - 1, color); px(g, x0 + 1, 0, w - 2, len + 1, color);
+    px(g, x0, 3, 1, len - 5, dark); px(g, x0 + w - 1, 3, 1, len - 5, dark);
+    px(g, x0 + 2, 1, w - 4, 1, light);
+    const ws = model === "small" ? 5 : 7, roofEnd = model === "wagon" || model === "suv" ? len - 4 : len - 8;
+    px(g, x0 + 1, ws, w - 2, 4, glass); px(g, x0 + 2, ws + 1, 2, 1, "#6a8ab0");
+    px(g, x0 + 1, ws + 4, w - 2, roofEnd - ws - 4, white ? "#e2e2e2" : shade(color, 0.12));
+    px(g, x0 + 1, roofEnd, w - 2, 3, glass);
+    if (model === "wagon" || model === "suv") { px(g, x0 + 2, ws + 5, 1, roofEnd - ws - 6, "#3a3a3a"); px(g, x0 + w - 3, ws + 5, 1, roofEnd - ws - 6, "#3a3a3a"); }
+    if (model === "suv") { px(g, x0, 0, w, 1, "#202020"); px(g, x0, len, w, 1, "#202020"); }
+    px(g, 1, ws + 1, 1, 2, color); px(g, w + 2, ws + 1, 1, 2, color);
+    px(g, x0 + 1, 0, 3, 1, "#fff6b0"); px(g, x0 + w - 4, 0, 3, 1, "#fff6b0");
+    px(g, x0 + 1, len, 3, 1, "#e83b3b"); px(g, x0 + w - 4, len, 3, 1, "#e83b3b");
+    return c;
+  }
+
+  // ---------- The ground (drawn once per level) ----------
+  const FLOWER_COLORS = ["#ff4b6a", "#ffd800", "#d070ff", "#ffffff", "#ff9a3a", "#6fb8ff"];
+  // the tile, or what is under the car on it
+  const ground = (m, x, y) => { const c = at(m, x, y); return c === "C" ? m.under[y * m.w + x] || "p" : c; };
+  function drawGround(g, m, x, y) {
+    const c = ground(m, x, y), bx = x * TILE, by = y * TILE, hv = hash(x, y), G = m.grass;
+    const isWater = (tx, ty) => "~bv".includes(at(m, tx, ty)) || at(m, tx, ty) === "#";
+    const grass = () => {
+      px(g, bx, by, 16, 16, G[0]);
+      for (let i = 0; i < 6; i++) { const k = hash(x * 7 + i, y * 3 + i); px(g, bx + k % 15, by + (k >>> 8) % 14, 1, 2, i % 2 ? G[1] : G[2]); }
+    };
+    const water = () => {
+      px(g, bx, by, 16, 16, "#3d84d6");
+      for (let i = 0; i < 3; i++) { const k = hash(x * 3 + i, y * 11); px(g, bx + k % 12, by + 2 + (k >>> 8) % 12, 4, 1, "#5da0ea"); }
+      if (c !== "~") return;
+      const sides = [[0, -1, bx, by, 16, 2], [0, 1, bx, by + 14, 16, 2], [-1, 0, bx, by, 2, 16], [1, 0, bx + 14, by, 2, 16]];
+      for (const [dx, dy, sx, sy, sw, sh] of sides) if (!isWater(x + dx, y + dy)) {
+        px(g, sx, sy, sw, sh, "#d8c48a");
+        px(g, sx + (dx === 1 ? -1 : dx === -1 ? 2 : 0), sy + (dy === 1 ? -1 : dy === -1 ? 2 : 0), dx ? 1 : 16, dy ? 1 : 16, "#a8d4f8");
+      }
+    };
+    const shadow = (rx, ry, dy = 13) => { g.fillStyle = "rgba(0, 0, 0, .17)"; ellipse(g, bx + 8, by + dy, rx, ry, "rgba(0, 0, 0, .17)"); };
+    switch (c) {
+      case "~": water(); break;
+      case "b": case "v": {
+        water();
+        const along = c === "b";      // walked west-east: the planks go north-south
+        for (let i = 0; i < 16; i += 4) {
+          if (along) { px(g, bx + i, by, 3, 16, (i / 4 + x) % 2 ? "#a87440" : "#946232"); px(g, bx + i + 3, by, 1, 16, "#5e3c1e"); }
+          else { px(g, bx, by + i, 16, 3, (i / 4 + y) % 2 ? "#a87440" : "#946232"); px(g, bx, by + i + 3, 16, 1, "#5e3c1e"); }
+        }
+        for (const [dx, dy] of along ? [[0, -1], [0, 1]] : [[-1, 0], [1, 0]]) {
+          if (at(m, x + dx, y + dy) === c) continue;
+          const rx = dx > 0 ? bx + 13 : bx, ry = dy > 0 ? by + 13 : by;
+          px(g, rx, ry, dx ? 3 : 16, dy ? 3 : 16, "#5e3c1e"); px(g, rx, ry, dx ? 1 : 16, dy ? 1 : 16, "#8a5a30");
+          for (let i = 1; i < 16; i += 7) px(g, dx ? rx : bx + i, dy ? ry : by + i, dx ? 3 : 2, dy ? 3 : 2, "#3e2612");
+        }
+        break;
+      }
+      case "a": {   // asphalt, with a dashed line along the middle of the road
+        px(g, bx, by, 16, 16, "#5b5e66");
+        for (let i = 0; i < 6; i++) { const k = hash(x * 5 + i, y * 9); px(g, bx + k % 16, by + (k >>> 8) % 16, 1, 1, i % 2 ? "#676a73" : "#50535a"); }
+        const road = (dx, dy) => "abv".includes(ground(m, x + dx, y + dy));
+        if (!road(0, -1)) px(g, bx, by, 16, 1, "#3e4046");
+        if (!road(0, 1)) px(g, bx, by + 15, 16, 1, "#3e4046");
+        if (!road(-1, 0)) px(g, bx, by, 1, 16, "#3e4046");
+        if (!road(1, 0)) px(g, bx + 15, by, 1, 16, "#3e4046");
+        if (at(m, x, y - 1) === "a" && at(m, x, y - 2) !== "a" && at(m, x, y + 1) !== "a" && x % 2 === 0) px(g, bx + 2, by - 1, 12, 2, "#f2f2e8");
+        if (at(m, x - 1, y) === "a" && at(m, x - 2, y) !== "a" && at(m, x + 1, y) !== "a" && y % 2 === 0) px(g, bx - 1, by + 2, 2, 12, "#f2f2e8");
+        break;
+      }
+      case "r": {   // a gravel road: small stones of all greys, a bit darker at its edges, and two worn wheel tracks
+        px(g, bx, by, 16, 16, "#a99d88");
+        for (let i = 0; i < 22; i++) {
+          const k = hash(x * 31 + i, y * 17 + i);
+          px(g, bx + k % 15, by + (k >>> 8) % 15, 1 + (k >>> 20) % 2, 1, ["#c4baa6", "#8e826e", "#d6cdbb", "#7a705e", "#b8ab92"][(k >>> 16) % 5]);
+        }
+        const road = (dx, dy) => "rab".includes(ground(m, x + dx, y + dy));
+        for (const [dx, dy] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) if (!road(dx, dy)) {
+          px(g, dx > 0 ? bx + 14 : bx, dy > 0 ? by + 14 : by, dx ? 2 : 16, dy ? 2 : 16, "#93876f");
+          for (let i = 0; i < 16; i += 3) px(g, dx ? (dx > 0 ? bx + 13 : bx + 2) : bx + i, dy ? (dy > 0 ? by + 13 : by + 2) : by + i, 1, 1, "#7a705e");
+        }
+        if (road(-1, 0) && road(1, 0)) px(g, bx, by + (road(0, -1) ? 9 : 6), 16, 1, "#9a8e78");
+        else if (road(0, -1) && road(0, 1)) px(g, bx + (road(-1, 0) ? 9 : 6), by, 1, 16, "#9a8e78");
+        break;
+      }
+      case "w":
+        px(g, bx, by, 16, 16, "#c9c9c1"); px(g, bx, by + 7, 16, 1, "#acaca4"); px(g, bx + (y % 2 ? 7 : 15), by, 1, 16, "#acaca4");
+        break;
+      case "p": case "C":
+        px(g, bx, by, 16, 16, "#d6c4a0");
+        for (let j = 0; j < 4; j++) {
+          px(g, bx, by + j * 4 + 3, 16, 1, "#b8a47e");
+          for (let k = (j % 2) * 4; k < 16; k += 8) px(g, bx + k, by + j * 4, 1, 3, "#b8a47e");
+        }
+        break;
+      case "d": {
+        px(g, bx, by, 16, 16, "#b08a5a");
+        for (let i = 0; i < 5; i++) { const k = hash(x * 13 + i, y * 7); px(g, bx + k % 15, by + (k >>> 8) % 15, 2, 1, i % 2 ? "#c8a070" : "#8a6a40"); }
+        for (const [dx, dy] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
+          if (WALKABLE.slice(4).includes(at(m, x + dx, y + dy)) || "~".includes(at(m, x + dx, y + dy))) continue;
+          for (let i = 0; i < 16; i += 2) {
+            const d = hash(x * 3 + i + dx * 5, y * 5 + dy * 7) % 3;
+            if (dx) px(g, dx > 0 ? bx + 15 - d : bx, by + i, d + 1, 2, G[0]);
+            else px(g, bx + i, dy > 0 ? by + 15 - d : by, 2, d + 1, G[0]);
+          }
+        }
+        break;
+      }
+      default:
+        grass();
+        if (c === ",") for (let i = 0; i < 3; i++) {
+          const k = hash(x * 17 + i, y * 23), fx = bx + 2 + k % 11, fy = by + 2 + (k >>> 8) % 11, col = FLOWER_COLORS[(k >>> 16) % FLOWER_COLORS.length];
+          px(g, fx, fy + 2, 1, 3, "#2f7a22"); px(g, fx - 1, fy, 3, 1, col); px(g, fx, fy - 1, 1, 3, col); px(g, fx, fy, 1, 1, "#ffe680");
+        } else if (c === "m") {
+          for (const [i, j] of [[4, 8], [10, 11]]) { px(g, bx + i + 1, by + j + 2, 2, 3, "#f4efe0"); px(g, bx + i, by + j, 4, 2, "#d8302a"); px(g, bx + i + 1, by + j, 1, 1, "#ffffff"); }
+        } else if (c === "^") {
+          for (let i = 0; i < 4; i++) { const k = hash(x + i * 3, y * 5) % 3; px(g, bx + 2 + i * 4, by + 4 + k, 1, 11 - k, "#2f6a22"); if (i % 2 === 0) px(g, bx + 2 + i * 4, by + 3 + k, 1, 4, "#7a4a24"); }
+        } else if (c === "f") {
+          const hz = at(m, x - 1, y) === "f" || at(m, x + 1, y) === "f", vt = at(m, x, y - 1) === "f" || at(m, x, y + 1) === "f";
+          g.fillStyle = "rgba(0, 0, 0, .2)";
+          if (hz) { g.fillRect(bx, by + 12, 16, 2); px(g, bx, by + 5, 16, 2, "#f0f0ea"); px(g, bx, by + 9, 16, 2, "#f0f0ea"); }
+          if (vt) { g.fillRect(bx + 10, by, 2, 16); px(g, bx + 5, by, 2, 16, "#f0f0ea"); px(g, bx + 8, by, 2, 16, "#f0f0ea"); }
+          for (const i of hz ? [1, 6, 11] : [6]) { px(g, bx + i, by + 2, 3, 11, "#d8d8d0"); px(g, bx + i, by + 2, 3, 1, "#ffffff"); px(g, bx + i + 2, by + 3, 1, 10, "#b8b8b0"); }
+        } else if (c === "T") shadow(11, 4);
+        else if (c === "P" || c === "B") shadow(8, 3, 14);
+        else if (c === "R" || c === "S") shadow(6, 2, 14);
+    }
+  }
+  function renderGround(m) {
+    const cv = newCanvas(m.w * TILE, m.h * TILE), g = cv.getContext("2d");
+    for (let y = 0; y < m.h; y++) for (let x = 0; x < m.w; x++) drawGround(g, m, x, y);
+    g.fillStyle = "rgba(0, 0, 0, .2)";
+    for (const o of m.houses) g.fillRect(o.x * TILE + 4, (o.y + o.h) * TILE, o.w * TILE, 3);
+    for (const o of m.cars) if (o.nose === "W" || o.nose === "E") g.fillRect(o.x * TILE + 4, o.y * TILE + 4, 28, 11); else g.fillRect(o.x * TILE + 3, o.y * TILE + 2, 12, 30);
+    // the doormats (red in front of the player's own house)
+    for (const o of m.houses) {
+      const mx = (o.x + o.door) * TILE + 3, my = o.facing === "S" ? (o.y + o.h) * TILE + 1 : o.y * TILE - 6;
+      px(g, mx, my, 10, 5, o === m.home ? "#c8303a" : "#7a5a3a"); px(g, mx + 1, my + 1, 8, 3, o === m.home ? "#e84a54" : "#9a7a52");
+    }
+    return cv;
+  }
+
+  // Everything standing on the map, drawn every frame from north to south (so the player can be behind a tree).
+  function buildThings(m) {
+    const things = [];
+    for (let y = 0; y < m.h; y++) for (let x = 0; x < m.w; x++) {
+      const c = at(m, x, y), list = SPRITES[c];
+      if (!list) continue;
+      const spr = list[hash(x, y * 3) % list.length], [ax, ay] = ANCHOR[c];
+      things.push({ spr, x: x * TILE + 8 - ax, y: (y + 1) * TILE - 1 - ay, base: (y + 1) * TILE });
+    }
+    for (const o of m.houses) { const spr = makeHouse(o); things.push({ spr, x: o.x * TILE - 2, y: o.y * TILE - 10, base: (o.y + o.h) * TILE }); }
+    for (const o of m.cars) {
+      let spr = makeCar(o.model, o.color);
+      if (o.nose === "W" || o.nose === "E") {   // parked along a road going west-east: turned on its side
+        const r = newCanvas(spr.height, spr.width), g = r.getContext("2d");
+        g.translate(o.nose === "E" ? r.width : 0, o.nose === "E" ? 0 : r.height); g.rotate(o.nose === "E" ? Math.PI / 2 : -Math.PI / 2);
+        g.drawImage(spr, 0, 0);
+        things.push({ spr: r, x: o.x * TILE + 16 - r.width / 2, y: o.y * TILE + 8 - r.height / 2, base: (o.y + 1) * TILE });
+      } else things.push({ spr, flip: o.nose === "S", x: o.x * TILE + 8 - spr.width / 2, y: o.y * TILE + 16 - spr.height / 2, base: (o.y + 2) * TILE });
+    }
+    for (const o of m.extras) things.push({ draw: o.kind, x: o.x * TILE, y: o.y * TILE - 16, w: 16, h: 32, base: (o.y + 1) * TILE - 2 });
+    for (const t of things) if (t.spr) { t.w = t.spr.width; t.h = t.spr.height; }
+    return things;
+  }
+  function drawExtra(kind, x, y) {
+    if (kind === "mailbox") {
+      px(ctx, x + 11, y + 22, 2, 9, "#5a3a1e");
+      px(ctx, x + 8, y + 17, 8, 6, "#c83a2a"); px(ctx, x + 8, y + 17, 8, 1, "#e85a4a"); px(ctx, x + 9, y + 19, 4, 1, "#3a1a14");
+    } else {   // a signpost at the start of a forest
+      px(ctx, x + 7, y + 10, 2, 21, "#6b4423");
+      px(ctx, x + 2, y + 10, 13, 5, "#c89a5a"); px(ctx, x + 14, y + 11, 2, 3, "#c89a5a"); px(ctx, x + 4, y + 12, 8, 1, "#6b4423");
+      px(ctx, x + 1, y + 17, 13, 5, "#b88a4a"); px(ctx, x, y + 18, 2, 3, "#b88a4a"); px(ctx, x + 4, y + 19, 8, 1, "#6b4423");
+    }
+  }
+
+  // ---------- Walking ----------
+  function solidAt(m, x0, y0, x1, y1) {
+    for (let ty = Math.floor(y0 / TILE); ty <= Math.floor((y1 - 0.001) / TILE); ty++)
+      for (let tx = Math.floor(x0 / TILE); tx <= Math.floor((x1 - 0.001) / TILE); tx++) {
+        const s = SHAPES[at(m, tx, ty)];
+        if (!s) continue;
+        const sx = tx * TILE + s[0], sy = ty * TILE + s[1];
+        if (x0 < sx + s[2] && x1 > sx && y0 < sy + s[3] && y1 > sy) return true;
+      }
+    return false;
+  }
+  // the player's feet: 10 x 5 px, (x, y) is their bottom middle
+  const blocked = (m, x, y) => solidAt(m, x - 5, y - 5, x + 5, y);
+  function move(p, dx, dy, m) {
+    if (dx && !blocked(m, p.x + dx, p.y)) p.x += dx;
+    if (dy && !blocked(m, p.x, p.y + dy)) p.y += dy;
+  }
+  // every tile the player can get to from the start
+  function reachable(m) {
+    const seen = new Uint8Array(m.w * m.h), s = m.start[1] * m.w + m.start[0], q = [s];
+    seen[s] = 1;
+    for (let qi = 0; qi < q.length; qi++) {
+      const i = q[qi], x = i % m.w, y = (i - x) / m.w;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = x + dx, ny = y + dy, j = ny * m.w + nx;
+        if (nx < 0 || ny < 0 || nx >= m.w || ny >= m.h || seen[j] || !WALKABLE.includes(m.t[j])) continue;
+        seen[j] = 1; q.push(j);
+      }
+    }
+    return seen;
+  }
+
+  // ---------- DOM ----------
+  const canvas = $("game"), ctx = canvas.getContext("2d");
+  const overlayEl = $("overlay"), toastEl = $("toast");
+  const coarse = window.matchMedia("(pointer: coarse)").matches;
+
+  // ---------- Sound ----------
+  let audio = null, soundOn = true;
+  try { soundOn = localStorage.getItem("zwierzatka-sound") !== "off"; } catch (e) { /* ignore */ }
+  function beep(freq, dur, type = "square", vol = 0.06, slideTo = null, delay = 0) {
+    if (!soundOn) return;
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const t0 = audio.currentTime + delay, o = audio.createOscillator(), g = audio.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t0);
+      if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
+      g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g); g.connect(audio.destination); o.start(t0); o.stop(t0 + dur + 0.02);
+    } catch (e) { /* no sound */ }
+  }
+  const sfx = {
+    start() { [262, 330, 392, 523].forEach((f, i) => beep(f, 0.09, "square", 0.05, null, i * 0.08)); },
+    lost()  { beep(900, 0.12, "triangle", 0.05, 1300); beep(1100, 0.12, "triangle", 0.05, 700, 0.15); },
+    show()  { beep(600, 0.06, "square", 0.04); beep(800, 0.08, "square", 0.04, null, 0.07); },
+    found() { [523, 659, 784, 1046, 1318].forEach((f, i) => beep(f, 0.09, "triangle", 0.06, null, i * 0.07)); },
+    win()   { [523, 659, 784, 659, 784, 1046].forEach((f, i) => beep(f, 0.12, "square", 0.06, null, i * 0.11)); },
+    turn()  { beep(1500, 0.03, "sine", 0.025); },
+  };
+
+  // ---------- Game state ----------
+  // menu | creator | hof | intro | playing | paused | done | over | entry
+  let state = "menu";
+  let world = null, player = null, sprites = characterSprites(look);
+  let run = null;               // { startLevel, level, time, score, found }
+  let animal = null;            // the one lost now: { kind, x, y, t, shown }
+  let nextIn = 0, lastKind = -1, levelTime = 0, levelFound = 0;
+  let sector = null, hintTimer = 0, hint = "";
+  let popups = [];
+  let cam = { x: 0, y: 0 };
+  let menuLevel = 0, overlayAction = null;
+  const held = { up: false, down: false, left: false, right: false };
+  let touchDir = null;
+
+  function loadWorld(i) {
+    const m = LEVELS[i].build();
+    const reach = reachable(m), spots = [];
+    reach.forEach((r, j) => { if (r && HIDING.includes(m.t[j])) spots.push(j); });
+    // hiding spots next to a tree or a bush are better - animals hide under them
+    const cover = spots.filter(j => { const x = j % m.w, y = (j - x) / m.w; return [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => "TPBRS".includes(at(m, x + dx, y + dy))); });
+    return { m, def: LEVELS[i], ground: renderGround(m), things: buildThings(m), reach, spots, cover };
+  }
+
+  // ---------- Directions ----------
+  // The sector (0-7, see DIRS) the animal is in; it changes only when the angle is a bit past the border, so it doesn't flicker.
+  function sectorOf(dx, dy, prev) {
+    const a = (Math.atan2(-dy, dx) * 180 / Math.PI + 360) % 360;
+    if (prev !== null) { let d = Math.abs(a - prev * 45); d = Math.min(d, 360 - d); if (d <= 22.5 + 6) return prev; }
+    return Math.round(a / 45) % 8;
+  }
+  // is there water (or a fence) on the straight line to the animal?
+  function inTheWay() {
+    const dx = animal.x - player.x, dy = animal.y - player.y, n = Math.ceil(Math.hypot(dx, dy) / 8);
+    let water = false, fence = false;
+    for (let i = 1; i < n; i++) {
+      const c = at(world.m, Math.floor((player.x + dx * i / n) / TILE), Math.floor((player.y - 4 + dy * i / n) / TILE));
+      if (c === "~") water = true; else if (c === "f") fence = true;
+    }
+    return water ? "PO DRODZE JEST RZEKA - POSZUKAJ MOSTU!" : fence ? "PO DRODZE JEST PŁOT - OBEJDŹ GO!" : "";
+  }
+  let dirShown = "", byCode = true;
+  function updateDirections(dt) {
+    let main, sub, icon = animal ? animal.kind : null;
+    if (!animal) {
+      main = levelFound ? "BRAWO!" : "ROZEJRZYJ SIĘ...";
+      sub = levelFound >= world.def.animals ? "TO BYŁO OSTATNIE!" : `ZARAZ ZGUBI SIĘ ${levelFound ? "NASTĘPNE " : ""}ZWIERZĄTKO...`;
+      sector = null; hint = "";
+    }
+    else {
+      const a = ANIMALS[animal.kind], dx = animal.x - player.x, dy = animal.y - player.y, dist = Math.hypot(dx, dy);
+      if (animal.shown) { main = `${a.name} JEST TUTAJ!`; sub = "PODEJDŹ DO NIEGO" + (a.f ? "J" : "") + " BLIŻEJ."; hint = ""; sector = null; }
+      else {
+        const s = sectorOf(dx, dy, sector);
+        if (s !== sector) {
+          if (sector !== null) sfx.turn();
+          // every new direction is said the other way: by its letters (NW), or by its Polish name
+          byCode = !byCode;
+        }
+        sector = s;
+        const d = DIRS[s];
+        main = `IDŹ NA ${byCode ? d.code : d.name}`;
+        sub = dist > 30 * TILE ? "DALEKO" : dist > 12 * TILE ? "CORAZ BLIŻEJ" : "BLISKO!";
+        if ((hintTimer -= dt) <= 0) { hintTimer = 0.3; hint = inTheWay(); }
+      }
+    }
+    const key = main + "|" + sub + "|" + hint + "|" + icon;
+    if (key === dirShown) return;
+    dirShown = key;
+    $("dirMain").textContent = main; $("dirSub").textContent = sub; $("dirHint").textContent = hint;
+    const ic = $("dirIcon").getContext("2d");
+    ic.clearRect(0, 0, 16, 16);
+    if (icon !== null) { const s = ANIMALS[icon].sprite; ic.drawImage(s, Math.floor((16 - s.width) / 2), Math.floor((16 - s.height) / 2)); }
+  }
+  // ---------- The lost animals ----------
+  function spawnAnimal() {
+    const m = world.m, pick = arr => arr[Math.floor(Math.random() * arr.length)];
+    const far = j => { const x = j % m.w, y = (j - x) / m.w; return Math.hypot(x * TILE + 8 - player.x, y * TILE + 12 - player.y) >= MIN_AWAY; };
+    let list = Math.random() < 0.75 ? world.cover.filter(far) : [];
+    if (!list.length) list = world.spots.filter(far);
+    if (!list.length) list = world.spots;
+    const j = pick(list), x = j % m.w, y = (j - x) / m.w;
+    let kind;
+    do kind = Math.floor(Math.random() * ANIMALS.length); while (kind === lastKind);
+    lastKind = kind;
+    animal = { kind, x: x * TILE + 8, y: y * TILE + 13, t: 0, shown: false };
+    sector = null; hintTimer = 0;
+    sfx.lost();
+    const a = ANIMALS[kind];
+    toast(`ZGUBIŁ${a.f ? "A" : ""} SIĘ ${a.name}! GDZIE JEST? CZYTAJ WSKAZÓWKI.`, 2.6);
+  }
+  function foundAnimal() {
+    const a = ANIMALS[animal.kind];
+    const pts = PTS_ANIMAL + Math.max(0, PTS_FAST - Math.floor(animal.t));
+    run.score += pts; run.found++; levelFound++;
+    popups.push({ x: animal.x, y: animal.y - 18, text: "+" + pts, life: 1.2 });
+    sfx.found();
+    for (let i = 0; i < 16; i++) {
+      const ang = Math.random() * Math.PI * 2, s = 30 + Math.random() * 50;
+      particles.push({ x: animal.x, y: animal.y - 8, vx: Math.cos(ang) * s, vy: Math.sin(ang) * s - 30, life: 0.6 + Math.random() * 0.4, color: i % 2 ? "#ffd800" : "#ff7aa8" });
+    }
+    animal = null;
+    updateHud();
+    nextIn = levelFound >= world.def.animals ? 0.9 : NEXT_IN;
+    toast(`${girl() ? "ZNALAZŁAŚ" : "ZNALAZŁEŚ"} ${a.acc}! +${pts} PUNKTÓW`, 2.2, "good");
+  }
+  let particles = [];
+
+  // ---------- Toasts and the HUD ----------
+  let toastTimer = 0;
+  function toast(text, secs = 2.2, cls = "") {
+    toastEl.textContent = text;
+    toastEl.className = "toast" + (cls ? " " + cls : "");
+    toastTimer = secs;
+  }
+  function hideToast() { toastTimer = 0; toastEl.classList.add("hidden"); }
+  function updateHud() {
+    if (!run) return;
+    $("hudLevel").textContent = `${run.level + 1}/${LEVELS.length}`;
+    $("hudTime").textContent = fmtTime(run.time);
+    $("hudFound").textContent = `${levelFound}/${world.def.animals}`;
+    $("hudScore").textContent = run.score;
+  }
+
+  // ---------- Overlay inside the board ----------
+  function showOverlay(html, action) {
+    overlayEl.innerHTML = html;
+    overlayEl.classList.remove("hidden");
+    overlayAction = action;
+    const btn = overlayEl.querySelector("[data-primary]");
+    if (btn) btn.addEventListener("click", () => action && action());
+    overlayEl.querySelectorAll("[data-menu]").forEach(b => b.addEventListener("click", goMenu));
+    overlayEl.querySelectorAll("[data-end]").forEach(b => b.addEventListener("click", () => endRun(false)));
+    overlayEl.querySelectorAll("[data-hof]").forEach(b => b.addEventListener("click", () => showHallOfFame(result && result.entry, true)));
+  }
+  function hideOverlay() { overlayEl.classList.add("hidden"); overlayEl.innerHTML = ""; overlayAction = null; }
+
+  // ---------- Flow ----------
+  function showScreen(name) {
+    $("menu").classList.toggle("hidden", name !== "menu");
+    $("creator").classList.toggle("hidden", name !== "creator");
+    $("hofScreen").classList.toggle("hidden", name !== "hof");
+    const inGame = name === "game";
+    ["hud", "dirbox", "board", "below"].forEach(id => $(id).classList.toggle("hidden", !inGame));
+    document.body.classList.toggle("in-game", inGame);
+  }
+  function goMenu() {
+    hideOverlay(); hideToast();
+    state = "menu"; world = null; run = null; result = null;
+    showScreen("menu");
+    buildMenu();
+  }
+  function startRun(level) {
+    run = { startLevel: level, level, time: 0, score: 0, found: 0 };
+    sfx.start();
+    showScreen("game");
+    loadLevel(level);
+  }
+  function loadLevel(i) {
+    run.level = i;
+    world = loadWorld(i);
+    const [sx, sy] = world.m.start;
+    player = { x: sx * TILE + 8, y: sy * TILE + 13, facing: world.m.facing, walkT: 0, moving: false };
+    sprites = characterSprites(look);
+    animal = null; nextIn = 1.2; levelTime = 0; levelFound = 0; popups = []; particles = []; sector = null; dirShown = "";
+    updateCamera(1, true);
+    updateHud(); updateDirections(0); hideToast();
+    state = "intro";
+    const d = world.def;
+    showOverlay(`
+      <div class="big">POZIOM ${i + 1}: ${escapeHtml(d.name)}</div>
+      <div>ZNAJDŹ <span class="sub">${d.animals}</span> ZAGUBIONYCH ZWIERZĄTEK. GUBIĄ SIĘ PO JEDNYM - NASTĘPNE DOPIERO, GDY ZNAJDZIESZ POPRZEDNIE.</div>
+      ${i === 0 ? `<div>STOISZ PRZED SWOIM DOMEM. OSIEDLE JEST OGRODZONE - WYJŚCIA SĄ NA ZACHODZIE (W) I NA WSCHODZIE (E), TAM, GDZIE BIEGNIE ŻWIROWA DROGA.</div>` : ""}
+      <div>NIE WIDAĆ ICH - CZYTAJ WSKAZÓWKI NAD MAPĄ, NA PRZYKŁAD <span class="sub">IDŹ NA POŁUDNIOWY ZACHÓD</span>.</div>
+      <div class="dim">GÓRA EKRANU TO ZAWSZE PÓŁNOC (N), DÓŁ - POŁUDNIE (S), PRAWO - WSCHÓD (E), LEWO - ZACHÓD (W).</div>
+      <button class="main-btn" data-primary>START</button>`, play);
+  }
+  function play() {
+    hideOverlay();
+    Object.keys(held).forEach(k => { held[k] = false; });
+    touchDir = null;
+    document.querySelectorAll(".dpad button.on").forEach(b => b.classList.remove("on"));
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    state = "playing";
+  }
+  function pause() {
+    if (state !== "playing") return;
+    state = "paused";
+    showOverlay(`<div class="big">PAUZA</div>
+      <div class="btns"><button class="main-btn" data-primary>GRAJ DALEJ</button>
+      <button class="main-btn alt" data-end>ZAKOŃCZ I ZAPISZ WYNIK</button><button class="main-btn alt" data-menu>MENU</button></div>`, play);
+  }
+  function levelComplete() {
+    state = "done";
+    sfx.win(); hideToast();
+    const before = run.score;
+    run.score += PTS_LEVEL;
+    updateHud();
+    const stats = `<div>CZAS POZIOMU: <span class="sub">${fmtTime(levelTime)}</span> · WSZYSTKIE ZWIERZĄTKA: <span class="sub">+${PTS_LEVEL}</span></div>
+      <div>PUNKTY: <span class="sub">${before}</span> → <span style="color:var(--yellow)">${run.score}</span></div>`;
+    if (run.level < LEVELS.length - 1) {
+      showOverlay(`<div class="big">POZIOM ${run.level + 1} UKOŃCZONY!</div>
+        <div>${girl() ? "ZNALAZŁAŚ" : "ZNALAZŁEŚ"} WSZYSTKIE ${world.def.animals} ZWIERZĄTEK!</div>${stats}
+        <div class="btns"><button class="main-btn" data-primary>NASTĘPNY POZIOM</button><button class="main-btn alt" data-end>ZAKOŃCZ I ZAPISZ WYNIK</button></div>`,
+        () => loadLevel(run.level + 1));
+    } else endRun(true, stats);
+  }
+
+  // ---------- Hall of fame (shared by everyone - the gry API, /api/sala_slawy/zwierzatka/) ----------
+  // score = points, time = whole seconds of the game, level = the last level played (1-4), completed = all four levels done.
+  const HOF_URL = (location.protocol === "file:" ? "https://gry.billy.local" : "") + "/api/sala_slawy/zwierzatka/";
+  const HOF_SIZE = 10;
+  let hof = null, hofRequest = 0, lastName = "";
+  try { lastName = localStorage.getItem("zwierzatka-name") || ""; } catch (e) { /* ignore */ }
+  const hofTime = e => e.time ?? Infinity;
+  const hofCompare = (a, b) => b.score - a.score || hofTime(a) - hofTime(b) || a.id - b.id;
+  async function hofLoad() {
+    const res = await fetch(HOF_URL + "?limit=" + HOF_SIZE, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    hof = data.categories?.[""] ?? [];
+  }
+  async function hofPost(entry) {
+    const res = await fetch(HOF_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(entry) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || "HTTP " + res.status);
+    return data;
+  }
+  function hofRank(r) {
+    if (r.score <= 0 || !hof) return 0;
+    let rank = hof.findIndex(e => hofCompare({ score: r.score, time: Math.floor(r.time), id: Infinity }, e) < 0);
+    if (rank === -1) rank = hof.length;
+    return rank < HOF_SIZE ? rank + 1 : 0;
+  }
+  let result = null;
+  function endRun(completed, extra = "") {
+    state = "over";
+    hideToast();
+    result = { completed, score: run.score, time: run.time, level: run.level, startLevel: run.startLevel, found: run.found, extra, entry: null, hofError: false };
+    const r = result;
+    if (r.score <= 0) { showResult(); return; }
+    showOverlay(`${resultHtml(r)}<div class="blink">ŁADOWANIE SALI SŁAWY...</div>`);
+    hofLoad()
+      .then(() => { if (result === r && state === "over") (hofRank(r) ? showNameEntry() : showResult()); })
+      .catch(() => { if (result === r && state === "over") { r.hofError = true; showResult(); } });
+  }
+  function resultHtml(r) {
+    const head = r.completed
+      ? `<div class="big">WSZYSTKIE ZWIERZĄTKA ODNALEZIONE!</div><div>BRAWO! ${girl() ? "PRZESZŁAŚ" : "PRZESZEDŁEŚ"} WSZYSTKIE POZIOMY.</div>`
+      : `<div class="big">KONIEC GRY</div><div>${girl() ? "DOSZŁAŚ" : "DOSZEDŁEŚ"} DO POZIOMU ${r.level + 1}.</div>`;
+    return `${head}${r.extra}<div>PUNKTY: <span style="color:var(--yellow)">${r.score}</span> · ZWIERZĄTKA: <span class="sub">${r.found}</span> · CZAS: <span class="sub">${fmtTime(r.time)}</span></div>`;
+  }
+  function showResult() {
+    const r = result;
+    showOverlay(`${resultHtml(r)}
+      ${r.hofError ? `<div style="color:var(--red)">SALA SŁAWY NIEDOSTĘPNA - BRAK POŁĄCZENIA Z SERWEREM</div>` : ""}
+      <div class="btns"><button class="main-btn" data-primary>JESZCZE RAZ</button><button class="main-btn alt" data-menu>MENU</button>
+      <button class="main-btn alt" data-hof>SALA SŁAWY</button></div>`, () => startRun(r.startLevel));
+  }
+  function showNameEntry() {
+    state = "entry";
+    const r = result;
+    showOverlay(`${resultHtml(r)}
+      <div style="color:var(--yellow)">JESTEŚ W SALI SŁAWY! MIEJSCE #${hofRank(r)}</div>
+      <form class="name-form" id="nameForm" autocomplete="off">
+        <label for="nameInput">WPISZ SWOJE IMIĘ:</label>
+        <input id="nameInput" maxlength="12" spellcheck="false" value="${escapeHtml(lastName)}">
+        <div class="btns"><button class="main-btn" type="submit">ZAPISZ</button>
+        <button class="main-btn alt" type="button" id="btnSkip" hidden>POMIŃ</button></div>
+        <div id="nameError" style="color:var(--red)"></div>
+      </form>`);
+    const input = $("nameInput"), form = $("nameForm");
+    setTimeout(() => { input.focus(); input.select(); }, 0);
+    form.onsubmit = async e => {
+      e.preventDefault();
+      const name = input.value.trim().toUpperCase().slice(0, 12) || (girl() ? "ODKRYWCZYNI" : "ODKRYWCA").slice(0, 12);
+      lastName = name;
+      try { localStorage.setItem("zwierzatka-name", name); } catch (err) { /* ignore */ }
+      const saveBtn = form.querySelector("[type=submit]");
+      saveBtn.disabled = true; saveBtn.textContent = "ZAPISYWANIE...";
+      try {
+        const saved = await hofPost({ name, score: r.score, time: Math.floor(r.time), level: r.level + 1, completed: r.completed });
+        r.entry = saved.entry;
+      } catch (err) {
+        saveBtn.disabled = false; saveBtn.textContent = "SPRÓBUJ PONOWNIE";
+        $("nameError").textContent = "NIE UDAŁO SIĘ ZAPISAĆ (" + err.message + ")";
+        $("btnSkip").hidden = false;
+        return;
+      }
+      if (state !== "entry" || result !== r) return;
+      showHallOfFame(r.entry, true);
+    };
+    $("btnSkip").onclick = () => { state = "over"; showResult(); };
+  }
+  function showHallOfFame(highlight, afterGame, fetchFirst = true) {
+    hideOverlay(); hideToast();
+    state = "hof";
+    showScreen("hof");
+    const box = $("hofScreen");
+    const buttons = afterGame && result
+      ? `<div class="btns"><button class="main-btn" id="hofAgain">JESZCZE RAZ</button><button class="main-btn alt" id="hofMenu">MENU</button></div>`
+      : `<div class="btns"><button class="main-btn" id="hofMenu">WRÓĆ</button></div>`;
+    const show = body => {
+      box.innerHTML = `<div class="menu-title">SALA SŁAWY</div>${body}${buttons}`;
+      if ($("hofAgain")) $("hofAgain").onclick = () => startRun(result.startLevel);
+      $("hofMenu").onclick = goMenu;
+    };
+    if (fetchFirst) {
+      const req = ++hofRequest, stillHere = () => req === hofRequest && state === "hof";
+      show(`<div class="blink">ŁADOWANIE...</div>`);
+      hofLoad()
+        .then(() => { if (stillHere()) showHallOfFame(highlight, afterGame, false); })
+        .catch(err => { if (stillHere()) show(`<div style="color:var(--red)">BRAK POŁĄCZENIA Z SERWEREM (${escapeHtml(err.message)})</div>`); });
+      return;
+    }
+    const medal = ["gold", "silver", "bronze"];
+    const rows = Array.from({ length: HOF_SIZE }, (_, i) => {
+      const e = hof[i];
+      if (!e) return `<tr class="empty"><td class="num">${i + 1}.</td><td class="name">---</td><td class="num">-</td><td class="num">--:--</td><td class="num">-</td><td></td></tr>`;
+      const cls = [medal[i] || "", highlight && e.id === highlight.id ? "me" : ""].join(" ");
+      return `<tr class="${cls}"><td class="num">${i + 1}.</td><td class="name">${escapeHtml(e.name)}</td><td class="num">${e.score}</td>
+        <td class="num">${e.time == null ? "--:--" : fmtTime(e.time)}</td><td class="num">${e.level == null ? "-" : e.level}</td>
+        <td>${e.completed ? `<span class="fin">WSZYSTKIE!</span>` : ""}</td></tr>`;
+    }).join("");
+    show(`<table class="hof"><tr><th class="num">#</th><th>IMIĘ</th><th class="num">PUNKTY</th><th class="num">CZAS</th><th class="num">POZIOM</th><th></th></tr>${rows}</table>`);
+  }
+
+  // ---------- Update ----------
+  function updateCamera(dt, snap = false) {
+    const m = world.m, maxX = m.w * TILE - VIEW_W, maxY = m.h * TILE - VIEW_H;
+    const tx = Math.max(0, Math.min(maxX, player.x - VIEW_W / 2)), ty = Math.max(0, Math.min(maxY, player.y - 10 - VIEW_H / 2));
+    const k = snap ? 1 : Math.min(1, dt * 8);
+    cam.x += (tx - cam.x) * k; cam.y += (ty - cam.y) * k;
+  }
+  function update(dt) {
+    levelTime += dt; run.time += dt;
+    let dx = (held.right ? 1 : 0) - (held.left ? 1 : 0), dy = (held.down ? 1 : 0) - (held.up ? 1 : 0);
+    if (touchDir) [dx, dy] = DIR_VEC[touchDir];
+    player.moving = !!(dx || dy);
+    if (player.moving) {
+      const k = WALK_SPEED * dt / Math.hypot(dx, dy);
+      move(player, dx * k, dy * k, world.m);
+      player.facing = dx > 0 ? "E" : dx < 0 ? "W" : dy < 0 ? "N" : "S";
+      player.walkT += dt;
+    } else player.walkT = 0;
+    if (animal) {
+      animal.t += dt;
+      const d = Math.hypot(animal.x - player.x, animal.y - player.y);
+      if (!animal.shown && d < REVEAL) { animal.shown = true; sfx.show(); }
+      if (d < CATCH) foundAnimal();
+    } else if ((nextIn -= dt) <= 0) { if (levelFound >= world.def.animals) { levelComplete(); return; } spawnAnimal(); }
+    for (const p of particles) { p.vy += 120 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; }
+    particles = particles.filter(p => p.life > 0);
+    for (const p of popups) { p.y -= 16 * dt; p.life -= dt; }
+    popups = popups.filter(p => p.life > 0);
+    updateCamera(dt);
+  }
+
+  // ---------- Rendering ----------
+  function playerSprite() {
+    const f = player.moving ? Math.floor(player.walkT / 0.16) % 2 : -1;
+    if (player.facing === "S" || player.facing === "N") return sprites[player.facing][f + 1];
+    return sprites.E[f === 0 ? 1 : 0];
+  }
+  function render(now) {
+    const t = now / 1000;
+    px(ctx, 0, 0, VIEW_W, VIEW_H, "#000");
+    if (!world) return;
+    const cx = Math.round(cam.x), cy = Math.round(cam.y), m = world.m;
+    ctx.drawImage(world.ground, cx, cy, VIEW_W, VIEW_H, 0, 0, VIEW_W, VIEW_H);
+    // the water glitters
+    for (let ty = Math.floor(cy / TILE); ty <= Math.floor((cy + VIEW_H) / TILE); ty++)
+      for (let tx = Math.floor(cx / TILE); tx <= Math.floor((cx + VIEW_W) / TILE); tx++) {
+        if (at(m, tx, ty) !== "~" || (hash(tx, ty) + Math.floor(t * 1.5)) % 7) continue;
+        const k = hash(tx * 3, ty + Math.floor(t * 1.5));
+        px(ctx, tx * TILE - cx + 3 + k % 8, ty * TILE - cy + 4 + (k >>> 8) % 8, 3, 1, "#d8f0ff");
+      }
+    // everything that stands, from north to south
+    const list = world.things.filter(o => o.x < cx + VIEW_W && o.x + o.w > cx && o.y < cy + VIEW_H && o.y + o.h > cy);
+    list.push({ player: true, base: player.y });
+    if (animal && animal.shown) list.push({ animal: true, base: animal.y });
+    list.sort((a, b) => a.base - b.base);
+    for (const o of list) {
+      if (o.player) {
+        const spr = playerSprite(), sx = Math.round(player.x - cx) - 7, sy = Math.round(player.y - cy) - 23;
+        ctx.fillStyle = "rgba(0, 0, 0, .25)"; ellipse(ctx, sx + 7, sy + 23, 5, 2, "rgba(0, 0, 0, .25)");
+        if (player.facing === "W") { ctx.save(); ctx.translate(sx + spr.width, sy); ctx.scale(-1, 1); ctx.drawImage(spr, 0, 0); ctx.restore(); }
+        else ctx.drawImage(spr, sx, sy);
+      } else if (o.animal) {
+        const spr = ANIMALS[animal.kind].sprite, hop = Math.round(Math.abs(Math.sin(t * 6)) * 2);
+        const ax = Math.round(animal.x - cx - spr.width / 2), ay = Math.round(animal.y - cy - spr.height) - hop;
+        ellipse(ctx, Math.round(animal.x - cx), Math.round(animal.y - cy), 5, 2, "rgba(0, 0, 0, .25)");
+        ctx.drawImage(spr, ax, ay);
+        // a speech bubble with a heart
+        const bx = ax + spr.width - 2, by = ay - 10;
+        px(ctx, bx, by, 9, 8, "#ffffff"); px(ctx, bx + 1, by + 8, 2, 2, "#ffffff");
+        px(ctx, bx + 2, by + 2, 2, 2, "#ff4b6a"); px(ctx, bx + 5, by + 2, 2, 2, "#ff4b6a"); px(ctx, bx + 3, by + 4, 3, 1, "#ff4b6a"); px(ctx, bx + 4, by + 5, 1, 1, "#ff4b6a");
+      } else if (o.draw) drawExtra(o.draw, o.x - cx, o.y - cy);
+      else if (o.flip) { ctx.save(); ctx.translate(Math.round(o.x - cx), Math.round(o.y - cy) + o.h); ctx.scale(1, -1); ctx.drawImage(o.spr, 0, 0); ctx.restore(); }
+      else ctx.drawImage(o.spr, Math.round(o.x - cx), Math.round(o.y - cy));
+    }
+    for (const p of particles) px(ctx, Math.round(p.x - cx), Math.round(p.y - cy), 2, 2, p.color);
+    ctx.font = "900 10px Nunito, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+    for (const p of popups) {
+      const x = Math.round(p.x - cx), y = Math.round(p.y - cy);
+      ctx.globalAlpha = Math.min(1, p.life * 2);
+      ctx.fillStyle = "#000"; ctx.fillText(p.text, x + 1, y + 1);
+      ctx.fillStyle = "#ffd800"; ctx.fillText(p.text, x, y);
+      ctx.globalAlpha = 1;
+    }
+    // north is always up: a reminder in the corner
+    const nx = VIEW_W - 14, ny = 6;
+    px(ctx, nx - 9, ny - 2, 18, 26, "rgba(0, 0, 0, .45)");
+    ctx.fillStyle = "#ff7a6a";
+    ctx.beginPath(); ctx.moveTo(nx, ny); ctx.lineTo(nx + 5, ny + 9); ctx.lineTo(nx - 5, ny + 9); ctx.fill();
+    ctx.fillStyle = "#ffffff"; ctx.font = "900 10px Nunito, sans-serif"; ctx.fillText("N", nx, ny + 22);
+  }
+
+  // ---------- Input ----------
+  const KEYMAP = { ArrowLeft: "left", KeyA: "left", ArrowRight: "right", KeyD: "right", ArrowUp: "up", KeyW: "up", ArrowDown: "down", KeyS: "down" };
+  function toggleSound() {
+    soundOn = !soundOn;
+    try { localStorage.setItem("zwierzatka-sound", soundOn ? "on" : "off"); } catch (e) { /* ignore */ }
+    $("btnSound").textContent = soundOn ? "DŹWIĘK: WŁ." : "DŹWIĘK: WYŁ.";
+  }
+  window.addEventListener("keydown", e => {
+    if (state === "entry" || state === "hof") return;
+    if (e.code === "KeyM" && state !== "creator") { toggleSound(); return; }
+    if (state === "menu") {
+      if (e.code === "Enter" && document.activeElement === document.body) { e.preventDefault(); startRun(menuLevel); }
+      return;
+    }
+    if (state === "intro" || state === "paused" || state === "done" || state === "over") {
+      if (e.code === "Enter" || e.code === "Space") { e.preventDefault(); if (!e.repeat && overlayAction) overlayAction(); }
+      else if (state === "paused" && (e.code === "KeyP" || e.code === "Escape")) play();
+      return;
+    }
+    if (state !== "playing") return;
+    if (e.code === "KeyP" || e.code === "Escape") { pause(); return; }
+    const action = KEYMAP[e.code];
+    if (!action) return;
+    e.preventDefault();
+    held[action] = true;
+  });
+  window.addEventListener("keyup", e => { const a = KEYMAP[e.code]; if (a) held[a] = false; });
+  window.addEventListener("blur", () => { Object.keys(held).forEach(k => { held[k] = false; }); touchDir = null; });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) pause(); });
+  document.querySelectorAll(".dpad [data-dir]").forEach(b => {
+    const down = e => { e.preventDefault(); b.classList.add("on"); if (state === "playing") touchDir = b.dataset.dir; };
+    const up = e => { e.preventDefault(); b.classList.remove("on"); if (touchDir === b.dataset.dir) touchDir = null; };
+    b.addEventListener("pointerdown", down);
+    ["pointerup", "pointercancel", "pointerleave"].forEach(ev => b.addEventListener(ev, up));
+    b.addEventListener("contextmenu", e => e.preventDefault());
+  });
+  $("btnPause").addEventListener("click", pause);
+  $("btnSound").addEventListener("click", toggleSound);
+  $("btnSound").textContent = soundOn ? "DŹWIĘK: WŁ." : "DŹWIĘK: WYŁ.";
+
+  // ---------- Menu ----------
+  function buildMenu() {
+    const box = $("levelBtns");
+    box.innerHTML = "";
+    LEVELS.forEach((lv, i) => {
+      const b = document.createElement("button");
+      b.className = "opt" + (i === menuLevel ? " sel" : "");
+      b.innerHTML = `<b>${i + 1}</b>${escapeHtml(lv.name)}<small>${escapeHtml(lv.about)} · ${lv.animals} ZWIERZĄTEK</small>`;
+      b.addEventListener("click", () => { menuLevel = i; buildMenu(); });
+      box.appendChild(b);
+    });
+    // the eight directions, laid out like a compass
+    const dirOf = Object.fromEntries(DIRS.map(d => [d.code, d]));
+    $("legend").innerHTML = ["NW", "N", "NE", "W", "", "E", "SW", "S", "SE"].map(c => c
+      ? `<div><b>${c}</b>${dirOf[c].name}</div>` : `<div class="mid">GÓRA = PÓŁNOC</div>`).join("");
+  }
+  $("btnPlay").addEventListener("click", () => startRun(menuLevel));
+  $("btnHofMenu").addEventListener("click", () => { result = null; showHallOfFame(null, false); });
+  $("btnCreator").addEventListener("click", () => { state = "creator"; showScreen("creator"); buildCreator(); });
+  $("btnDone").addEventListener("click", () => { saveLook(); sprites = characterSprites(look); state = "menu"; showScreen("menu"); buildMenu(); });
+  $("btnRandom").addEventListener("click", () => {
+    const pick = arr => Math.floor(Math.random() * arr.length);
+    look = { gender: Math.random() < 0.5 ? "boy" : "girl", hair: Object.keys(HAIR)[pick(Object.keys(HAIR))],
+             hairColor: pick(HAIR_COLORS), shirt: pick(SHIRT_COLORS), pants: pick(PANTS_COLORS) };
+    buildCreator();
+  });
+
+  // ---------- Character creator ----------
+  function drawSpriteTo(cv, spr) { const c = cv.getContext("2d"); c.clearRect(0, 0, cv.width, cv.height); c.drawImage(spr, 0, 0); }
+  function buildCreator() {
+    sprites = characterSprites(look);
+    const choice = (box, items, isSel, onPick) => {
+      box.innerHTML = "";
+      items.forEach(([value, label, lk]) => {
+        const b = document.createElement("button");
+        b.className = "opt" + (isSel(value) ? " sel" : "");
+        const cv = newCanvas(14, 24);
+        drawSpriteTo(cv, characterSprites(lk).S[0]);
+        b.appendChild(cv);
+        b.appendChild(document.createTextNode(label));
+        b.addEventListener("click", () => { onPick(value); buildCreator(); });
+        box.appendChild(b);
+      });
+    };
+    choice($("optGender"), [["boy", "CHŁOPIEC", { ...look, gender: "boy" }], ["girl", "DZIEWCZYNKA", { ...look, gender: "girl" }]],
+      v => look.gender === v, v => { look.gender = v; });
+    choice($("optHair"), Object.entries(HAIR).map(([k, h]) => [k, h.name, { ...look, hair: k }]), v => look.hair === v, v => { look.hair = v; });
+    const swatches = (box, colors, field) => {
+      box.innerHTML = "";
+      colors.forEach(([name, hex], i) => {
+        const b = document.createElement("button");
+        b.className = "swatch" + (look[field] === i ? " sel" : "");
+        b.style.background = hex; b.title = name; b.setAttribute("aria-label", name);
+        b.addEventListener("click", () => { look[field] = i; buildCreator(); });
+        box.appendChild(b);
+      });
+    };
+    swatches($("optHairColor"), HAIR_COLORS, "hairColor");
+    swatches($("optShirt"), SHIRT_COLORS, "shirt");
+    swatches($("optPants"), PANTS_COLORS, "pants");
+  }
+  // the character walking in the menu and the creator: towards the camera, to the side, away, to the other side
+  function animatePreviews(t) {
+    const side = Math.floor(t / 2200) % 4, step = Math.floor(t / 220) % 2;
+    const spr = side === 0 ? sprites.S[step + 1] : side === 2 ? sprites.N[step + 1] : sprites.E[step];
+    const cv = state === "creator" ? $("preview") : $("menuHero"), c = cv.getContext("2d");
+    c.clearRect(0, 0, cv.width, cv.height);
+    if (side === 3) { c.save(); c.translate(spr.width, 0); c.scale(-1, 1); c.drawImage(spr, 0, 0); c.restore(); } else c.drawImage(spr, 0, 0);
+  }
+
+  // ---------- Main loop ----------
+  let last = performance.now(), acc = 0;
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (state === "playing") {
+      acc += dt;
+      while (acc >= STEP && state === "playing") { update(STEP); acc -= STEP; }
+      updateHud(); updateDirections(dt);
+    } else acc = 0;
+    if (toastTimer > 0 && state === "playing") { toastTimer -= dt; toastEl.classList.toggle("hidden", toastTimer <= 0); }
+    if (state === "menu" || state === "creator") animatePreviews(now);
+    else render(now);
+    requestAnimationFrame(frame);
+  }
+
+  // For tests: the maps and the walking, so a script can check every level.
+  window.ZW = {
+    LEVELS, TILE, ANIMALS, loadWorld, characterSprites, HAIR, backView, HEAD, BODY, GIRL, reachable, at, blocked, move, sectorOf, DIRS,
+    get state() { return state; }, get world() { return world; }, get player() { return player; }, get animal() { return animal; },
+    get run() { return run; }, spawnAnimal, foundAnimal, levelComplete,
+  };
+
+  buildMenu();
+  showScreen("menu");
+  if (document.fonts) document.fonts.ready.then(() => { dirShown = ""; });
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

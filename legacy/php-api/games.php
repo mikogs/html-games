@@ -15,6 +15,11 @@ return [
         'title' => 'Tajne Laboratorium',
         'categories' => ['add', 'sub', 'mul', 'div', 'all'],
     ],
+    // the same as Tajne Laboratorium, in lists of its own
+    'laboratorium3d' => [
+        'title' => 'Tajne Laboratorium 3D',
+        'categories' => ['add', 'sub', 'mul', 'div', 'all'],
+    ],
     // one list per domain and kind of task (only maths so far), and one per set of questions
     // (set-<slug>); score = points (10 per right answer), time = seconds of the game,
     // level = the level played (results up to level * 10; none for a set of questions)
@@ -22,6 +27,12 @@ return [
         'title' => 'Psia Szkoła',
         'categories' => ['math-add', 'math-sub', 'math-mul', 'math-div', 'math-all'],
         'question_sets' => true,
+    ],
+    // score = points (100 per animal found, a bonus for finding it fast, 200 per level), time = seconds of the game,
+    // level = the last level played (1-4), completed = all four levels done
+    'zwierzatka' => [
+        'title' => 'Zagubione Zwierzątka',
+        'categories' => [],
     ],
     // score = metres driven (the whole route when finished), time = seconds to get there
     'szosa' => [
