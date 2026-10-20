@@ -183,6 +183,9 @@
     #nameInput { font-size: 20px; }
   }
 </style>
+<!-- Sets GRY_ORIGIN, the API's address when this page is opened from disk
+     (file://) - written per machine by 065_gry.yml. -->
+<script src="../lib/origin.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -341,7 +344,7 @@
 
   // ---------- Hall of fame (shared by everyone - the gry API, /api/sala_slawy/liczozerca/) ----------
   // Opened straight from a file there's no /api next to the page, so it goes to the server by name.
-  const HOF_URL = (location.protocol === "file:" ? "https://gry.billy.local" : "") + "/api/sala_slawy/liczozerca/";
+  const HOF_URL = (location.protocol === "file:" ? (window.GRY_ORIGIN || "") : "") + "/api/sala_slawy/liczozerca/";
   const HOF_SIZE = 10;
   let hof = null;          // { add: [...], sub: [...], ... } as last fetched; null until then
   let hofRequest = 0;      // so a slow response can't redraw a screen the player already left

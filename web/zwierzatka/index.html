@@ -165,6 +165,9 @@
     #dirIcon { width: 32px; height: 32px; }
   }
 </style>
+<!-- Sets GRY_ORIGIN, the API's address when this page is opened from disk
+     (file://) - written per machine by 065_gry.yml. -->
+<script src="../lib/origin.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -1216,7 +1219,7 @@
 
   // ---------- Hall of fame (shared by everyone - the gry API, /api/sala_slawy/zwierzatka/) ----------
   // score = points, time = whole seconds of the game, level = the last level played (1-4), completed = all four levels done.
-  const HOF_URL = (location.protocol === "file:" ? "https://gry.billy.local" : "") + "/api/sala_slawy/zwierzatka/";
+  const HOF_URL = (location.protocol === "file:" ? (window.GRY_ORIGIN || "") : "") + "/api/sala_slawy/zwierzatka/";
   const HOF_SIZE = 10;
   let hof = null, hofRequest = 0, lastName = "";
   try { lastName = localStorage.getItem("zwierzatka-name") || ""; } catch (e) { /* ignore */ }

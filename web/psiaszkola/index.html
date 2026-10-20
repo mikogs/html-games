@@ -139,6 +139,9 @@
     table.hof .name { max-width: 110px; }
   }
 </style>
+<!-- Sets GRY_ORIGIN, the API's address when this page is opened from disk
+     (file://) - written per machine by 065_gry.yml. -->
+<script src="../lib/origin.js"></script>
 </head>
 <body>
 <div class="wrap" id="wrap">
@@ -265,7 +268,7 @@
   // ---------- Sets of questions written by hand (the gry API, /api/zadania/) ----------
   // Each one becomes one more kind of task of its domain, "set:<slug>". Its questions come in a random order,
   // all of them before any comes again.
-  const SETS_URL = (location.protocol === "file:" ? "https://gry.billy.local" : "") + "/api/zadania/";
+  const SETS_URL = (location.protocol === "file:" ? (window.GRY_ORIGIN || "") : "") + "/api/zadania/";
   let setsState = "loading";              // loading | ok | error
   const setQuestions = {};                // slug -> the questions, once fetched
   const setFall = {};                     // slug -> seconds a bone falls through the empty well (the set's own speed), if it has one
@@ -946,7 +949,7 @@
   // One list per domain and kind of task ("math-add", ...); score = points, time = whole seconds of the game,
   // level = the level played (1-10). Opened straight from a file there's no /api next to the page,
   // so it goes to the server by name.
-  const HOF_URL = (location.protocol === "file:" ? "https://gry.billy.local" : "") + "/api/sala_slawy/psiaszkola/";
+  const HOF_URL = (location.protocol === "file:" ? (window.GRY_ORIGIN || "") : "") + "/api/sala_slawy/psiaszkola/";
   const HOF_SIZE = 10;
   // a set of questions has its own list, "set-<slug>"
   const catId = (domain, kind) => isSet(kind) ? "set-" + kind.slice(4) : `${domain}-${kind}`;

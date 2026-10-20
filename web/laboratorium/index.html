@@ -269,6 +269,9 @@
     .touch button { width: 58px; font-size: 13px; }
   }
 </style>
+<!-- Sets GRY_ORIGIN, the API's address when this page is opened from disk
+     (file://) - written per machine by 065_gry.yml. -->
+<script src="../lib/origin.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -3351,7 +3354,7 @@
   // One list per kind of task (as chosen in the menu); score = points, time = whole seconds of the run,
   // level = the task difficulty (1-10), completed = escaped from the last level.
   // Opened straight from a file there's no /api next to the page, so it goes to the server by name.
-  const HOF_URL = (location.protocol === "file:" ? "https://gry.billy.local" : "") + "/api/sala_slawy/laboratorium/";
+  const HOF_URL = (location.protocol === "file:" ? (window.GRY_ORIGIN || "") : "") + "/api/sala_slawy/laboratorium/";
   const HOF_SIZE = 10;
   let hof = null;                          // { add: [...], ... } as last fetched; null until then
   let hofRequest = 0;                      // so a slow response can't redraw a screen the player already left

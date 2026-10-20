@@ -279,6 +279,9 @@
   .touch .pad.move .row2 { grid-row: 2; }
   .touch .pad.acts { display: grid; grid-template-columns: repeat(2, auto); gap: 6px; align-content: end; }
 </style>
+<!-- Sets GRY_ORIGIN, the API's address when this page is opened from disk
+     (file://) - written per machine by 065_gry.yml. -->
+<script src="../lib/origin.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -2162,7 +2165,7 @@ import * as THREE from "../lib/three/three.module.min.js";
   // ---------- Hall of fame (shared by everyone - the gry API, /api/sala_slawy/laboratorium3d/) ----------
   // One list per kind of task (as chosen in the menu); score = points, time = whole seconds of the run,
   // level = the task difficulty (1-10), completed = escaped from the last level.
-  const HOF_URL = (location.protocol === "file:" ? "https://gry.billy.local" : "") + "/api/sala_slawy/laboratorium3d/";
+  const HOF_URL = (location.protocol === "file:" ? (window.GRY_ORIGIN || "") : "") + "/api/sala_slawy/laboratorium3d/";
   const HOF_SIZE = 10;
   let hof = null;
   let hofRequest = 0;

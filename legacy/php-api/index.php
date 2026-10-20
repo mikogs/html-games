@@ -1,5 +1,5 @@
 <?php
-// Front controller for https://gry.billy.local/api/ - nginx sends every
+// Front controller for https://gry.<host_domain>/api/ - nginx sends every
 // request under /api/ here, so nothing else in this directory is ever run
 // as PHP from the web.
 //
@@ -35,7 +35,7 @@ try {
 
     match (true) {
         $parts === [] => only_methods($method, ['GET']) ?? json_response([
-            'name' => 'gry.billy.local api',
+            'name' => ($_SERVER['HTTP_HOST'] ?? 'gry') . ' api',
             'endpoints' => ['/api/sala_slawy/', '/api/sala_slawy/{game}/', '/api/zadania/', '/api/zadania/{set}/'],
         ]),
         $parts === ['sala_slawy'] => only_methods($method, ['GET']) ?? json_response([
