@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tajne Laboratorium</title>
+<title data-en="Secret Lab">Tajne Laboratorium</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap" rel="stylesheet">
 <style>
@@ -272,63 +272,72 @@
 <!-- Sets GRY_ORIGIN, the API's address when this page is opened from disk
      (file://) - written per machine by 065_gry.yml. -->
 <script src="../lib/origin.js"></script>
+<!-- The language of the page: Polish, or English after a click on its flag. -->
+<script src="../lib/lang.js"></script>
 </head>
 <body>
 <div class="wrap">
-  <h1>TAJNE LABORATORIUM</h1>
+  <h1 data-en="SECRET LAB">TAJNE LABORATORIUM</h1>
 
   <section class="screen frame" id="menu">
     <div class="menu-top">
       <canvas class="hero" id="menuHero" width="14" height="24"></canvas>
-      <p>WŁAMUJESZ SIĘ DO <b>TAJNEGO LABORATORIUM</b>! ZBIERAJ <b>KOLOROWE KLUCZE</b> - OTWIERAJĄ DRZWI W TYM SAMYM KOLORZE. ZA DREWNIANYMI DRZWIAMI SĄ <b>POKOJE</b> - WCHODZISZ I WYCHODZISZ KLAWISZEM E. ZBIERAJ <b>DIAMENTY</b>, <b>DYSKIETKI</b>, <b>PŁYTY CD</b> I <b>LITERY</b> SŁOWA NAUKA ZA PUNKTY. DRZWI <b>NA PIN</b> OTWIERASZ, ROZWIĄZUJĄC 4 ZADANIA. <b>WINDY</b> WŁĄCZASZ PRZEŁĄCZNIKIEM NA ŚCIANIE. UWAŻAJ NA <b>MUTANTY</b>, KAPIĄCE RURY I TOKSYCZNE KAŁUŻE - DOTKNIĘCIE ZABIERA ŻYCIE. MUTANTY MOŻESZ PRZESKOCZYĆ ALBO ZASTRZELIĆ Z <b>PISTOLETU</b> (KAŻDY ZNALEZIONY DAJE 5 NABOJÓW). PODCHODŹ DO <b>KOMPUTERÓW</b> I ROZWIĄZUJ ZADANIA. GDY ROZWIĄŻESZ WSZYSTKIE, OTWORZY SIĘ <b>WYJŚCIE</b>.</p>
+      <!-- in each language: the script shows the one of the page -->
+      <p data-lang="en" hidden>YOU BREAK INTO THE <b>SECRET LAB</b>! COLLECT <b>COLOURED KEYS</b> - THEY OPEN THE DOORS OF THE SAME COLOUR. BEHIND THE WOODEN DOORS ARE <b>ROOMS</b> - YOU GO IN AND OUT WITH THE E KEY. COLLECT <b>DIAMONDS</b>, <b>FLOPPY DISKS</b>, <b>CDS</b> AND THE <b>LETTERS</b> OF THE WORD NAUKA (SCIENCE) FOR POINTS. YOU OPEN <b>PIN</b> DOORS BY SOLVING 4 TASKS. YOU TURN ON <b>LIFTS</b> WITH A SWITCH ON THE WALL. WATCH OUT FOR <b>MUTANTS</b>, LEAKING PIPES AND TOXIC PUDDLES - TOUCHING THEM COSTS A LIFE. YOU CAN JUMP OVER MUTANTS OR SHOOT THEM WITH A <b>PISTOL</b> (EVERY ONE YOU FIND GIVES 5 BULLETS). GO UP TO THE <b>COMPUTERS</b> AND SOLVE THE TASKS. WHEN YOU HAVE SOLVED THEM ALL, THE <b>EXIT</b> OPENS.</p>
+      <p data-lang="pl">WŁAMUJESZ SIĘ DO <b>TAJNEGO LABORATORIUM</b>! ZBIERAJ <b>KOLOROWE KLUCZE</b> - OTWIERAJĄ DRZWI W TYM SAMYM KOLORZE. ZA DREWNIANYMI DRZWIAMI SĄ <b>POKOJE</b> - WCHODZISZ I WYCHODZISZ KLAWISZEM E. ZBIERAJ <b>DIAMENTY</b>, <b>DYSKIETKI</b>, <b>PŁYTY CD</b> I <b>LITERY</b> SŁOWA NAUKA ZA PUNKTY. DRZWI <b>NA PIN</b> OTWIERASZ, ROZWIĄZUJĄC 4 ZADANIA. <b>WINDY</b> WŁĄCZASZ PRZEŁĄCZNIKIEM NA ŚCIANIE. UWAŻAJ NA <b>MUTANTY</b>, KAPIĄCE RURY I TOKSYCZNE KAŁUŻE - DOTKNIĘCIE ZABIERA ŻYCIE. MUTANTY MOŻESZ PRZESKOCZYĆ ALBO ZASTRZELIĆ Z <b>PISTOLETU</b> (KAŻDY ZNALEZIONY DAJE 5 NABOJÓW). PODCHODŹ DO <b>KOMPUTERÓW</b> I ROZWIĄZUJ ZADANIA. GDY ROZWIĄŻESZ WSZYSTKIE, OTWORZY SIĘ <b>WYJŚCIE</b>.</p>
     </div>
-    <div class="menu-title">WYBIERZ POZIOM</div>
+    <div class="menu-title" data-en="PICK A LEVEL">WYBIERZ POZIOM</div>
     <div class="levels" id="levelBtns"></div>
-    <div class="menu-title">ZADANIA NA KOMPUTERACH</div>
+    <div class="menu-title" data-en="TASKS ON THE COMPUTERS">ZADANIA NA KOMPUTERACH</div>
     <div class="ops" id="opBtns"></div>
-    <div class="menu-title">TRUDNOŚĆ ZADAŃ</div>
+    <div class="menu-title" data-en="DIFFICULTY OF THE TASKS">TRUDNOŚĆ ZADAŃ</div>
     <div class="ranges" id="rangeBtns"></div>
     <div class="range-hint" id="rangeHint"></div>
     <div class="btns">
-      <button class="main-btn" id="btnPlay">GRAJ</button>
-      <button class="main-btn alt" id="btnCreator">ZMIEŃ POSTAĆ</button>
-      <button class="main-btn alt" id="btnHofMenu">SALA SŁAWY</button>
+      <button class="main-btn" id="btnPlay" data-en="PLAY">GRAJ</button>
+      <button class="main-btn alt" id="btnCreator" data-en="CHANGE CHARACTER">ZMIEŃ POSTAĆ</button>
+      <button class="main-btn alt" id="btnHofMenu" data-en="HALL OF FAME">SALA SŁAWY</button>
     </div>
-    <div class="menu-hint">
+    <div data-gry-flags></div>
+    <div class="menu-hint" data-lang="pl">
       <b>STRZAŁKI / A D</b> CHODZENIE &nbsp; <b>STRZAŁKA W GÓRĘ / W</b> SKOK &nbsp; <b>SPACJA</b> STRZAŁ<br>
       <b>E / STRZAŁKA W DÓŁ / ENTER</b> UŻYJ (KOMPUTER, PIN, PRZEŁĄCZNIK) &nbsp; <b>P</b> PAUZA &nbsp; <b>M</b> DŹWIĘK
+    </div>
+    <div class="menu-hint" data-lang="en" hidden>
+      <b>ARROWS / A D</b> WALK &nbsp; <b>UP ARROW / W</b> JUMP &nbsp; <b>SPACE</b> SHOOT<br>
+      <b>E / DOWN ARROW / ENTER</b> USE (COMPUTER, PIN, SWITCH) &nbsp; <b>P</b> PAUSE &nbsp; <b>M</b> SOUND
     </div>
   </section>
 
   <section class="screen frame hidden" id="hofScreen"></section>
 
   <section class="screen frame hidden" id="creator">
-    <div class="menu-title">STWÓRZ SWOJĄ POSTAĆ</div>
+    <div class="menu-title" data-en="MAKE YOUR CHARACTER">STWÓRZ SWOJĄ POSTAĆ</div>
     <div class="creator">
       <div class="preview"><canvas id="preview" width="14" height="24"></canvas></div>
       <div class="opts">
-        <div><span class="label">POSTAĆ</span><div class="choices" id="optGender"></div></div>
-        <div><span class="label">FRYZURA</span><div class="choices" id="optHair"></div></div>
-        <div><span class="label">KOLOR WŁOSÓW</span><div class="swatches" id="optHairColor"></div></div>
-        <div><span class="label">KOLOR KOSZULKI</span><div class="swatches" id="optShirt"></div></div>
-        <div><span class="label">KOLOR SPODNI</span><div class="swatches" id="optPants"></div></div>
+        <div><span class="label" data-en="CHARACTER">POSTAĆ</span><div class="choices" id="optGender"></div></div>
+        <div><span class="label" data-en="HAIRSTYLE">FRYZURA</span><div class="choices" id="optHair"></div></div>
+        <div><span class="label" data-en="HAIR COLOUR">KOLOR WŁOSÓW</span><div class="swatches" id="optHairColor"></div></div>
+        <div><span class="label" data-en="SHIRT COLOUR">KOLOR KOSZULKI</span><div class="swatches" id="optShirt"></div></div>
+        <div><span class="label" data-en="TROUSERS COLOUR">KOLOR SPODNI</span><div class="swatches" id="optPants"></div></div>
       </div>
     </div>
     <div class="btns">
-      <button class="main-btn alt" id="btnRandom">LOSUJ</button>
-      <button class="main-btn" id="btnDone">GOTOWE</button>
+      <button class="main-btn alt" id="btnRandom" data-en="RANDOM">LOSUJ</button>
+      <button class="main-btn" id="btnDone" data-en="DONE">GOTOWE</button>
     </div>
   </section>
 
   <div class="hud frame hidden" id="hud">
-    <div><span class="label">POZIOM</span><span class="val" id="hudLevel">1</span></div>
-    <div><span class="label">CZAS</span><span class="val" id="hudTime">00:00</span></div>
-    <div><span class="label">ZADANIA</span><span class="val" id="hudTasks">0/0</span></div>
-    <div><span class="label">KLUCZE</span><div id="hudKeys"></div></div>
-    <div><span class="label">ŻYCIA</span><div id="hudLives"></div></div>
-    <div><span class="label">NABOJE</span><div id="hudAmmo"></div></div>
-    <div><span class="label">PUNKTY</span><span class="val" id="hudScore">0</span></div>
-    <div><span class="label">LITERY</span><div id="hudLetters"></div></div>
+    <div><span class="label" data-en="LEVEL">POZIOM</span><span class="val" id="hudLevel">1</span></div>
+    <div><span class="label" data-en="TIME">CZAS</span><span class="val" id="hudTime">00:00</span></div>
+    <div><span class="label" data-en="TASKS">ZADANIA</span><span class="val" id="hudTasks">0/0</span></div>
+    <div><span class="label" data-en="KEYS">KLUCZE</span><div id="hudKeys"></div></div>
+    <div><span class="label" data-en="LIVES">ŻYCIA</span><div id="hudLives"></div></div>
+    <div><span class="label" data-en="AMMO">NABOJE</span><div id="hudAmmo"></div></div>
+    <div><span class="label" data-en="SCORE">PUNKTY</span><span class="val" id="hudScore">0</span></div>
+    <div><span class="label" data-en="LETTERS">LITERY</span><div id="hudLetters"></div></div>
   </div>
   <div class="board frame hidden" id="board">
     <canvas id="game" width="320" height="192"></canvas>
@@ -337,43 +346,47 @@
   </div>
   <div class="touch" id="touch">
     <div class="pad">
-      <button data-hold="left" aria-label="W lewo"><svg viewBox="0 0 10 10"><path d="M7 1v8L2 5z"/></svg></button>
-      <button data-hold="right" aria-label="W prawo"><svg viewBox="0 0 10 10"><path d="M3 1v8l5-4z"/></svg></button>
+      <button data-hold="left" aria-label="W lewo" data-en-aria-label="Left"><svg viewBox="0 0 10 10"><path d="M7 1v8L2 5z"/></svg></button>
+      <button data-hold="right" aria-label="W prawo" data-en-aria-label="Right"><svg viewBox="0 0 10 10"><path d="M3 1v8l5-4z"/></svg></button>
     </div>
     <div class="pad">
-      <button data-hold="fire" id="btnFire" class="hidden">STRZAŁ</button>
-      <button data-hold="use">UŻYJ</button>
-      <button data-hold="jump">SKOK</button>
+      <button data-hold="fire" id="btnFire" class="hidden" data-en="FIRE">STRZAŁ</button>
+      <button data-hold="use" data-en="USE">UŻYJ</button>
+      <button data-hold="jump" data-en="JUMP">SKOK</button>
     </div>
   </div>
   <div class="below hidden" id="below">
-    <div class="help"><span class="keys-only"><b>STRZAŁKI / A D</b> CHODZENIE · <b>GÓRA / W</b> SKOK · <b>SPACJA</b> STRZAŁ · <b>E / DÓŁ / ENTER</b> UŻYJ · <b>P</b> PAUZA · <b>M</b> DŹWIĘK</span></div>
+    <div class="help"><span class="keys-only" data-lang="pl"><b>STRZAŁKI / A D</b> CHODZENIE · <b>GÓRA / W</b> SKOK · <b>SPACJA</b> STRZAŁ · <b>E / DÓŁ / ENTER</b> UŻYJ · <b>P</b> PAUZA · <b>M</b> DŹWIĘK</span><span class="keys-only" data-lang="en" hidden><b>ARROWS / A D</b> WALK · <b>UP / W</b> JUMP · <b>SPACE</b> SHOOT · <b>E / DOWN / ENTER</b> USE · <b>P</b> PAUSE · <b>M</b> SOUND</span></div>
     <div class="row">
-      <button class="btn-small" id="btnPause">PAUZA</button>
+      <button class="btn-small" id="btnPause" data-en="PAUSE">PAUZA</button>
       <button class="btn-small" id="btnSound">DŹWIĘK: WŁ.</button>
     </div>
   </div>
 </div>
 
-<div class="modal hidden" id="terminal" role="dialog" aria-modal="true" aria-label="Komputer">
+<div class="modal hidden" id="terminal" role="dialog" aria-modal="true" aria-label="Komputer" data-en-aria-label="Computer">
   <div class="monitor" id="monitor">
     <div class="crt">
       <div class="t-head"><span id="tHead">LAB-OS 3.1</span><span id="tNum">TERMINAL 1/1</span></div>
-      <div class="t-line" id="tLine1">&gt; SYSTEM ZABLOKOWANY.</div>
-      <div class="t-line" id="tLine2">&gt; PODAJ WYNIK, ABY GO ODBLOKOWAĆ:</div>
+      <div class="t-line" id="tLine1" data-en="&gt; SYSTEM LOCKED.">&gt; SYSTEM ZABLOKOWANY.</div>
+      <div class="t-line" id="tLine2" data-en="&gt; ENTER THE ANSWER TO UNLOCK IT:">&gt; PODAJ WYNIK, ABY GO ODBLOKOWAĆ:</div>
       <div class="t-pin hidden" id="tPin"></div>
       <div class="t-q" id="tQuestion">?</div>
-      <div class="t-in">&gt; <input id="tInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" aria-label="Wynik"></div>
+      <div class="t-in">&gt; <input id="tInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" aria-label="Wynik" data-en-aria-label="Answer"></div>
       <div class="t-msg" id="tMsg">&nbsp;</div>
       <div class="keypad" id="keypad"></div>
     </div>
-    <div class="bezel"><span><span class="led"></span> BILLY-TRON 486</span><button id="tClose">ZAMKNIJ (ESC)</button></div>
+    <div class="bezel"><span><span class="led"></span> BILLY-TRON 486</span><button id="tClose" data-en="CLOSE (ESC)">ZAMKNIJ (ESC)</button></div>
   </div>
 </div>
 
 <script>
 (() => {
   "use strict";
+
+  // ---------- Language (lib/lang.js: Polish unless the English flag was picked) ----------
+  const LANG = window.GryLang ? window.GryLang.lang : "pl";
+  const L = (pl, en) => LANG === "en" ? en : pl;
 
   // ---------- Settings ----------
   const TILE = 16;
@@ -448,7 +461,7 @@
   // (1 point), q a small dinosaur (walks like a mutant).
   // Every map is at least 20 x 12.
   const LEVELS = [
-    { name: "WEJŚCIE", letters: [0], rooms: [
+    { name: L("WEJŚCIE", "THE ENTRANCE"), letters: [0], rooms: [
       { tint: "gold", map: [
         "####################",
         "#...l.........l....#",
@@ -492,7 +505,7 @@
       "#.D..%.P....fC..Fx..***.t..**.h.~c.R.u.CsN.KO.*.c~.H..**.C.f**D.O..h**..c~.Bt.WCss*.E",
       "#####################################################################################",
     ] },
-    { name: "MAGAZYN", letters: [1], rooms: [
+    { name: L("MAGAZYN", "THE WAREHOUSE"), letters: [1], rooms: [
       { tint: "green", map: [
         "####################",
         "#....l.......l.....#",
@@ -529,9 +542,9 @@
       "######.P.....C.....xx....**....B...u...C..N...t***..#......**.c~.....C.......u.......H.......N.s***.E",
       "#####################################################################################################",
     ] },
-    { name: "REAKTOR", letters: [2],
+    { name: L("REAKTOR", "THE REACTOR"), letters: [2],
       // behind the cracked wall right of the green key: a teleport to the prehistoric jungle
-      secret: { name: "PREHISTORYCZNA DŻUNGLA", map: [
+      secret: { name: L("PREHISTORYCZNA DŻUNGLA", "THE PREHISTORIC JUNGLE"), map: [
         "#..................................................................................................#",
         "#..................................................................................................#",
         "#.......................................................$$$$.......................................#",
@@ -602,7 +615,7 @@
       "######.P..*.c~...C.....u.....G.....xx..s.....C..*.N...u.*s...W....c~.f...C...........S.MMM.........d.....*.Y...t....E",
       "#####################################################################################################################",
     ] },
-    { name: "SERWEROWNIA", letters: [3, 4],
+    { name: L("SERWEROWNIA", "THE SERVER ROOM"), letters: [3, 4],
       boss: { kind: "prof", map: [
         "####################",
         "#..l......l......l.#",
@@ -674,7 +687,7 @@
       "#....s..C.....*.d...........*.D.P......*xx......Y...h...C...N.......c~....C.......h..*....S.MMM.........d......c~.......N..*s..E",
       "################################################################################################################################",
     ] },
-    { name: "KANAŁY", theme: "toxic", rooms: [
+    { name: L("KANAŁY", "THE SEWERS"), theme: "toxic", rooms: [
       { tint: "ice", map: [
         "####################",
         "#....l........l....#",
@@ -730,7 +743,7 @@
       "#..P.H.v...c~.C..***..o....n..e...F..S..MMM.......R...v...a...o...K....w...C...*.*.*.e..t.O...m......n.#",
       "########################################################################################################",
     ] },
-    { name: "SZKLARNIA", theme: "toxic", rooms: [
+    { name: L("SZKLARNIA", "THE GREENHOUSE"), theme: "toxic", rooms: [
       { tint: "ice", map: [
         "####################",
         "#....l........l....#",
@@ -786,7 +799,7 @@
       "#.......m...c~.o..*.*.*..a.n......F.....D...........s.....v...MMMeS...t.........B.n...****.....C........O.n....E",
       "################################################################################################################",
     ] },
-    { name: "WYLĘGARNIA", theme: "toxic", rooms: [
+    { name: L("WYLĘGARNIA", "THE HATCHERY"), theme: "toxic", rooms: [
       { tint: "blue", map: [
         "####################",
         "#...l........l.....#",
@@ -842,7 +855,7 @@
       "#****%..P...o....S..MMM..C....***...n...Y.n..F....a....n....C.........s..........v........e..***....D.......o......y...#",
       "########################################################################################################################",
     ] },
-    { name: "SKAŻENIE", theme: "toxic",
+    { name: L("SKAŻENIE", "CONTAMINATION"), theme: "toxic",
       boss: { kind: "lizard", map: [
         "####################",
         "#.l...j......j...l.#",
@@ -916,19 +929,19 @@
   ];
 
   const KEY_INFO = {
-    r: { name: "CZERWONY", doors: "CZERWONE", main: "#e83b3b", light: "#ff9a8a", dark: "#7c1414" },
-    b: { name: "NIEBIESKI", doors: "NIEBIESKIE", main: "#3b74f0", light: "#9ec0ff", dark: "#142a7c" },
-    g: { name: "ZIELONY", doors: "ZIELONE", main: "#2fc45a", light: "#9dffb8", dark: "#0e5a24" },
-    y: { name: "ŻÓŁTY", doors: "ŻÓŁTE", main: "#f2c81a", light: "#fff2a0", dark: "#7a5a00" },
+    r: { name: L("CZERWONY", "RED"), doors: L("CZERWONE", "RED"), main: "#e83b3b", light: "#ff9a8a", dark: "#7c1414" },
+    b: { name: L("NIEBIESKI", "BLUE"), doors: L("NIEBIESKIE", "BLUE"), main: "#3b74f0", light: "#9ec0ff", dark: "#142a7c" },
+    g: { name: L("ZIELONY", "GREEN"), doors: L("ZIELONE", "GREEN"), main: "#2fc45a", light: "#9dffb8", dark: "#0e5a24" },
+    y: { name: L("ŻÓŁTY", "YELLOW"), doors: L("ŻÓŁTE", "YELLOW"), main: "#f2c81a", light: "#fff2a0", dark: "#7a5a00" },
   };
 
   // ---------- Computer tasks ----------
   // The same kinds of tasks as in Liczożerca: the result r is at most max.
   const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
   const TASKS = {
-    add: { name: "DODAWANIE", sym: "+", gen(max) { const r = randInt(2, max), a = randInt(1, r - 1); return [a, r - a, r]; } },
-    sub: { name: "ODEJMOWANIE", sym: "-", gen(max) { const r = randInt(1, max - 1), a = randInt(r + 1, max); return [a, a - r, r]; } },
-    mul: { name: "MNOŻENIE", sym: "×", gen(max) {
+    add: { name: L("DODAWANIE", "ADDITION"), sym: "+", gen(max) { const r = randInt(2, max), a = randInt(1, r - 1); return [a, r - a, r]; } },
+    sub: { name: L("ODEJMOWANIE", "SUBTRACTION"), sym: "-", gen(max) { const r = randInt(1, max - 1), a = randInt(r + 1, max); return [a, a - r, r]; } },
+    mul: { name: L("MNOŻENIE", "MULTIPLICATION"), sym: "×", gen(max) {
       // prefer real multiplications (no ×1): pick a result that has a pair of factors >= 2
       const results = [];
       for (let n = 4; n <= max; n++) for (let a = 2; a * a <= n; a++) if (n % a === 0) { results.push(n); break; }
@@ -937,10 +950,10 @@
       const [a, b] = pairs[randInt(0, pairs.length - 1)];
       return [a, b, r];
     } },
-    div: { name: "DZIELENIE", sym: ":", gen(max) { const r = randInt(1, max), b = randInt(2, 9); return [r * b, b, r]; } },
+    div: { name: L("DZIELENIE", "DIVISION"), sym: ":", gen(max) { const r = randInt(1, max), b = randInt(2, 9); return [r * b, b, r]; } },
   };
   const TASK_MODES = { ...Object.fromEntries(Object.entries(TASKS).map(([k, t]) => [k, { name: t.name, sym: t.sym }])),
-                       all: { name: "WSZYSTKO", sym: "+-×:" } };
+                       all: { name: L("WSZYSTKO", "ALL"), sym: "+-×:" } };
   const rangeMax = n => n * 10;
   let taskSettings = { op: "add", range: 1 };
   try {
@@ -963,12 +976,12 @@
   }
 
   // ---------- Character ----------
-  const HAIR_COLORS = [["CZARNE", "#23222b"], ["BRĄZOWE", "#6e3f1c"], ["BLOND", "#f0c75a"], ["RUDE", "#d4581f"],
-                       ["SIWE", "#d9dbe6"], ["NIEBIESKIE", "#3d7bff"], ["RÓŻOWE", "#ff6fb8"], ["ZIELONE", "#3ec46d"]];
-  const SHIRT_COLORS = [["CZERWONA", "#d63a3a"], ["NIEBIESKA", "#2f6fe0"], ["ZIELONA", "#2fa84a"], ["ŻÓŁTA", "#efc21c"],
-                        ["FIOLETOWA", "#8a4fd8"], ["POMARAŃCZOWA", "#f07a1a"], ["RÓŻOWA", "#f06fb0"], ["BIAŁA", "#e6e6e6"]];
-  const PANTS_COLORS = [["NIEBIESKIE", "#2e4a9e"], ["CZARNE", "#26262e"], ["BRĄZOWE", "#6b4a2b"], ["SZARE", "#70757f"],
-                        ["ZIELONE", "#3b6b34"], ["CZERWONE", "#a12a2a"], ["FIOLETOWE", "#5c3a8e"], ["BIAŁE", "#d8d8d8"]];
+  const HAIR_COLORS = [[L("CZARNE", "BLACK"), "#23222b"], [L("BRĄZOWE", "BROWN"), "#6e3f1c"], [L("BLOND", "BLOND"), "#f0c75a"], [L("RUDE", "GINGER"), "#d4581f"],
+                       [L("SIWE", "GREY"), "#d9dbe6"], [L("NIEBIESKIE", "BLUE"), "#3d7bff"], [L("RÓŻOWE", "PINK"), "#ff6fb8"], [L("ZIELONE", "GREEN"), "#3ec46d"]];
+  const SHIRT_COLORS = [[L("CZERWONA", "RED"), "#d63a3a"], [L("NIEBIESKA", "BLUE"), "#2f6fe0"], [L("ZIELONA", "GREEN"), "#2fa84a"], [L("ŻÓŁTA", "YELLOW"), "#efc21c"],
+                        [L("FIOLETOWA", "PURPLE"), "#8a4fd8"], [L("POMARAŃCZOWA", "ORANGE"), "#f07a1a"], [L("RÓŻOWA", "PINK"), "#f06fb0"], [L("BIAŁA", "WHITE"), "#e6e6e6"]];
+  const PANTS_COLORS = [[L("NIEBIESKIE", "BLUE"), "#2e4a9e"], [L("CZARNE", "BLACK"), "#26262e"], [L("BRĄZOWE", "BROWN"), "#6b4a2b"], [L("SZARE", "GREY"), "#70757f"],
+                        [L("ZIELONE", "GREEN"), "#3b6b34"], [L("CZERWONE", "RED"), "#a12a2a"], [L("FIOLETOWE", "PURPLE"), "#5c3a8e"], [L("BIAŁE", "WHITE"), "#d8d8d8"]];
 
   // 12 x 22 sprites facing right: S skin, E eyes, M mouth, T/t shirt, P/p pants, B shoes.
   const HEAD = [
@@ -1028,7 +1041,7 @@
   const JUMP_NECK = ".S...SS...S.";   // hands up next to the neck
   // Overlays on the sprite: H hair, h darker hair ("." keeps what's under it).
   const HAIR = {
-    short: { name: "KRÓTKIE", rows: [
+    short: { name: L("KRÓTKIE", "SHORT"), rows: [
       "............",
       "....HHHHH...",
       "..HHHHHHHH..",
@@ -1037,7 +1050,7 @@
       "..HH........",
       "..Hh........",
     ] },
-    spiky: { name: "JEŻYK", rows: [
+    spiky: { name: L("JEŻYK", "SPIKY"), rows: [
       "..H.H.H.H...",
       "..HHHHHHHH..",
       ".HHHHHHHHHH.",
@@ -1045,7 +1058,7 @@
       "..HHh...H...",
       "..Hh........",
     ] },
-    long: { name: "DŁUGIE", rows: [
+    long: { name: L("DŁUGIE", "LONG"), rows: [
       "............",
       "....HHHHH...",
       "..HHHHHHHH..",
@@ -1060,7 +1073,7 @@
       ".HHh........",
       "..hh........",
     ] },
-    ponytail: { name: "KUCYK", rows: [
+    ponytail: { name: L("KUCYK", "PONYTAIL"), rows: [
       "............",
       "....HHHHH...",
       "..HHHHHHHH..",
@@ -1072,7 +1085,7 @@
       "Hh..........",
       ".h..........",
     ] },
-    curly: { name: "KRĘCONE", rows: [
+    curly: { name: L("KRĘCONE", "CURLY"), rows: [
       "...HHHHH....",
       "..HhHHHhH...",
       ".HHHHHHHHH..",
@@ -1082,7 +1095,7 @@
       "HHH.........",
       ".Hh.........",
     ] },
-    mohawk: { name: "IROKEZ", rows: [
+    mohawk: { name: L("IROKEZ", "MOHAWK"), rows: [
       ".....HH.....",
       "....HHHH....",
       "....HhHH....",
@@ -1212,7 +1225,7 @@
   // E is a glowing eye (its colour is the mutant's `glow`).
   const MUTANT_PAL2 = { K: "#3a3a48", k: "#22222c", n: "#ff7a9a", F: "#ffffff", f: "#2a2228", w: "#d8d4c8", v: "#a8a498", h: "#8a7a5a", G: "#8fd16a" };
   const MUTANTS = {
-    d: { name: "PSA", speed: 13, frames: [[
+    d: { name: L("PSA", "DOG"), speed: 13, frames: [[
       "...........d.d.......",
       "...........DDDD......",
       "..........DDDeDDN....",
@@ -1239,7 +1252,7 @@
       "...DD.DD...DD.DD.....",
       "...dd.dd...dd.dd.....",
     ]] },
-    h: { name: "ŚWINIĘ", speed: 9, frames: [[
+    h: { name: L("ŚWINIĘ", "PIG"), speed: 9, frames: [[
       "...........p.p..",
       "..........pPPPp.",
       "...PPPPPPPWWWPP.",
@@ -1262,7 +1275,7 @@
       "..PP..PP.PP..PP.",
       "..pp..pp.pp..pp.",
     ]].map(f => f.map(r => r.replace("e", "N"))) },
-    u: { name: "ŚWIŃSKI TYŁEK", speed: 0, frames: [[
+    u: { name: L("ŚWIŃSKI TYŁEK", "PIG'S BOTTOM"), speed: 0, frames: [[
       ".....cc.......",
       "....c..c......",
       ".....c.c......",
@@ -1314,8 +1327,8 @@
     ".vwwwwwwwwwwwv......",
     "..vwv.vwwv.vwv......",
   ];
-  MUTANTS.a = { name: "KOTA", speed: 15, hp: 2, glow: "#d8ff3a", blood: "#3a3a48", frames: CAT_LEGS.map(l => [...CAT, ...l]) };
-  MUTANTS.e = { name: "OWCĘ", speed: 8, hp: 2, glow: "#ff2a2a", blood: "#d8d4c8", frames: SHEEP_LEGS.map(l => [...SHEEP, ...l]) };
+  MUTANTS.a = { name: L("KOTA", "CAT"), speed: 15, hp: 2, glow: "#d8ff3a", blood: "#3a3a48", frames: CAT_LEGS.map(l => [...CAT, ...l]) };
+  MUTANTS.e = { name: L("OWCĘ", "SHEEP"), speed: 8, hp: 2, glow: "#ff2a2a", blood: "#d8d4c8", frames: SHEEP_LEGS.map(l => [...SHEEP, ...l]) };
   // A small dinosaur of the prehistoric jungle: G/g/k green skin, s stripes, Y belly, e eye, F teeth, M mouth, c claws.
   const DINO = [
     "............gGGGg..",
@@ -1331,7 +1344,7 @@
   ];
   const DINO_LEGS = [["......kk...GG......", "......kk....GG.....", ".....cc......cc...."],
                      [".......kk.GG.......", ".......kk.GG.......", "......cc.cc........"]];
-  MUTANTS.q = { name: "DINOZAURA", speed: 22, blood: "#6cc04a", beaten: "DINOZAUR POKONANY!", bite: "DINOZAUR CIĘ UGRYZŁ!",
+  MUTANTS.q = { name: L("DINOZAURA", "DINOSAUR"), speed: 22, blood: "#6cc04a", beaten: L("DINOZAUR POKONANY!", "DINOSAUR BEATEN!"), bite: L("DINOZAUR CIĘ UGRYZŁ!", "THE DINOSAUR BIT YOU!"),
                 pal: { G: "#6cc04a", g: "#3f8a2a", k: "#4a9a34", s: "#2f6a1a", Y: "#e8e08a", e: "#1d1d2e", F: "#ffffff", M: "#7a1a1a", c: "#f0e8c0" },
                 frames: DINO_LEGS.map(l => [...DINO, ...l]) };
   for (const m of Object.values(MUTANTS)) {
@@ -1553,12 +1566,12 @@
   const withLegs = (rows, legs) => rows.slice(0, rows.length - legs.length).concat(legs);
   // frames: standing, walking, throwing. The professor's throwing hand is up behind his head (drawn on top of the sprite).
   const BOSSES = {
-    prof: { name: "PROFESOR GRUBAS", hp: 10, w: 24, h: 44, speed: 22, every: [2.6, 3.8], points: 100, shot: "tube",
-            blood: "#f4f6fa", ouch: "AUĆ! PROFESOR CIĘ ZGNIÓTŁ!", hit: "AUĆ! TOKSYCZNA PROBÓWKA!", pal: BOSS_PAL,
+    prof: { name: L("PROFESOR GRUBAS", "THE FAT PROFESSOR"), hp: 10, w: 24, h: 44, speed: 22, every: [2.6, 3.8], points: 100, shot: "tube",
+            blood: "#f4f6fa", ouch: L("AUĆ! PROFESOR CIĘ ZGNIÓTŁ!", "OUCH! THE PROFESSOR SQUASHED YOU!"), hit: L("AUĆ! TOKSYCZNA PROBÓWKA!", "OUCH! A TOXIC TEST TUBE!"), pal: BOSS_PAL,
             frames: [BOSS_PROF, withLegs(BOSS_PROF, BOSS_PROF_LEGS),
                      BOSS_PROF.map((r, j) => j >= 30 && j <= 32 ? "...wWW" + r.slice(6) : r)] },
-    lizard: { name: "WIELKI JASZCZUR", hp: 20, w: 24, h: 40, speed: 28, every: [2.2, 3.2], points: 200, shot: "spit",
-              blood: "#5aa83a", ouch: "AUĆ! JASZCZUR CIĘ ZGNIÓTŁ!", hit: "FUJ! JASZCZURZA ŚLINA!", pal: BOSS_LIZ_PAL,
+    lizard: { name: L("WIELKI JASZCZUR", "THE GIANT LIZARD"), hp: 20, w: 24, h: 40, speed: 28, every: [2.2, 3.2], points: 200, shot: "spit",
+              blood: "#5aa83a", ouch: L("AUĆ! JASZCZUR CIĘ ZGNIÓTŁ!", "OUCH! THE LIZARD SQUASHED YOU!"), hit: L("FUJ! JASZCZURZA ŚLINA!", "YUCK! LIZARD SPIT!"), pal: BOSS_LIZ_PAL,
               frames: [BOSS_LIZ, withLegs(BOSS_LIZ, BOSS_LIZ_LEGS), BOSS_LIZ.map((r, j) => BOSS_LIZ_SPIT[j] || r)] },
   };
   for (const b of Object.values(BOSSES)) {
@@ -1598,7 +1611,7 @@
   // A floppy disk (B body, S metal shutter, h its hole, L label, l writing)
   // and a compact disc (C silver, r/y/c rainbow shine, o the hole).
   const DISKS = {
-    F: { name: "DYSKIETKA", sprite: makeSprite([
+    F: { name: L("DYSKIETKA", "FLOPPY DISK"), sprite: makeSprite([
       "BBBBBBBBBBB.",
       "BBBSSSSShSBB",
       "BBBSSSSShSBB",
@@ -1611,7 +1624,7 @@
       "BBLLLLLLLLBB",
       "BBLLLLLLLLBB",
     ], { B: "#2f4fc8", S: "#c8ccd6", h: "#2f4fc8", L: "#f2f2f2", l: "#d63a3a" }) },
-    O: { name: "PŁYTA CD", sprite: makeSprite([
+    O: { name: L("PŁYTA CD", "CD"), sprite: makeSprite([
       "...CCCCC...",
       "..CrrCCCC..",
       ".CrryCCCCC.",
@@ -2938,8 +2951,8 @@
   function updateHudKeys() {
     const colors = [...new Set(world.keys.map(k => k.color))];
     $("hudKeys").innerHTML = colors.length
-      ? colors.map(c => `<img src="${keyImages[c]}" alt="${KEY_INFO[c].name} KLUCZ" title="${KEY_INFO[c].name} KLUCZ" class="${inventory.has(c) ? "" : "missing"}">`).join("")
-      : `<span class="none">BRAK</span>`;
+      ? colors.map(c => `<img src="${keyImages[c]}" alt="${KEY_INFO[c].name} ${L("KLUCZ", "KEY")}" title="${KEY_INFO[c].name} ${L("KLUCZ", "KEY")}" class="${inventory.has(c) ? "" : "missing"}">`).join("")
+      : `<span class="none">${L("BRAK", "NONE")}</span>`;
   }
   let hudLivesShown = -1, hudAmmoShown = -1;   // what the HUD shows now (-1: not drawn yet)
   function updateHudLives() {
@@ -2947,14 +2960,14 @@
     hudLivesShown = run.lives;
     $("hudLives").innerHTML = Array.from({ length: START_LIVES }, (_, i) =>
       `<img src="${heartImage}" alt="" class="${i < run.lives ? "" : "lost"}">`).join("");
-    $("hudLives").title = `ŻYCIA: ${run.lives}`;
+    $("hudLives").title = `${L("ŻYCIA", "LIVES")}: ${run.lives}`;
   }
   function updateHudAmmo() {
     const v = run.pistol ? run.ammo : null;
     if (hudAmmoShown === v) return;
     hudAmmoShown = v;
     const el = $("hudAmmo");
-    el.innerHTML = run.pistol ? `<img src="${pistolImage}" alt="PISTOLET"><span class="val">${run.ammo}</span>` : `<span class="none">BRAK</span>`;
+    el.innerHTML = run.pistol ? `<img src="${pistolImage}" alt="${L("PISTOLET", "PISTOL")}"><span class="val">${run.ammo}</span>` : `<span class="none">${L("BRAK", "NONE")}</span>`;
     el.classList.toggle("empty", !!run.pistol && run.ammo === 0);
     $("btnFire").classList.toggle("hidden", !run.pistol);
   }
@@ -3007,7 +3020,7 @@
     world.tint = null;
     world.layer = renderStatic(world);
     world.rooms = (LEVELS[i].rooms || []).map((r, n) => {
-      const w = parseLevel({ name: `${LEVELS[i].name} - POKÓJ ${n + 1}`, map: r.map, theme: r.tint === "ice" ? "ice" : LEVELS[i].theme }, true);
+      const w = parseLevel({ name: `${LEVELS[i].name} - ${L("POKÓJ", "ROOM")} ${n + 1}`, map: r.map, theme: r.tint === "ice" ? "ice" : LEVELS[i].theme }, true);
       w.tint = r.tint; w.index = n;
       w.layer = renderStatic(w, r.tint);
       return w;
@@ -3029,15 +3042,17 @@
     const nKeys = world.keys.length;
     state = "intro";
     showOverlay(`
-      <div class="big">POZIOM ${i + 1}: ${escapeHtml(world.name)}</div>
-      <div>KOMPUTERY DO ODBLOKOWANIA: <span class="sub">${allComputers().length}</span>${nKeys ? ` · KLUCZE: <span class="sub">${nKeys}</span>` : ""}${world.rooms.length ? ` · POKOJE: <span class="sub">${world.rooms.length}</span>` : ""}</div>
-      <div>ZADANIA: <span class="sub">${TASK_MODES[taskSettings.op].name}</span> · WYNIK DO <span class="sub">${rangeMax(taskSettings.range)}</span></div>
-      ${world.theme === "toxic" ? `<div style="color:#6dff3a">STREFA SKAŻONA! TUTAJ NAWET PROFESOROWIE SIĘ ZMIENILI...</div>` : ""}
-      ${world.enemies.length ? `<div style="color:var(--red)">UWAGA, MUTANTY! MOŻESZ JE PRZESKOCZYĆ${run.pistol ? " ALBO ZASTRZELIĆ" : ""}.${world.enemies.some(e => e.hp > 1) ? " TE SĄ TWARDE - TRZEBA DWÓCH STRZAŁÓW!" : ""}</div>` : ""}
-      ${world.bossRoom ? `<div style="color:#ff9a3a">PRZED WYJŚCIEM CZEKA SZEF: ${BOSSES[world.bossRoom.boss.kind].name}! TRZEBA GO TRAFIĆ ${world.bossRoom.boss.hp} RAZY.</div>` : ""}
-      ${world.drips.length || world.puddles.length ? `<div style="color:#6dff3a">NIE DOTYKAJ ZIELONYCH KROPLI Z RUR ANI TOKSYCZNYCH KAŁUŻ!</div>` : ""}
-      <div>ŻYCIA: <span class="sub">${run.lives}</span> · ${run.pistol ? `NABOJE: <span class="sub">${run.ammo}</span>` : "PISTOLET: <span class=\"sub\">POSZUKAJ GO!</span>"}</div>
-      <div class="dim">ROZWIĄŻ ZADANIA NA WSZYSTKICH KOMPUTERACH,<br>A OTWORZY SIĘ WYJŚCIE.</div>
+      <div class="big">${L("POZIOM", "LEVEL")} ${i + 1}: ${escapeHtml(world.name)}</div>
+      <div>${L("KOMPUTERY DO ODBLOKOWANIA", "COMPUTERS TO UNLOCK")}: <span class="sub">${allComputers().length}</span>${nKeys ? ` · ${L("KLUCZE", "KEYS")}: <span class="sub">${nKeys}</span>` : ""}${world.rooms.length ? ` · ${L("POKOJE", "ROOMS")}: <span class="sub">${world.rooms.length}</span>` : ""}</div>
+      <div>${L("ZADANIA", "TASKS")}: <span class="sub">${TASK_MODES[taskSettings.op].name}</span> · ${L("WYNIK DO", "ANSWERS UP TO")} <span class="sub">${rangeMax(taskSettings.range)}</span></div>
+      ${world.theme === "toxic" ? `<div style="color:#6dff3a">${L("STREFA SKAŻONA! TUTAJ NAWET PROFESOROWIE SIĘ ZMIENILI...", "A CONTAMINATED ZONE! EVEN THE PROFESSORS HAVE CHANGED HERE...")}</div>` : ""}
+      ${world.enemies.length ? `<div style="color:var(--red)">${L(`UWAGA, MUTANTY! MOŻESZ JE PRZESKOCZYĆ${run.pistol ? " ALBO ZASTRZELIĆ" : ""}.${world.enemies.some(e => e.hp > 1) ? " TE SĄ TWARDE - TRZEBA DWÓCH STRZAŁÓW!" : ""}`,
+        `WATCH OUT, MUTANTS! YOU CAN JUMP OVER THEM${run.pistol ? " OR SHOOT THEM" : ""}.${world.enemies.some(e => e.hp > 1) ? " THESE ARE TOUGH - THEY TAKE TWO SHOTS!" : ""}`)}</div>` : ""}
+      ${world.bossRoom ? `<div style="color:#ff9a3a">${L(`PRZED WYJŚCIEM CZEKA SZEF: ${BOSSES[world.bossRoom.boss.kind].name}! TRZEBA GO TRAFIĆ ${world.bossRoom.boss.hp} RAZY.`,
+        `A BOSS WAITS BEFORE THE EXIT: ${BOSSES[world.bossRoom.boss.kind].name}! IT TAKES ${world.bossRoom.boss.hp} HITS.`)}</div>` : ""}
+      ${world.drips.length || world.puddles.length ? `<div style="color:#6dff3a">${L("NIE DOTYKAJ ZIELONYCH KROPLI Z RUR ANI TOKSYCZNYCH KAŁUŻ!", "DON'T TOUCH THE GREEN DROPS FROM THE PIPES OR THE TOXIC PUDDLES!")}</div>` : ""}
+      <div>${L("ŻYCIA", "LIVES")}: <span class="sub">${run.lives}</span> · ${run.pistol ? `${L("NABOJE", "AMMO")}: <span class="sub">${run.ammo}</span>` : L("PISTOLET: <span class=\"sub\">POSZUKAJ GO!</span>", "PISTOL: <span class=\"sub\">FIND ONE!</span>")}</div>
+      <div class="dim">${L("ROZWIĄŻ ZADANIA NA WSZYSTKICH KOMPUTERACH,<br>A OTWORZY SIĘ WYJŚCIE.", "SOLVE THE TASKS ON ALL THE COMPUTERS,<br>AND THE EXIT OPENS.")}</div>
       <button class="main-btn" data-primary>START</button>`, play);
   }
 
@@ -3053,8 +3068,8 @@
   function pause() {
     if (state !== "playing") return;
     state = "paused";
-    showOverlay(`<div class="big">PAUZA</div>
-      <div class="btns"><button class="main-btn" data-primary>GRAJ DALEJ</button><button class="main-btn alt" data-menu>MENU</button></div>`, play);
+    showOverlay(`<div class="big">${L("PAUZA", "PAUSED")}</div>
+      <div class="btns"><button class="main-btn" data-primary>${L("GRAJ DALEJ", "PLAY ON")}</button><button class="main-btn alt" data-menu>MENU</button></div>`, play);
   }
 
   function levelComplete() {
@@ -3066,15 +3081,15 @@
     const [limit, bonus] = LEVEL_BONUS.find(([lim]) => levelTime < lim);
     addPoints(bonus);
     if (!levelHurt) addPoints(PTS_NO_HARM);
-    const stats = `CZAS POZIOMU: <span class="sub">${fmtTime(levelTime)}</span> · BŁĘDNE ODPOWIEDZI: <span class="sub">${levelMistakes}</span>`;
-    const points = `<div>UKOŃCZENIE POZIOMU${limit < Infinity ? ` W MNIEJ NIŻ ${limit / 60} MIN.` : ""}: <span class="sub">+${bonus}</span>
-      ${levelHurt ? "" : `· BEZ UTRATY ŻYCIA: <span class="sub">+${PTS_NO_HARM}</span>`}</div>
-      <div>PUNKTY: <span class="sub">${scoreBefore}</span> → <span style="color:var(--yellow)">${run.score}</span></div>`;
+    const stats = `${L("CZAS POZIOMU", "LEVEL TIME")}: <span class="sub">${fmtTime(levelTime)}</span> · ${L("BŁĘDNE ODPOWIEDZI", "WRONG ANSWERS")}: <span class="sub">${levelMistakes}</span>`;
+    const points = `<div>${L("UKOŃCZENIE POZIOMU", "LEVEL CLEARED")}${limit < Infinity ? L(` W MNIEJ NIŻ ${limit / 60} MIN.`, ` IN UNDER ${limit / 60} MIN.`) : ""}: <span class="sub">+${bonus}</span>
+      ${levelHurt ? "" : `· ${L("BEZ UTRATY ŻYCIA", "NO LIFE LOST")}: <span class="sub">+${PTS_NO_HARM}</span>`}</div>
+      <div>${L("PUNKTY", "SCORE")}: <span class="sub">${scoreBefore}</span> → <span style="color:var(--yellow)">${run.score}</span></div>`;
     if (!last) {
       showOverlay(`
-        <div class="big">POZIOM ${run.level + 1} UKOŃCZONY!</div>
+        <div class="big">${L(`POZIOM ${run.level + 1} UKOŃCZONY!`, `LEVEL ${run.level + 1} CLEARED!`)}</div>
         <div>${stats}</div>${points}
-        <div class="btns"><button class="main-btn" data-primary>NASTĘPNY POZIOM</button><button class="main-btn alt" data-menu>MENU</button></div>`,
+        <div class="btns"><button class="main-btn" data-primary>${L("NASTĘPNY POZIOM", "NEXT LEVEL")}</button><button class="main-btn alt" data-menu>MENU</button></div>`,
         () => loadLevel(run.level + 1));
     } else {
       endRun(true, `<div>${stats}</div>${points}`);
@@ -3091,35 +3106,35 @@
       if (run.lives < START_LIVES) {
         run.lives++;
         sfx.life();
-        toast(`${run.nextLife - LIFE_EVERY} PUNKTÓW - DODATKOWE ŻYCIE!`, 2.5, 3, "good");
+        toast(L(`${run.nextLife - LIFE_EVERY} PUNKTÓW - DODATKOWE ŻYCIE!`, `${run.nextLife - LIFE_EVERY} POINTS - AN EXTRA LIFE!`), 2.5, 3, "good");
       }
     }
     updateHud();
   }
 
   // Lose a life: the player blinks for a moment, and at 0 lives the game is over.
-  function loseLife(why = "AUĆ!") {
+  function loseLife(why = L("AUĆ!", "OUCH!")) {
     if (hurtTimer > 0 || state !== "playing") return;
     run.lives = Math.max(0, run.lives - 1);
     levelHurt = true;
     updateHudLives();
     sfx.hurt();
     burst(player.x + PW / 2, player.y + PH / 2, "#ff3b3b", 18);
-    if (run.lives > 0) { hurtTimer = SAFE_TIME; player.vy = Math.min(player.vy, -170); toast(`${why} ZOSTAŁO ŻYĆ: ${run.lives}`, 2, 3, "bad"); return; }
+    if (run.lives > 0) { hurtTimer = SAFE_TIME; player.vy = Math.min(player.vy, -170); toast(`${why} ${L("ZOSTAŁO ŻYĆ", "LIVES LEFT")}: ${run.lives}`, 2, 3, "bad"); return; }
     sfx.over();
     endRun(false);
   }
 
   function shoot() {
     if (!run.pistol) {
-      if (!gunHint) { gunHint = 2.5; toast("NIE MASZ PISTOLETU - POSZUKAJ GO!", 2.2, 2, "bad"); }
+      if (!gunHint) { gunHint = 2.5; toast(L("NIE MASZ PISTOLETU - POSZUKAJ GO!", "YOU HAVE NO PISTOL - FIND ONE!"), 2.2, 2, "bad"); }
       return;
     }
     if (fireCooldown > 0) return;
     if (run.ammo <= 0) {
       fireCooldown = FIRE_COOLDOWN;
       sfx.empty();
-      toast("BRAK NABOJÓW! ZNAJDŹ KOLEJNY PISTOLET.", 2.2, 2, "bad");
+      toast(L("BRAK NABOJÓW! ZNAJDŹ KOLEJNY PISTOLET.", "NO AMMO! FIND ANOTHER PISTOL."), 2.2, 2, "bad");
       return;
     }
     run.ammo--; fireCooldown = FIRE_COOLDOWN;
@@ -3139,7 +3154,7 @@
         b.life = 0; e.flash = 0.12;
         sfx.hit(); beep(160, 0.12, "sawtooth", 0.05, 90);
         burst(e.x + e.w / 2, e.y + e.h / 2, MUTANTS[e.kind].blood, 6);
-        toast("TRAFIONY! JESZCZE JEDEN STRZAŁ!", 1.6, 2);
+        toast(L("TRAFIONY! JESZCZE JEDEN STRZAŁ!", "HIT! ONE MORE SHOT!"), 1.6, 2);
         continue;
       }
       if (e) {
@@ -3147,7 +3162,7 @@
         sfx.splat();
         burst(e.x + e.w / 2, e.y + e.h / 2, MUTANTS[e.kind].blood || (e.kind === "d" ? "#9a6a3a" : "#f29ab0"), 20);
         burst(e.x + e.w / 2, e.y + e.h / 2, "#8fd16a", 8);
-        toast(MUTANTS[e.kind].beaten || "MUTANT POKONANY!", 1.6, 2, "good");
+        toast(MUTANTS[e.kind].beaten || L("MUTANT POKONANY!", "MUTANT BEATEN!"), 1.6, 2, "good");
         continue;
       }
       const crack = world.crackAt[Math.floor(b.y / TILE) * world.w + Math.floor(b.x / TILE)];
@@ -3178,7 +3193,7 @@
     });
     if (k.hits < CRACK_HITS) {
       sfx.hit(); beep(90, 0.12, "sawtooth", 0.05, 50);
-      toast(k.hits === 1 ? "ŚCIANA PĘKA!" : "JESZCZE TROCHĘ I SIĘ ROZPADNIE!", 1.6, 2);
+      toast(k.hits === 1 ? L("ŚCIANA PĘKA!", "THE WALL IS CRACKING!") : L("JESZCZE TROCHĘ I SIĘ ROZPADNIE!", "A LITTLE MORE AND IT FALLS APART!"), 1.6, 2);
       return;
     }
     breakCrack(world, k);
@@ -3186,8 +3201,8 @@
     sfx.splat(); beep(70, 0.5, "sawtooth", 0.07, 30);
     for (let j = 0; j < k.h; j++) burst(k.x * TILE + 8, (k.y + j) * TILE + 8, j % 2 ? "#454f72" : "#66729c", 16);
     const gems = world.gems.filter(g => g.crack === k).length;
-    if (world.teleports.some(d => d.crack === k)) toast("ZA ŚCIANĄ BYŁ TAJNY TELEPORT! DOKĄD PROWADZI?", 3.5, 3, "good");
-    else toast(k.secret ? `UKRYTA SKRYTKA! DIAMENTY: ${gems}!` : "ŚCIANA ROZBITA! CO JEST ZA NIĄ?", 2.8, 3, "good");
+    if (world.teleports.some(d => d.crack === k)) toast(L("ZA ŚCIANĄ BYŁ TAJNY TELEPORT! DOKĄD PROWADZI?", "A SECRET TELEPORT WAS BEHIND THE WALL! WHERE DOES IT GO?"), 3.5, 3, "good");
+    else toast(k.secret ? `${L("UKRYTA SKRYTKA! DIAMENTY", "A HIDDEN STASH! DIAMONDS")}: ${gems}!` : L("ŚCIANA ROZBITA! CO JEST ZA NIĄ?", "THE WALL IS BROKEN! WHAT IS BEHIND IT?"), 2.8, 3, "good");
   }
 
   function updateLifts(dt) {
@@ -3301,7 +3316,7 @@
     sfx.hit(); beep(130, 0.15, "sawtooth", 0.06, 70);
     burst(bul.x, bul.y, info.blood, 8);
     if (b.hp > 0) {
-      if (!wasAngry && b.hp <= info.hp / 2) toast(`${info.name} SIĘ WŚCIEKŁ! JEST TERAZ SZYBSZY!`, 2.5, 2, "bad");
+      if (!wasAngry && b.hp <= info.hp / 2) toast(L(`${info.name} SIĘ WŚCIEKŁ! JEST TERAZ SZYBSZY!`, `${info.name} IS FURIOUS - AND FASTER NOW!`), 2.5, 2, "bad");
       return;
     }
     b.dead = true; bossShots = [];
@@ -3309,7 +3324,7 @@
     for (let i = 0; i < 4; i++) burst(b.x + b.w / 2, b.y + b.h * (i + 1) / 5, i % 2 ? info.blood : "#6dff3a", 22);
     addPoints(info.points, b.x + b.w / 2, b.y);
     world.exit.open = true;
-    toast(`${info.name} POKONANY! +${info.points} PUNKTÓW. WYJŚCIE JEST OTWARTE!`, 4, 3, "good");
+    toast(L(`${info.name} POKONANY! +${info.points} PUNKTÓW. WYJŚCIE JEST OTWARTE!`, `${info.name} IS BEATEN! +${info.points} POINTS. THE EXIT IS OPEN!`), 4, 3, "good");
   }
 
   // Leaking pipes: a drop grows under the pipe, falls and splashes on the floor.
@@ -3332,7 +3347,7 @@
           dr.drop = null;
         } else if (hurtTimer <= 0 && overlaps(player, { x: d.x - 1, y: d.y - 6, w: 3, h: 6 })) {
           dr.drop = null;
-          loseLife("FUJ, TOKSYCZNA KROPLA!");
+          loseLife(L("FUJ, TOKSYCZNA KROPLA!", "YUCK, A TOXIC DROP!"));
         }
         continue;
       }
@@ -3347,7 +3362,7 @@
         dr.grow = 0.001;
       }
     }
-    if (hurtTimer <= 0 && world.puddles.some(q => overlaps(player, puddleRect(q)))) loseLife("FUJ, TOKSYCZNA KAŁUŻA!");
+    if (hurtTimer <= 0 && world.puddles.some(q => overlaps(player, puddleRect(q)))) loseLife(L("FUJ, TOKSYCZNA KAŁUŻA!", "YUCK, A TOXIC PUDDLE!"));
   }
 
   // ---------- Hall of fame (shared by everyone - the gry API, /api/v1/scores/) ----------
@@ -3403,55 +3418,55 @@
                extra, entry: null, hofError: false };
     const r = result;
     if (r.score <= 0) { showResult(); return; }
-    showOverlay(`${resultHtml(r)}<div class="blink">ŁADOWANIE SALI SŁAWY...</div>`);
+    showOverlay(`${resultHtml(r)}<div class="blink">${L("ŁADOWANIE SALI SŁAWY...", "LOADING THE HALL OF FAME...")}</div>`);
     hofLoad()
       .then(() => { if (result === r && state === "over") (hofRank(r) ? showNameEntry() : showResult()); })
       .catch(() => { if (result === r && state === "over") { r.hofError = true; showResult(); } });
   }
   function resultHtml(r) {
     const head = r.completed
-      ? `<div class="big">MISJA UKOŃCZONA!</div>
-         <div>${girl() ? "BRAWO, AGENTKO! UCIEKŁAŚ" : "BRAWO, AGENCIE! UCIEKŁEŚ"} Z TAJNEGO LABORATORIUM.</div>`
-      : `<div class="big" style="color:var(--red)">KONIEC GRY</div>
-         <div>${girl() ? "STRACIŁAŚ" : "STRACIŁEŚ"} WSZYSTKIE ŻYCIA NA POZIOMIE ${r.level + 1}.</div>`;
+      ? `<div class="big">${L("MISJA UKOŃCZONA!", "MISSION COMPLETE!")}</div>
+         <div>${L(`${girl() ? "BRAWO, AGENTKO! UCIEKŁAŚ" : "BRAWO, AGENCIE! UCIEKŁEŚ"} Z TAJNEGO LABORATORIUM.`, "WELL DONE, AGENT! YOU ESCAPED FROM THE SECRET LAB.")}</div>`
+      : `<div class="big" style="color:var(--red)">${L("KONIEC GRY", "GAME OVER")}</div>
+         <div>${L(`${girl() ? "STRACIŁAŚ" : "STRACIŁEŚ"} WSZYSTKIE ŻYCIA NA POZIOMIE ${r.level + 1}.`, `YOU LOST ALL YOUR LIVES ON LEVEL ${r.level + 1}.`)}</div>`;
     return `${head}${r.extra}
-      <div>PUNKTY: <span style="color:var(--yellow)">${r.score}</span> · ŁĄCZNY CZAS: <span class="sub">${fmtTime(r.time)}</span>
-        · LITERY: <span class="sub">${r.letters}/${WORD.length}</span> · BŁĘDY: <span class="sub">${r.mistakes}</span></div>`;
+      <div>${L("PUNKTY", "SCORE")}: <span style="color:var(--yellow)">${r.score}</span> · ${L("ŁĄCZNY CZAS", "TOTAL TIME")}: <span class="sub">${fmtTime(r.time)}</span>
+        · ${L("LITERY", "LETTERS")}: <span class="sub">${r.letters}/${WORD.length}</span> · ${L("BŁĘDY", "MISTAKES")}: <span class="sub">${r.mistakes}</span></div>`;
   }
   function showResult() {
     const r = result;
     showOverlay(`${resultHtml(r)}
-      ${r.hofError ? `<div style="color:var(--red)">SALA SŁAWY NIEDOSTĘPNA - BRAK POŁĄCZENIA Z SERWEREM</div>` : ""}
-      <div class="btns"><button class="main-btn" data-primary>JESZCZE RAZ</button><button class="main-btn alt" data-menu>MENU</button>
-      <button class="main-btn alt" data-hof>SALA SŁAWY</button></div>`, () => startRun(r.startLevel));
+      ${r.hofError ? `<div style="color:var(--red)">${L("SALA SŁAWY NIEDOSTĘPNA - BRAK POŁĄCZENIA Z SERWEREM", "HALL OF FAME UNAVAILABLE - NO CONNECTION TO THE SERVER")}</div>` : ""}
+      <div class="btns"><button class="main-btn" data-primary>${L("JESZCZE RAZ", "AGAIN")}</button><button class="main-btn alt" data-menu>MENU</button>
+      <button class="main-btn alt" data-hof>${L("SALA SŁAWY", "HALL OF FAME")}</button></div>`, () => startRun(r.startLevel));
   }
   function showNameEntry() {
     state = "entry";
     const r = result;
     showOverlay(`${resultHtml(r)}
-      <div style="color:var(--yellow)">JESTEŚ W SALI SŁAWY! MIEJSCE #${hofRank(r)}</div>
+      <div style="color:var(--yellow)">${L("JESTEŚ W SALI SŁAWY! MIEJSCE", "YOU ARE IN THE HALL OF FAME! PLACE")} #${hofRank(r)}</div>
       <form class="name-form" id="nameForm" autocomplete="off">
-        <label for="nameInput">WPISZ SWOJE IMIĘ:</label>
+        <label for="nameInput">${L("WPISZ SWOJE IMIĘ:", "ENTER YOUR NAME:")}</label>
         <input id="nameInput" maxlength="12" spellcheck="false" value="${escapeHtml(lastName)}">
-        <div class="btns"><button class="main-btn" type="submit">ZAPISZ</button>
-        <button class="main-btn alt" type="button" id="btnSkip" hidden>POMIŃ</button></div>
+        <div class="btns"><button class="main-btn" type="submit">${L("ZAPISZ", "SAVE")}</button>
+        <button class="main-btn alt" type="button" id="btnSkip" hidden>${L("POMIŃ", "SKIP")}</button></div>
         <div id="nameError" style="color:var(--red)"></div>
       </form>`);
     const input = $("nameInput"), form = $("nameForm");
     setTimeout(() => { input.focus(); input.select(); }, 0);
     form.onsubmit = async e => {
       e.preventDefault();
-      const name = input.value.trim().toUpperCase().slice(0, 12) || (girl() ? "AGENTKA" : "AGENT");
+      const name = input.value.trim().toUpperCase().slice(0, 12) || L(girl() ? "AGENTKA" : "AGENT", "AGENT");
       lastName = name;
       try { localStorage.setItem("laboratorium-name", name); } catch (err) { /* ignore */ }
       const saveBtn = form.querySelector("[type=submit]");
-      saveBtn.disabled = true; saveBtn.textContent = "ZAPISYWANIE...";
+      saveBtn.disabled = true; saveBtn.textContent = L("ZAPISYWANIE...", "SAVING...");
       try {
         const saved = await hofPost({ name, score: r.score, category: r.op, time: Math.floor(r.time), level: r.range, completed: r.completed });
         r.entry = saved.entry;
       } catch (err) {
-        saveBtn.disabled = false; saveBtn.textContent = "SPRÓBUJ PONOWNIE";
-        $("nameError").textContent = "NIE UDAŁO SIĘ ZAPISAĆ (" + err.message + ")";
+        saveBtn.disabled = false; saveBtn.textContent = L("SPRÓBUJ PONOWNIE", "TRY AGAIN");
+        $("nameError").textContent = L("NIE UDAŁO SIĘ ZAPISAĆ (", "COULD NOT SAVE (") + err.message + ")";
         $("btnSkip").hidden = false;
         return;
       }
@@ -3469,23 +3484,23 @@
     showScreen("hof");
     const box = $("hofScreen");
     const buttons = afterGame && result
-      ? `<div class="btns"><button class="main-btn" id="hofAgain">JESZCZE RAZ</button><button class="main-btn alt" id="hofMenu">MENU</button></div>`
-      : `<div class="btns"><button class="main-btn" id="hofMenu">WRÓĆ</button></div>`;
+      ? `<div class="btns"><button class="main-btn" id="hofAgain">${L("JESZCZE RAZ", "AGAIN")}</button><button class="main-btn alt" id="hofMenu">MENU</button></div>`
+      : `<div class="btns"><button class="main-btn" id="hofMenu">${L("WRÓĆ", "BACK")}</button></div>`;
     const show = body => {
       const tabs = Object.entries(TASK_MODES).map(([k, m]) =>
         `<button class="opt${k === op ? " sel" : ""}" data-tab="${k}"><b>${escapeHtml(m.sym)}</b>${escapeHtml(m.name)}</button>`).join("");
-      box.innerHTML = `<div class="menu-title">SALA SŁAWY</div><div class="ops">${tabs}</div>${body}${buttons}`;
+      box.innerHTML = `<div class="menu-title">${L("SALA SŁAWY", "HALL OF FAME")}</div><div class="ops">${tabs}</div>${body}${buttons}`;
       box.querySelectorAll("[data-tab]").forEach(b => b.addEventListener("click", () => showHallOfFame(b.dataset.tab, highlight, afterGame, !hof)));
       if ($("hofAgain")) $("hofAgain").onclick = () => startRun(result.startLevel);
       $("hofMenu").onclick = goMenu;
     };
     if (fetchFirst) {
       const req = ++hofRequest;
-      show(`<div class="blink">ŁADOWANIE...</div>`);
+      show(`<div class="blink">${L("ŁADOWANIE...", "LOADING...")}</div>`);
       const stillHere = () => req === hofRequest && state === "hof";
       hofLoad()
         .then(() => { if (stillHere()) showHallOfFame(op, highlight, afterGame, false); })
-        .catch(err => { if (stillHere()) show(`<div style="color:var(--red)">BRAK POŁĄCZENIA Z SERWEREM (${escapeHtml(err.message)})</div>`); });
+        .catch(err => { if (stillHere()) show(`<div style="color:var(--red)">${L("BRAK POŁĄCZENIA Z SERWEREM", "NO CONNECTION TO THE SERVER")} (${escapeHtml(err.message)})</div>`); });
       return;
     }
     const medal = ["gold", "silver", "bronze"];
@@ -3495,9 +3510,9 @@
       const cls = [medal[i] || "", highlight && e.id === highlight.id ? "me" : ""].join(" ");
       return `<tr class="${cls}"><td class="num">${i + 1}.</td><td class="name">${escapeHtml(e.name)}</td>
         <td class="num">${e.score}</td><td class="num">${e.time == null ? "--:--" : fmtTime(e.time)}</td>
-        <td class="num">${e.level == null ? "-" : "DO " + rangeMax(e.level)}</td><td>${e.completed ? `<span class="fin">UCIECZKA</span>` : ""}</td></tr>`;
+        <td class="num">${e.level == null ? "-" : L("DO ", "UP TO ") + rangeMax(e.level)}</td><td>${e.completed ? `<span class="fin">${L("UCIECZKA", "ESCAPED")}</span>` : ""}</td></tr>`;
     }).join("");
-    show(`<table class="hof"><tr><th class="num">#</th><th>IMIĘ</th><th class="num">PUNKTY</th><th class="num">CZAS</th><th class="num">WYNIKI</th><th></th></tr>${rows}</table>`);
+    show(`<table class="hof"><tr><th class="num">#</th><th>${L("IMIĘ", "NAME")}</th><th class="num">${L("PUNKTY", "SCORE")}</th><th class="num">${L("CZAS", "TIME")}</th><th class="num">${L("WYNIKI", "ANSWERS")}</th><th></th></tr>${rows}</table>`);
   }
 
   // Through a room door: to the room, or back to the main map, standing in front of the other door.
@@ -3516,9 +3531,9 @@
     if (to !== mainWorld) {
       const left = to.computers.filter(c => !c.solved).length;
       const gems = to.gems.filter(g => !g.taken).length;
-      if (to.theme === "ice") toast("BRRR! LODOWA CHŁODNIA, PEŁNO ZAMARZNIĘTYCH SZCZURÓW!", 2.8, 2);
-      else toast(left ? `POKÓJ: ${left === 1 ? "JEST TU KOMPUTER" : `KOMPUTERY: ${left}`} DO ODBLOKOWANIA!`
-                 : gems ? `SKARBIEC! DIAMENTY: ${gems}!` : "POKÓJ", 2.5, 2, gems && !left ? "good" : "");
+      if (to.theme === "ice") toast(L("BRRR! LODOWA CHŁODNIA, PEŁNO ZAMARZNIĘTYCH SZCZURÓW!", "BRRR! AN ICY COLD STORE, FULL OF FROZEN RATS!"), 2.8, 2);
+      else toast(left ? L(`POKÓJ: ${left === 1 ? "JEST TU KOMPUTER" : `KOMPUTERY: ${left}`} DO ODBLOKOWANIA!`, `A ROOM: ${left === 1 ? "A COMPUTER" : `${left} COMPUTERS`} TO UNLOCK!`)
+                 : gems ? L(`SKARBIEC! DIAMENTY: ${gems}!`, `A TREASURY! DIAMONDS: ${gems}!`) : L("POKÓJ", "A ROOM"), 2.5, 2, gems && !left ? "good" : "");
     }
   }
 
@@ -3535,9 +3550,11 @@
     fade = FADE_TIME * 2; fadeWhite = true;
     sfx.teleport();
     burst(player.x + PW / 2, player.y + PH / 2, "#6fe8ff", 20);
-    if (to === mainWorld) { toast("Z POWROTEM W LABORATORIUM!", 2.5, 2); return; }
+    if (to === mainWorld) { toast(L("Z POWROTEM W LABORATORIUM!", "BACK IN THE LAB!"), 2.5, 2); return; }
     const jewels = to.gems.filter(g => g.kind === "$" && !g.taken).length;
-    toast(to.visited ? `ZNÓW W DŻUNGLI! KLEJNOTY: ${jewels}` : `TELEPORT W CZASIE! PREHISTORYCZNA DŻUNGLA - ZBIERAJ KLEJNOTY (+${PTS_JEWEL}) I KOSTKI, UWAŻAJ NA DINOZAURY!`, 4.5, 3, "good");
+    toast(to.visited ? L(`ZNÓW W DŻUNGLI! KLEJNOTY: ${jewels}`, `BACK IN THE JUNGLE! JEWELS: ${jewels}`)
+      : L(`TELEPORT W CZASIE! PREHISTORYCZNA DŻUNGLA - ZBIERAJ KLEJNOTY (+${PTS_JEWEL}) I KOSTKI, UWAŻAJ NA DINOZAURY!`,
+          `A TELEPORT IN TIME! THE PREHISTORIC JUNGLE - COLLECT JEWELS (+${PTS_JEWEL}) AND BONES, WATCH OUT FOR DINOSAURS!`), 4.5, 3, "good");
     to.visited = true;
   }
 
@@ -3553,7 +3570,7 @@
     updateCamera(1, true);
     fade = FADE_TIME;
     sfx.door(); sfx.alarm();
-    toast(`UWAGA, SZEF: ${info.name}! TRAFIĆ GO ${b.hp} RAZY. UCIEKAJ PRZED NIM NA PÓŁKI!`, 4, 3, "bad");
+    toast(L(`UWAGA, SZEF: ${info.name}! TRAFIĆ GO ${b.hp} RAZY. UCIEKAJ PRZED NIM NA PÓŁKI!`, `WATCH OUT, A BOSS: ${info.name}! IT TAKES ${b.hp} HITS. ESCAPE ONTO THE LEDGES!`), 4, 3, "bad");
   }
 
   // ---------- Update ----------
@@ -3595,7 +3612,8 @@
       addPoints(GEM_POINTS[g.kind], g.x * TILE + 8, g.y * TILE + 4);
       if (g.kind !== "*") {
         const left = world.gems.filter(o => o.kind === g.kind && !o.taken).length;
-        toast(`${g.kind === "$" ? `KLEJNOT! +${PTS_JEWEL} PUNKTY` : `KOSTKA! +${PTS_BONE} PUNKT`}${left ? ` (ZOSTAŁO ${g.kind === "$" ? "KLEJNOTÓW" : "KOSTEK"}: ${left})` : ""}`, 2, 1, "good");
+        toast(L(`${g.kind === "$" ? `KLEJNOT! +${PTS_JEWEL} PUNKTY` : `KOSTKA! +${PTS_BONE} PUNKT`}${left ? ` (ZOSTAŁO ${g.kind === "$" ? "KLEJNOTÓW" : "KOSTEK"}: ${left})` : ""}`,
+                 `${g.kind === "$" ? `A JEWEL! +${PTS_JEWEL} POINTS` : `A BONE! +${PTS_BONE} POINT`}${left ? ` (${g.kind === "$" ? "JEWELS" : "BONES"} LEFT: ${left})` : ""}`), 2, 1, "good");
       }
     }
     for (const d of world.disks) {
@@ -3605,7 +3623,7 @@
       burst(d.x * TILE + 8, d.y * TILE + 8, d.kind === "F" ? "#2f4fc8" : "#d6dcea", 10);
       addPoints(PTS_DISK, d.x * TILE + 8, d.y * TILE + 2);
       const left = world.disks.filter(o => o.kind === d.kind && !o.taken).length;
-      toast(`${DISKS[d.kind].name}! +${PTS_DISK} PUNKTY${left ? ` (NA TYM POZIOMIE JESZCZE ${left})` : ""}`, 2, 1, "good");
+      toast(`${DISKS[d.kind].name}! +${PTS_DISK} ${L("PUNKTY", "POINTS")}${left ? L(` (NA TYM POZIOMIE JESZCZE ${left})`, ` (${left} MORE ON THIS LEVEL)`) : ""}`, 2, 1, "good");
     }
     for (const l of world.letters) {
       if (l.taken || !overlaps(player, letterRect(l))) continue;
@@ -3616,10 +3634,11 @@
       updateHudLetters();
       const have = run.letters.filter(Boolean).length;
       if (have === WORD.length) {
-        toast(`${WORD}! WSZYSTKIE LITERY - BONUS +${PTS_WORD} PUNKTÓW!`, 3.5, 3, "good");
+        toast(L(`${WORD}! WSZYSTKIE LITERY - BONUS +${PTS_WORD} PUNKTÓW!`, `${WORD}! ALL THE LETTERS - A BONUS OF +${PTS_WORD} POINTS!`), 3.5, 3, "good");
         addPoints(PTS_WORD, l.x * TILE + 8, l.y * TILE);
       } else {
-        toast(`LITERA ${WORD[l.idx]}! MASZ ${have} Z ${WORD.length} LITER SŁOWA ${WORD}.`, 3, 2, "good");
+        // the word stays NAUKA in English too: its letters are in the maps
+        toast(L(`LITERA ${WORD[l.idx]}! MASZ ${have} Z ${WORD.length} LITER SŁOWA ${WORD}.`, `LETTER ${WORD[l.idx]}! YOU HAVE ${have} OF THE ${WORD.length} LETTERS OF ${WORD} (SCIENCE).`), 3, 2, "good");
       }
     }
     for (const g of world.pistols) {
@@ -3630,8 +3649,9 @@
       updateHudAmmo();
       sfx.gun();
       burst(g.x * TILE + 8, g.y * TILE + 10, "#d6dcea");
-      toast(first ? `MASZ PISTOLET! NABOJE: ${run.ammo}. STRZELASZ ${coarse ? "PRZYCISKIEM STRZAŁ" : "SPACJĄ"}.`
-                  : `+${AMMO_PER_PISTOL} NABOJÓW! MASZ ICH TERAZ ${run.ammo}.`, 3, 2, "good");
+      toast(first ? L(`MASZ PISTOLET! NABOJE: ${run.ammo}. STRZELASZ ${coarse ? "PRZYCISKIEM STRZAŁ" : "SPACJĄ"}.`,
+                      `YOU HAVE A PISTOL! AMMO: ${run.ammo}. SHOOT WITH ${coarse ? "THE FIRE BUTTON" : "SPACE"}.`)
+                  : L(`+${AMMO_PER_PISTOL} NABOJÓW! MASZ ICH TERAZ ${run.ammo}.`, `+${AMMO_PER_PISTOL} BULLETS! NOW YOU HAVE ${run.ammo}.`), 3, 2, "good");
     }
 
     for (const k of world.keys) {
@@ -3640,7 +3660,7 @@
       inventory.add(k.color);
       sfx.key();
       burst(k.x * TILE + 8, k.y * TILE + 8, KEY_INFO[k.color].main);
-      toast(`MASZ ${KEY_INFO[k.color].name} KLUCZ!`, 2.5, 2, "good");
+      toast(L(`MASZ ${KEY_INFO[k.color].name} KLUCZ!`, `YOU HAVE THE ${KEY_INFO[k.color].name} KEY!`), 2.5, 2, "good");
       updateHudKeys();
     }
     for (const d of world.doors) {
@@ -3650,11 +3670,11 @@
       if (inventory.has(d.color)) {
         d.open = true;
         sfx.door();
-        toast(`${info.doors} DRZWI OTWARTE!`, 2, 2, "good");
+        toast(L(`${info.doors} DRZWI OTWARTE!`, `THE ${info.doors} DOOR IS OPEN!`), 2, 2, "good");
       } else if (!lockedCooldown) {
         lockedCooldown = 1.2;
         sfx.locked();
-        toast(`DRZWI ZAMKNIĘTE! POTRZEBNY ${info.name} KLUCZ.`, 2.2, 2, "bad");
+        toast(L(`DRZWI ZAMKNIĘTE! POTRZEBNY ${info.name} KLUCZ.`, `THE DOOR IS LOCKED! YOU NEED THE ${info.name} KEY.`), 2.2, 2, "bad");
       }
     }
     for (const d of world.pinDoors) if (d.open) d.anim = Math.min(1, d.anim + dt * 2);
@@ -3666,11 +3686,12 @@
       lockedCooldown = 1.2;
       sfx.locked();
       const all = allComputers(), solved = all.filter(c => c.solved).length;
-      if (world.boss) toast(`WYJŚCIE ZAMKNIĘTE! NAJPIERW POKONAJ SZEFA: ${BOSSES[world.boss.kind].name}.`, 2.5, 2, "bad");
-      else toast(`WYJŚCIE ZAMKNIĘTE! ROZWIĄŻ WSZYSTKIE ZADANIA (${solved}/${all.length})${world.rooms.some(r => r.computers.length) ? ", TEŻ W POKOJACH" : ""}.`, 2.5, 2, "bad");
+      if (world.boss) toast(L(`WYJŚCIE ZAMKNIĘTE! NAJPIERW POKONAJ SZEFA: ${BOSSES[world.boss.kind].name}.`, `THE EXIT IS LOCKED! FIRST BEAT THE BOSS: ${BOSSES[world.boss.kind].name}.`), 2.5, 2, "bad");
+      else toast(L(`WYJŚCIE ZAMKNIĘTE! ROZWIĄŻ WSZYSTKIE ZADANIA (${solved}/${all.length})${world.rooms.some(r => r.computers.length) ? ", TEŻ W POKOJACH" : ""}.`,
+                    `THE EXIT IS LOCKED! SOLVE ALL THE TASKS (${solved}/${all.length})${world.rooms.some(r => r.computers.length) ? ", IN THE ROOMS TOO" : ""}.`), 2.5, 2, "bad");
     }
 
-    const useKey = coarse ? "UŻYJ" : "E";
+    const useKey = coarse ? L("UŻYJ", "USE") : "E";
     nearComputer = world.computers.find(c => !c.solved && atComputer(player, c)) || null;
     nearPin = nearComputer ? null : world.pinDoors.find(d => !d.open && overlaps(player, doorRect(d), 6)) || null;
     nearSwitch = nearComputer || nearPin ? null : world.switches.find(sw => player.onGround && overlaps(player, switchRect(sw))) || null;
@@ -3678,13 +3699,13 @@
       : world.portals.find(d => player.onGround && overlaps(player, { x: d.x * TILE + 3, y: d.y * TILE, w: 10, h: d.h * TILE })) || null;
     nearTele = nearComputer || nearPin || nearSwitch || nearPortal ? null
       : world.teleports.find(d => !hiddenGem(d) && player.onGround && overlaps(player, { x: d.x * TILE + 3, y: d.y * TILE, w: 10, h: d.h * TILE })) || null;
-    if (nearComputer) toast(`NACIŚNIJ ${useKey}, ABY WŁĄCZYĆ KOMPUTER`, 0.15, 0);
-    else if (nearPin) toast(`DRZWI NA PIN! NACIŚNIJ ${useKey} I ROZWIĄŻ ${PIN_TASKS} ZADANIA`, 0.15, 0);
-    else if (nearPortal) toast(world === mainWorld ? `DRZWI DO POKOJU: NACIŚNIJ ${useKey}, ABY WEJŚĆ` : `NACIŚNIJ ${useKey}, ABY WYJŚĆ Z POKOJU`, 0.15, 0);
-    else if (nearTele) toast(world === mainWorld ? `TAJNY TELEPORT! NACIŚNIJ ${useKey}, ABY GO WŁĄCZYĆ` : `TELEPORT DO LABORATORIUM: NACIŚNIJ ${useKey}`, 0.15, 0);
-    else if (nearSwitch) toast(`WINDA: NACIŚNIJ ${useKey}, ABY JĄ ${nearSwitch.lift.on ? "WYŁĄCZYĆ" : "WŁĄCZYĆ"}`, 0.15, 0);
+    if (nearComputer) toast(L(`NACIŚNIJ ${useKey}, ABY WŁĄCZYĆ KOMPUTER`, `PRESS ${useKey} TO TURN ON THE COMPUTER`), 0.15, 0);
+    else if (nearPin) toast(L(`DRZWI NA PIN! NACIŚNIJ ${useKey} I ROZWIĄŻ ${PIN_TASKS} ZADANIA`, `A PIN DOOR! PRESS ${useKey} AND SOLVE ${PIN_TASKS} TASKS`), 0.15, 0);
+    else if (nearPortal) toast(world === mainWorld ? L(`DRZWI DO POKOJU: NACIŚNIJ ${useKey}, ABY WEJŚĆ`, `A DOOR TO A ROOM: PRESS ${useKey} TO GO IN`) : L(`NACIŚNIJ ${useKey}, ABY WYJŚĆ Z POKOJU`, `PRESS ${useKey} TO LEAVE THE ROOM`), 0.15, 0);
+    else if (nearTele) toast(world === mainWorld ? L(`TAJNY TELEPORT! NACIŚNIJ ${useKey}, ABY GO WŁĄCZYĆ`, `A SECRET TELEPORT! PRESS ${useKey} TO TURN IT ON`) : L(`TELEPORT DO LABORATORIUM: NACIŚNIJ ${useKey}`, `A TELEPORT TO THE LAB: PRESS ${useKey}`), 0.15, 0);
+    else if (nearSwitch) toast(L(`WINDA: NACIŚNIJ ${useKey}, ABY JĄ ${nearSwitch.lift.on ? "WYŁĄCZYĆ" : "WŁĄCZYĆ"}`, `A LIFT: PRESS ${useKey} TO TURN IT ${nearSwitch.lift.on ? "OFF" : "ON"}`), 0.15, 0);
     else if (world.cracks.some(k => !k.broken && overlaps(player, { x: k.x * TILE - 20, y: k.y * TILE, w: TILE + 40, h: k.h * TILE })))
-      toast("TA ŚCIANA JEST PĘKNIĘTA...", 0.15, 0);
+      toast(L("TA ŚCIANA JEST PĘKNIĘTA...", "THIS WALL IS CRACKED..."), 0.15, 0);
     if (pressed.use) {
       pressed.use = false;
       if (nearComputer) { openTerminal(nearComputer); return; }
@@ -3699,7 +3720,7 @@
         const l = nearSwitch.lift;
         l.on = !l.on;
         sfx.lever();
-        toast(l.on ? "WINDA WŁĄCZONA!" : "WINDA WYŁĄCZONA.", 1.5, 2, l.on ? "good" : "");
+        toast(l.on ? L("WINDA WŁĄCZONA!", "THE LIFT IS ON!") : L("WINDA WYŁĄCZONA.", "THE LIFT IS OFF."), 1.5, 2, l.on ? "good" : "");
       }
     }
 
@@ -3728,8 +3749,8 @@
     if (!c.task) c.task = newTask(usedTasks);
     $("tHead").textContent = "LAB-OS 3.1";
     $("tNum").textContent = `TERMINAL ${c.n}/${allComputers().length}`;
-    $("tLine1").textContent = "> SYSTEM ZABLOKOWANY.";
-    $("tLine2").textContent = "> PODAJ WYNIK, ABY GO ODBLOKOWAĆ:";
+    $("tLine1").textContent = L("> SYSTEM ZABLOKOWANY.", "> SYSTEM LOCKED.");
+    $("tLine2").textContent = L("> PODAJ WYNIK, ABY GO ODBLOKOWAĆ:", "> ENTER THE ANSWER TO UNLOCK IT:");
     $("tPin").classList.add("hidden");
     $("tQuestion").textContent = c.task.text;
     showTerminal();
@@ -3741,16 +3762,16 @@
     activePin = d; activeComputer = null;
     terminalLock = false;
     if (!d.tasks) d.tasks = Array.from({ length: PIN_TASKS }, () => newTask(usedTasks));
-    $("tHead").textContent = "ZAMEK SZYFROWY";
-    $("tLine1").textContent = "> DRZWI ZAMKNIĘTE NA PIN.";
-    $("tLine2").textContent = `> ROZWIĄŻ ${PIN_TASKS} ZADANIA - WYNIKI TO PIN:`;
+    $("tHead").textContent = L("ZAMEK SZYFROWY", "CODE LOCK");
+    $("tLine1").textContent = L("> DRZWI ZAMKNIĘTE NA PIN.", "> THE DOOR IS LOCKED WITH A PIN.");
+    $("tLine2").textContent = L(`> ROZWIĄŻ ${PIN_TASKS} ZADANIA - WYNIKI TO PIN:`, `> SOLVE ${PIN_TASKS} TASKS - THE ANSWERS ARE THE PIN:`);
     $("tPin").classList.remove("hidden");
     showPinTask(d);
     showTerminal();
   }
   function showPinTask(d) {
     const cur = Math.min(d.done, PIN_TASKS - 1), t = d.tasks[cur];
-    $("tNum").textContent = `ZADANIE ${cur + 1}/${PIN_TASKS}`;
+    $("tNum").textContent = `${L("ZADANIE", "TASK")} ${cur + 1}/${PIN_TASKS}`;
     $("tPin").innerHTML = d.tasks.map((t, i) =>
       `<span class="${i < d.done ? "ok" : i === d.done ? "cur" : ""}">${i < d.done ? t.answer : "?"}</span>`).join("");
     $("tQuestion").textContent = d.done > cur ? t.text.replace("?", t.answer) : t.text;
@@ -3787,7 +3808,7 @@
         c.solved = true;
         pendingSolve = true;
         $("tQuestion").textContent = c.task.text.replace("?", c.task.answer);
-        tMsg.textContent = "> DOBRZE! DOSTĘP PRZYZNANY."; tMsg.className = "t-msg good";
+        tMsg.textContent = L("> DOBRZE! DOSTĘP PRZYZNANY.", "> RIGHT! ACCESS GRANTED."); tMsg.className = "t-msg good";
         burst(c.x * TILE + 8, c.y * TILE + 4, "#3dff6e", 18);
         setTimeout(() => { if (activeComputer === c) closeTerminal(); }, 1100);
         return;
@@ -3797,7 +3818,7 @@
       showPinTask(d);
       $("tQuestion").textContent = task.text.replace("?", task.answer);
       if (d.done < PIN_TASKS) {
-        tMsg.textContent = `> DOBRZE! ZOSTAŁO ZADAŃ: ${PIN_TASKS - d.done}.`; tMsg.className = "t-msg good";
+        tMsg.textContent = L(`> DOBRZE! ZOSTAŁO ZADAŃ: ${PIN_TASKS - d.done}.`, `> RIGHT! TASKS LEFT: ${PIN_TASKS - d.done}.`); tMsg.className = "t-msg good";
         setTimeout(() => {
           if (activePin !== d) return;
           terminalLock = false; tInput.value = "";
@@ -3805,12 +3826,12 @@
         }, 900);
       } else {
         pendingSolve = true;
-        tMsg.textContent = "> PIN PRZYJĘTY! DRZWI OTWARTE."; tMsg.className = "t-msg good";
+        tMsg.textContent = L("> PIN PRZYJĘTY! DRZWI OTWARTE.", "> PIN ACCEPTED! THE DOOR IS OPEN."); tMsg.className = "t-msg good";
         setTimeout(() => { if (activePin === d) closeTerminal(); }, 1200);
       }
     } else {
       run.mistakes++; levelMistakes++;
-      tMsg.textContent = "> BŁĄD! SPRÓBUJ JESZCZE RAZ."; tMsg.className = "t-msg bad";
+      tMsg.textContent = L("> BŁĄD! SPRÓBUJ JESZCZE RAZ.", "> WRONG! TRY AGAIN."); tMsg.className = "t-msg bad";
       tInput.value = "";
       monitor.classList.remove("shake"); void monitor.offsetWidth; monitor.classList.add("shake");
       sfx.bad();
@@ -3821,7 +3842,7 @@
     d.open = true;
     sfx.door();
     burst(d.x * TILE + 8, d.y * TILE + 16, "#3dff6e", 18);
-    toast("PIN PRZYJĘTY! DRZWI OTWARTE!", 2.5, 2, "good");
+    toast(L("PIN PRZYJĘTY! DRZWI OTWARTE!", "PIN ACCEPTED! THE DOOR IS OPEN!"), 2.5, 2, "good");
   }
 
   function afterSolve(c) {
@@ -3830,10 +3851,10 @@
     if (left === 0) {
       mainWorld.exit.open = true;
       sfx.alarm();
-      toast(mainWorld.bossRoom ? "WSZYSTKIE ZADANIA ROZWIĄZANE! WYJŚCIE OTWARTE... ALE ZA NIM CZEKA SZEF!"
-                               : "WSZYSTKIE ZADANIA ROZWIĄZANE! WYJŚCIE JEST OTWARTE!", 4, 3, "good");
+      toast(mainWorld.bossRoom ? L("WSZYSTKIE ZADANIA ROZWIĄZANE! WYJŚCIE OTWARTE... ALE ZA NIM CZEKA SZEF!", "ALL THE TASKS SOLVED! THE EXIT IS OPEN... BUT A BOSS WAITS BEHIND IT!")
+                               : L("WSZYSTKIE ZADANIA ROZWIĄZANE! WYJŚCIE JEST OTWARTE!", "ALL THE TASKS SOLVED! THE EXIT IS OPEN!"), 4, 3, "good");
     } else {
-      toast(`ZADANIE ROZWIĄZANE! ZOSTAŁO: ${left}`, 2.5, 2, "good");
+      toast(L(`ZADANIE ROZWIĄZANE! ZOSTAŁO: ${left}`, `TASK SOLVED! LEFT: ${left}`), 2.5, 2, "good");
     }
   }
 
@@ -3845,7 +3866,7 @@
     b.addEventListener("click", () => typeDigit(d));
     keypad.appendChild(b);
   });
-  [["USUŃ", () => { if (!terminalLock) tInput.value = tInput.value.slice(0, -1); }], ["OK", submitAnswer]].forEach(([label, fn]) => {
+  [[L("USUŃ", "DEL"), () => { if (!terminalLock) tInput.value = tInput.value.slice(0, -1); }], ["OK", submitAnswer]].forEach(([label, fn]) => {
     const b = document.createElement("button");
     b.textContent = label; b.className = label === "OK" ? "wide ok" : "wide";
     b.addEventListener("click", fn);
@@ -3867,7 +3888,7 @@
   function toggleSound() {
     soundOn = !soundOn;
     try { localStorage.setItem("laboratorium-sound", soundOn ? "on" : "off"); } catch (e) { /* ignore */ }
-    $("btnSound").textContent = soundOn ? "DŹWIĘK: WŁ." : "DŹWIĘK: WYŁ.";
+    $("btnSound").textContent = soundOn ? L("DŹWIĘK: WŁ.", "SOUND: ON") : L("DŹWIĘK: WYŁ.", "SOUND: OFF");
   }
 
   window.addEventListener("keydown", e => {
@@ -3923,7 +3944,9 @@
   });
   $("btnPause").addEventListener("click", pause);
   $("btnSound").addEventListener("click", toggleSound);
-  $("btnSound").textContent = soundOn ? "DŹWIĘK: WŁ." : "DŹWIĘK: WYŁ.";
+  $("btnSound").textContent = soundOn ? L("DŹWIĘK: WŁ.", "SOUND: ON") : L("DŹWIĘK: WYŁ.", "SOUND: OFF");
+
+  for (const el of document.querySelectorAll("[data-lang]")) el.hidden = el.dataset.lang !== LANG;
 
   // ---------- Menu ----------
   function buildMenu() {
@@ -3951,12 +3974,12 @@
       const b = document.createElement("button");
       b.className = "opt" + (taskSettings.range === n ? " sel" : "");
       b.textContent = n;
-      b.title = `WYNIK DO ${rangeMax(n)}`;
+      b.title = `${L("WYNIK DO", "ANSWERS UP TO")} ${rangeMax(n)}`;
       b.addEventListener("click", () => { taskSettings.range = n; saveTaskSettings(); buildMenu(); });
       ranges.appendChild(b);
     }
-    $("rangeHint").textContent = `WYNIK MAKSYMALNIE ${rangeMax(taskSettings.range)}` +
-      (taskSettings.op === "all" ? " · DZIAŁANIA LOSOWANE PRZY KAŻDYM KOMPUTERZE" : "");
+    $("rangeHint").textContent = `${L("WYNIK MAKSYMALNIE", "ANSWERS UP TO")} ${rangeMax(taskSettings.range)}` +
+      (taskSettings.op === "all" ? L(" · DZIAŁANIA LOSOWANE PRZY KAŻDYM KOMPUTERZE", " · A RANDOM OPERATION AT EVERY COMPUTER") : "");
   }
   $("btnPlay").addEventListener("click", () => startRun(menuLevel));
   $("btnHofMenu").addEventListener("click", () => { result = null; showHallOfFame(taskSettings.op, null, false); });
@@ -3996,7 +4019,7 @@
         box.appendChild(b);
       });
     };
-    choice($("optGender"), [["boy", "CHŁOPIEC", { ...look, gender: "boy" }], ["girl", "DZIEWCZYNKA", { ...look, gender: "girl" }]],
+    choice($("optGender"), [["boy", L("CHŁOPIEC", "BOY"), { ...look, gender: "boy" }], ["girl", L("DZIEWCZYNKA", "GIRL"), { ...look, gender: "girl" }]],
       v => look.gender === v, v => { look.gender = v; }, true);
     choice($("optHair"), Object.entries(HAIR).map(([k, h]) => [k, h.name, { ...look, hair: k }]),
       v => look.hair === v, v => { look.hair = v; }, true);

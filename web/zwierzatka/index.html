@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Zagubione Zwierzątka</title>
+<title data-en="Lost Animals">Zagubione Zwierzątka</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Tiny5&display=swap" rel="stylesheet">
 <style>
@@ -168,53 +168,59 @@
 <!-- Sets GRY_ORIGIN, the API's address when this page is opened from disk
      (file://) - written per machine by 065_gry.yml. -->
 <script src="../lib/origin.js"></script>
+<!-- The language of the page: Polish, or English after a click on its flag. -->
+<script src="../lib/lang.js"></script>
 </head>
 <body>
 <div class="wrap">
-  <h1>ZAGUBIONE ZWIERZĄTKA</h1>
+  <h1 data-en="LOST ANIMALS">ZAGUBIONE ZWIERZĄTKA</h1>
 
   <section class="screen frame" id="menu">
     <div class="menu-top">
       <canvas class="hero" id="menuHero" width="14" height="24"></canvas>
-      <p>ZWIERZĄTKA SIĘ <b>ZGUBIŁY</b>! POMÓŻ JE ODNALEŹĆ. NIE WIDAĆ ICH NA EKRANIE - IDŹ TAM, GDZIE MÓWI <b>WSKAZÓWKA</b>, NA PRZYKŁAD <b>„IDŹ NA PÓŁNOCNY WSCHÓD”</b>. <b>GÓRA EKRANU TO ZAWSZE PÓŁNOC</b>. GDY PODEJDZIESZ BLISKO, ZWIERZĄTKO WYJDZIE Z UKRYCIA. DO RZEKI NIE DA SIĘ WEJŚĆ - SZUKAJ <b>MOSTÓW</b>. ZA KAŻDE ZNALEZIONE ZWIERZĄTKO DOSTAJESZ <b>PUNKTY</b>, A ZA SZYBKIE ZNALEZIENIE - BONUS.</p>
+      <!-- in each language: the script shows the one of the page -->
+      <p data-lang="en" hidden>THE ANIMALS ARE <b>LOST</b>! HELP FIND THEM. YOU CAN'T SEE THEM ON THE SCREEN - GO WHERE THE <b>HINT</b> SAYS, FOR EXAMPLE <b>"GO NORTH-EAST"</b>. <b>THE TOP OF THE SCREEN IS ALWAYS NORTH</b>. WHEN YOU GET CLOSE, THE ANIMAL COMES OUT OF HIDING. YOU CAN'T GO INTO A RIVER - LOOK FOR <b>BRIDGES</b>. EVERY ANIMAL YOU FIND GETS YOU <b>POINTS</b>, AND FINDING IT FAST - A BONUS.</p>
+      <p data-lang="pl">ZWIERZĄTKA SIĘ <b>ZGUBIŁY</b>! POMÓŻ JE ODNALEŹĆ. NIE WIDAĆ ICH NA EKRANIE - IDŹ TAM, GDZIE MÓWI <b>WSKAZÓWKA</b>, NA PRZYKŁAD <b>„IDŹ NA PÓŁNOCNY WSCHÓD”</b>. <b>GÓRA EKRANU TO ZAWSZE PÓŁNOC</b>. GDY PODEJDZIESZ BLISKO, ZWIERZĄTKO WYJDZIE Z UKRYCIA. DO RZEKI NIE DA SIĘ WEJŚĆ - SZUKAJ <b>MOSTÓW</b>. ZA KAŻDE ZNALEZIONE ZWIERZĄTKO DOSTAJESZ <b>PUNKTY</b>, A ZA SZYBKIE ZNALEZIENIE - BONUS.</p>
     </div>
-    <div class="menu-title">KIERUNKI ŚWIATA</div>
+    <div class="menu-title" data-en="THE POINTS OF THE COMPASS">KIERUNKI ŚWIATA</div>
     <div class="compass-legend" id="legend"></div>
-    <div class="menu-title">WYBIERZ POZIOM</div>
+    <div class="menu-title" data-en="PICK A LEVEL">WYBIERZ POZIOM</div>
     <div class="levels" id="levelBtns"></div>
     <div class="btns">
-      <button class="main-btn" id="btnPlay">GRAJ</button>
-      <button class="main-btn alt" id="btnCreator">ZMIEŃ POSTAĆ</button>
-      <button class="main-btn alt" id="btnHofMenu">SALA SŁAWY</button>
+      <button class="main-btn" id="btnPlay" data-en="PLAY">GRAJ</button>
+      <button class="main-btn alt" id="btnCreator" data-en="CHANGE CHARACTER">ZMIEŃ POSTAĆ</button>
+      <button class="main-btn alt" id="btnHofMenu" data-en="HALL OF FAME">SALA SŁAWY</button>
     </div>
-    <div class="menu-hint"><b>STRZAŁKI / W A S D</b> CHODZENIE (DWIE NARAZ - NA UKOS) &nbsp; <b>P</b> PAUZA &nbsp; <b>M</b> DŹWIĘK</div>
+    <div data-gry-flags></div>
+    <div class="menu-hint" data-lang="pl"><b>STRZAŁKI / W A S D</b> CHODZENIE (DWIE NARAZ - NA UKOS) &nbsp; <b>P</b> PAUZA &nbsp; <b>M</b> DŹWIĘK</div>
+    <div class="menu-hint" data-lang="en" hidden><b>ARROWS / W A S D</b> WALK (TWO AT ONCE - DIAGONALLY) &nbsp; <b>P</b> PAUSE &nbsp; <b>M</b> SOUND</div>
   </section>
 
   <section class="screen frame hidden" id="hofScreen"></section>
 
   <section class="screen frame hidden" id="creator">
-    <div class="menu-title">STWÓRZ SWOJĄ POSTAĆ</div>
+    <div class="menu-title" data-en="MAKE YOUR CHARACTER">STWÓRZ SWOJĄ POSTAĆ</div>
     <div class="creator">
       <div class="preview"><canvas id="preview" width="14" height="24"></canvas></div>
       <div class="opts">
-        <div><span class="label">POSTAĆ</span><div class="choices" id="optGender"></div></div>
-        <div><span class="label">FRYZURA</span><div class="choices" id="optHair"></div></div>
-        <div><span class="label">KOLOR WŁOSÓW</span><div class="swatches" id="optHairColor"></div></div>
-        <div><span class="label">KOLOR KOSZULKI</span><div class="swatches" id="optShirt"></div></div>
-        <div><span class="label">KOLOR SPODNI</span><div class="swatches" id="optPants"></div></div>
+        <div><span class="label" data-en="CHARACTER">POSTAĆ</span><div class="choices" id="optGender"></div></div>
+        <div><span class="label" data-en="HAIRSTYLE">FRYZURA</span><div class="choices" id="optHair"></div></div>
+        <div><span class="label" data-en="HAIR COLOUR">KOLOR WŁOSÓW</span><div class="swatches" id="optHairColor"></div></div>
+        <div><span class="label" data-en="SHIRT COLOUR">KOLOR KOSZULKI</span><div class="swatches" id="optShirt"></div></div>
+        <div><span class="label" data-en="TROUSERS COLOUR">KOLOR SPODNI</span><div class="swatches" id="optPants"></div></div>
       </div>
     </div>
     <div class="btns">
-      <button class="main-btn alt" id="btnRandom">LOSUJ</button>
-      <button class="main-btn" id="btnDone">GOTOWE</button>
+      <button class="main-btn alt" id="btnRandom" data-en="RANDOM">LOSUJ</button>
+      <button class="main-btn" id="btnDone" data-en="DONE">GOTOWE</button>
     </div>
   </section>
 
   <div class="hud frame hidden" id="hud">
-    <div><span class="label">POZIOM</span><span class="val" id="hudLevel">1</span></div>
-    <div><span class="label">CZAS</span><span class="val" id="hudTime">00:00</span></div>
-    <div><span class="label">ZWIERZĄTKA</span><span class="val" id="hudFound">0/0</span></div>
-    <div><span class="label">PUNKTY</span><span class="val" id="hudScore">0</span></div>
+    <div><span class="label" data-en="LEVEL">POZIOM</span><span class="val" id="hudLevel">1</span></div>
+    <div><span class="label" data-en="TIME">CZAS</span><span class="val" id="hudTime">00:00</span></div>
+    <div><span class="label" data-en="ANIMALS">ZWIERZĄTKA</span><span class="val" id="hudFound">0/0</span></div>
+    <div><span class="label" data-en="SCORE">PUNKTY</span><span class="val" id="hudScore">0</span></div>
   </div>
   <div class="dirbox frame hidden" id="dirbox">
     <canvas id="dirIcon" width="16" height="16"></canvas>
@@ -232,14 +238,14 @@
   <div class="touch" id="touch">
     <div class="dpad">
       <button data-dir="NW">NW</button><button data-dir="N">N</button><button data-dir="NE">NE</button>
-      <button data-dir="W">W</button><button class="mid" disabled>IDŹ</button><button data-dir="E">E</button>
+      <button data-dir="W">W</button><button class="mid" disabled data-en="GO">IDŹ</button><button data-dir="E">E</button>
       <button data-dir="SW">SW</button><button data-dir="S">S</button><button data-dir="SE">SE</button>
     </div>
   </div>
   <div class="below hidden" id="below">
-    <div class="help"><span class="keys-only"><b>STRZAŁKI / W A S D</b> CHODZENIE · <b>P</b> PAUZA · <b>M</b> DŹWIĘK</span></div>
+    <div class="help"><span class="keys-only" data-lang="pl"><b>STRZAŁKI / W A S D</b> CHODZENIE · <b>P</b> PAUZA · <b>M</b> DŹWIĘK</span><span class="keys-only" data-lang="en" hidden><b>ARROWS / W A S D</b> WALK · <b>P</b> PAUSE · <b>M</b> SOUND</span></div>
     <div class="row">
-      <button class="btn-small" id="btnPause">PAUZA</button>
+      <button class="btn-small" id="btnPause" data-en="PAUSE">PAUZA</button>
       <button class="btn-small" id="btnSound">DŹWIĘK: WŁ.</button>
     </div>
   </div>
@@ -248,6 +254,10 @@
 <script>
 (() => {
   "use strict";
+
+  // ---------- Language (lib/lang.js: Polish unless the English flag was picked) ----------
+  const LANG = window.GryLang ? window.GryLang.lang : "pl";
+  const L = (pl, en) => LANG === "en" ? en : pl;
 
   // ---------- Settings ----------
   const TILE = 16;
@@ -264,9 +274,9 @@
 
   // The eight directions, as atan2 counts them: anticlockwise from the east.
   const DIRS = [
-    { code: "E", name: "WSCHÓD" }, { code: "NE", name: "PÓŁNOCNY WSCHÓD" }, { code: "N", name: "PÓŁNOC" },
-    { code: "NW", name: "PÓŁNOCNY ZACHÓD" }, { code: "W", name: "ZACHÓD" }, { code: "SW", name: "POŁUDNIOWY ZACHÓD" },
-    { code: "S", name: "POŁUDNIE" }, { code: "SE", name: "POŁUDNIOWY WSCHÓD" },
+    { code: "E", name: L("WSCHÓD", "EAST") }, { code: "NE", name: L("PÓŁNOCNY WSCHÓD", "NORTH-EAST") }, { code: "N", name: L("PÓŁNOC", "NORTH") },
+    { code: "NW", name: L("PÓŁNOCNY ZACHÓD", "NORTH-WEST") }, { code: "W", name: L("ZACHÓD", "WEST") }, { code: "SW", name: L("POŁUDNIOWY ZACHÓD", "SOUTH-WEST") },
+    { code: "S", name: L("POŁUDNIE", "SOUTH") }, { code: "SE", name: L("POŁUDNIOWY WSCHÓD", "SOUTH-EAST") },
   ];
   const DIR_VEC = { N: [0, -1], NE: [1, -1], E: [1, 0], SE: [1, 1], S: [0, 1], SW: [-1, 1], W: [-1, 0], NW: [-1, -1] };
 
@@ -310,12 +320,12 @@
   const escapeHtml = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   // ---------- Character (the same as in Tajne Laboratorium) ----------
-  const HAIR_COLORS = [["CZARNE", "#23222b"], ["BRĄZOWE", "#6e3f1c"], ["BLOND", "#f0c75a"], ["RUDE", "#d4581f"],
-                       ["SIWE", "#d9dbe6"], ["NIEBIESKIE", "#3d7bff"], ["RÓŻOWE", "#ff6fb8"], ["ZIELONE", "#3ec46d"]];
-  const SHIRT_COLORS = [["CZERWONA", "#d63a3a"], ["NIEBIESKA", "#2f6fe0"], ["ZIELONA", "#2fa84a"], ["ŻÓŁTA", "#efc21c"],
-                        ["FIOLETOWA", "#8a4fd8"], ["POMARAŃCZOWA", "#f07a1a"], ["RÓŻOWA", "#f06fb0"], ["BIAŁA", "#e6e6e6"]];
-  const PANTS_COLORS = [["NIEBIESKIE", "#2e4a9e"], ["CZARNE", "#26262e"], ["BRĄZOWE", "#6b4a2b"], ["SZARE", "#70757f"],
-                        ["ZIELONE", "#3b6b34"], ["CZERWONE", "#a12a2a"], ["FIOLETOWE", "#5c3a8e"], ["BIAŁE", "#d8d8d8"]];
+  const HAIR_COLORS = [[L("CZARNE", "BLACK"), "#23222b"], [L("BRĄZOWE", "BROWN"), "#6e3f1c"], [L("BLOND", "BLOND"), "#f0c75a"], [L("RUDE", "GINGER"), "#d4581f"],
+                       [L("SIWE", "GREY"), "#d9dbe6"], [L("NIEBIESKIE", "BLUE"), "#3d7bff"], [L("RÓŻOWE", "PINK"), "#ff6fb8"], [L("ZIELONE", "GREEN"), "#3ec46d"]];
+  const SHIRT_COLORS = [[L("CZERWONA", "RED"), "#d63a3a"], [L("NIEBIESKA", "BLUE"), "#2f6fe0"], [L("ZIELONA", "GREEN"), "#2fa84a"], [L("ŻÓŁTA", "YELLOW"), "#efc21c"],
+                        [L("FIOLETOWA", "PURPLE"), "#8a4fd8"], [L("POMARAŃCZOWA", "ORANGE"), "#f07a1a"], [L("RÓŻOWA", "PINK"), "#f06fb0"], [L("BIAŁA", "WHITE"), "#e6e6e6"]];
+  const PANTS_COLORS = [[L("NIEBIESKIE", "BLUE"), "#2e4a9e"], [L("CZARNE", "BLACK"), "#26262e"], [L("BRĄZOWE", "BROWN"), "#6b4a2b"], [L("SZARE", "GREY"), "#70757f"],
+                        [L("ZIELONE", "GREEN"), "#3b6b34"], [L("CZERWONE", "RED"), "#a12a2a"], [L("FIOLETOWE", "PURPLE"), "#5c3a8e"], [L("BIAŁE", "WHITE"), "#d8d8d8"]];
   // 12 x 22: S skin, E eyes, M mouth, T/t shirt, P/p pants, B shoes.
   const HEAD = [
     "............", "............", "...SSSSSS...", "...SSSSSS...", "...SSSSSS...", "...SESSES...",
@@ -338,14 +348,14 @@
   ];
   // Overlays on the sprite: H hair, h darker hair ("." keeps what's under it).
   const HAIR = {
-    short: { name: "KRÓTKIE", back: 7, rows: ["............", "....HHHHH...", "..HHHHHHHH..", "..HHHHHHHH..", "..HHHh..H...", "..HH........", "..Hh........"] },
-    spiky: { name: "JEŻYK", back: 6, rows: ["..H.H.H.H...", "..HHHHHHHH..", ".HHHHHHHHHH.", "..HHHHHHHH..", "..HHh...H...", "..Hh........"] },
-    long: { name: "DŁUGIE", back: 9, rows: ["............", "....HHHHH...", "..HHHHHHHH..", ".HHHHHHHHHH.", ".HHHHh..HH..", ".HHH.....H..",
+    short: { name: L("KRÓTKIE", "SHORT"), back: 7, rows: ["............", "....HHHHH...", "..HHHHHHHH..", "..HHHHHHHH..", "..HHHh..H...", "..HH........", "..Hh........"] },
+    spiky: { name: L("JEŻYK", "SPIKY"), back: 6, rows: ["..H.H.H.H...", "..HHHHHHHH..", ".HHHHHHHHHH.", "..HHHHHHHH..", "..HHh...H...", "..Hh........"] },
+    long: { name: L("DŁUGIE", "LONG"), back: 9, rows: ["............", "....HHHHH...", "..HHHHHHHH..", ".HHHHHHHHHH.", ".HHHHh..HH..", ".HHH.....H..",
       ".HHH........", ".HHH........", ".HHH........", ".HHH........", ".HHh........", ".HHh........", "..hh........"] },
-    ponytail: { name: "KUCYK", back: 7, rows: ["............", "....HHHHH...", "..HHHHHHHH..", ".HHHHHHHHHH.", "HHHHh...H...", "HHh.........",
+    ponytail: { name: L("KUCYK", "PONYTAIL"), back: 7, rows: ["............", "....HHHHH...", "..HHHHHHHH..", ".HHHHHHHHHH.", "HHHHh...H...", "HHh.........",
       "HH..........", "HH..........", "Hh..........", ".h.........."] },
-    curly: { name: "KRĘCONE", back: 8, rows: ["...HHHHH....", "..HhHHHhH...", ".HHHHHHHHH..", "HHhHHHHHHhH.", "HHHH.....HH.", "HhH.......H.", "HHH.........", ".Hh........."] },
-    mohawk: { name: "IROKEZ", back: 0, rows: [".....HH.....", "....HHHH....", "....HhHH....", "....hHHh...."] },
+    curly: { name: L("KRĘCONE", "CURLY"), back: 8, rows: ["...HHHHH....", "..HhHHHhH...", ".HHHHHHHHH..", "HHhHHHHHHhH.", "HHHH.....HH.", "HhH.......H.", "HHH.........", ".Hh........."] },
+    mohawk: { name: L("IROKEZ", "MOHAWK"), back: 0, rows: [".....HH.....", "....HHHH....", "....HhHH....", "....hHHh...."] },
   };
   // A bow (in the shirt's colour), eyelashes and rosy cheeks.
   const GIRL = ["............", ".R.R........", "..R.........", ".R.R........", "........E...", "............", "............", "...c....c..."];
@@ -424,40 +434,40 @@
 
   // ---------- The lost animals (sitting, facing the camera) ----------
   const ANIMALS = [
-    { name: "LISEK", acc: "LISKA", pal: { O: "#e8762a", o: "#b8541a", W: "#fff4e8", K: "#2a1a14", N: "#1a1a1a" }, rows: [
+    { name: L("LISEK", "FOX"), acc: L("LISKA", "FOX"), pal: { O: "#e8762a", o: "#b8541a", W: "#fff4e8", K: "#2a1a14", N: "#1a1a1a" }, rows: [
       ".K.........K.", ".oO.......Oo.", ".OOO.....OOO.", "..OOOOOOOOO..", "..OKOOOOOKO..", "..OOWWWWWOO..",
       "...WWWNWWW...", "....WWWWW....", "...oOOOOOo...", "..OOOWWWOOO.OO", "..OOOWWWOOOOOW", "..OOOWWWOOO.OW", "...KK...KK...."] },
-    { name: "KOTEK", acc: "KOTKA", pal: { G: "#9aa0aa", g: "#6a707a", W: "#f4f4f4", P: "#ff9ab0", E: "#6ad040", K: "#1d1d2e" }, rows: [
+    { name: L("KOTEK", "KITTEN"), acc: L("KOTKA", "KITTEN"), pal: { G: "#9aa0aa", g: "#6a707a", W: "#f4f4f4", P: "#ff9ab0", E: "#6ad040", K: "#1d1d2e" }, rows: [
       ".G........G.", ".GG......GG.", ".GPG....GPG.", ".GGGGGGGGGG.", ".GgEGGGGEgG.", ".GGGGPPGGGG.", "..GGWWWWGG..",
       "...GGWWGG...", "..GgGGGGgG..G", "..GGGWWGGG.G.", "..GgGWWGgGG..", "..WW....WW..."] },
-    { name: "PIESEK", acc: "PIESKA", pal: { B: "#c8823a", b: "#7a4a1e", W: "#ffffff", K: "#1a1a1a", T: "#ff7a8a", D: "#5a3416" }, rows: [
+    { name: L("PIESEK", "PUPPY"), acc: L("PIESKA", "PUPPY"), pal: { B: "#c8823a", b: "#7a4a1e", W: "#ffffff", K: "#1a1a1a", T: "#ff7a8a", D: "#5a3416" }, rows: [
       "..DD....DD..", ".DDBBBBBBDD.", ".DDBKBBKBDD.", ".DDBBBBBBDD.", "..DBWWWWBD..", "...WWKKWW...", "....WTTW....",
       "...BBBBBB...", "..BBWWWWBB.b", "..BBWWWWBBb.", "..BBWWWWBB..", "..WW....WW.."] },
-    { name: "KRÓLICZEK", acc: "KRÓLICZKA", pal: { W: "#f4f2ee", g: "#c8c4bc", P: "#ffb0c0", K: "#2a1a2a", N: "#ff7a9a" }, rows: [
+    { name: L("KRÓLICZEK", "BUNNY"), acc: L("KRÓLICZKA", "BUNNY"), pal: { W: "#f4f2ee", g: "#c8c4bc", P: "#ffb0c0", K: "#2a1a2a", N: "#ff7a9a" }, rows: [
       "...WP..PW...", "...WP..PW...", "...WP..PW...", "...WW..WW...", "..WWWWWWWW..", ".WWKWWWWKWW.", ".WWWWNNWWWW.",
       "..WWWgWWWW..", "..gWWWWWWg..", ".WWWWWWWWWW.", ".WWWWWWWWWWW", "..gg....gg.."] },
-    { name: "JEŻYK", acc: "JEŻYKA", pal: { S: "#5a4030", s: "#8a6a4a", F: "#e8c8a0", K: "#1a1a1a", N: "#2a1a1a" }, rows: [
+    { name: L("JEŻYK", "HEDGEHOG"), acc: L("JEŻYKA", "HEDGEHOG"), pal: { S: "#5a4030", s: "#8a6a4a", F: "#e8c8a0", K: "#1a1a1a", N: "#2a1a1a" }, rows: [
       "..s.s.s.s.s..", ".sSsSsSsSsSs.", "sSSSSSSSSSSSs", "SSSSSSSSSSSSS", "SSSFFFFFFFSSS", "SSFFKFFFKFFSS", "SSFFFFFFFFFSS",
       "SSSFFFNFFFSSS", ".SSSFFFFFSSS.", "..SSSSSSSSS..", "...FF...FF..."] },
-    { name: "WIEWIÓRKA", acc: "WIEWIÓRKĘ", f: true, pal: { R: "#c8601e", r: "#8a3a12", W: "#fff0e0", K: "#1a1a1a" }, rows: [
+    { name: L("WIEWIÓRKA", "SQUIRREL"), acc: L("WIEWIÓRKĘ", "SQUIRREL"), f: true, pal: { R: "#c8601e", r: "#8a3a12", W: "#fff0e0", K: "#1a1a1a" }, rows: [
       ".r..r....RRR.", ".RR.RR..RRRRR", ".RRRRR.RRrRRR", ".RKRKR.RRRRRR", ".RRRRR..RRrRR", "..WWW....RRRR", ".RRWRR...RRR.",
       "RRWWWRR..RRR.", "RRWWWRRRRRR..", ".RWWWRRRRR...", ".RRRRR.......", ".KK.KK......."] },
-    { name: "KACZUSZKA", acc: "KACZUSZKĘ", f: true, pal: { Y: "#ffd83a", y: "#e8b020", O: "#ff8a1a", K: "#1a1a1a" }, rows: [
+    { name: L("KACZUSZKA", "DUCKLING"), acc: L("KACZUSZKĘ", "DUCKLING"), f: true, pal: { Y: "#ffd83a", y: "#e8b020", O: "#ff8a1a", K: "#1a1a1a" }, rows: [
       "....YYYY....", "...YYYYYY...", "...YKYYKY...", "...YYOOYY...", "....YOOY....", "..yYYYYYYy..", ".yYYYYYYYYy.",
       ".YYYYYYYYYY.", ".yYYYYYYYYy.", "..YYYYYYYY..", "...OO..OO..."] },
-    { name: "SÓWKA", acc: "SÓWKĘ", f: true, pal: { B: "#8a5a32", b: "#5e3a1e", W: "#f8f0e0", E: "#ffd83a", K: "#1a1a1a", O: "#e8a030", F: "#d8b890" }, rows: [
+    { name: L("SÓWKA", "OWLET"), acc: L("SÓWKĘ", "OWLET"), f: true, pal: { B: "#8a5a32", b: "#5e3a1e", W: "#f8f0e0", E: "#ffd83a", K: "#1a1a1a", O: "#e8a030", F: "#d8b890" }, rows: [
       ".b........b.", ".bB......Bb.", ".BBBBBBBBBB.", "BWWWBBBBWWWB", "WWEKWBBWKEWW", "BWWWBOOBWWWB", "BBBBBOOBBBBB",
       "bBFFFFFFFFBb", "bBFbFFFFbFBb", "bBFFFbbFFFBb", ".bBFFFFFFBb.", "..bBBBBBBb..", "...OO..OO..."] },
-    { name: "SARENKA", acc: "SARENKĘ", f: true, pal: { F: "#c88a50", f: "#9a6232", W: "#fff4e0", K: "#1a1a1a", N: "#2a1a14" }, rows: [
+    { name: L("SARENKA", "FAWN"), acc: L("SARENKĘ", "FAWN"), f: true, pal: { F: "#c88a50", f: "#9a6232", W: "#fff4e0", K: "#1a1a1a", N: "#2a1a14" }, rows: [
       ".f.......f..", ".FF.....FF..", "..FFFFFFF...", "..FKFFFKF...", "...FFFFF....", "...FWNWF....", "....WWW.....",
       "...FFFFFFFFF", "...FWFFWFFWF", "...FFFWFFFFF", "...FF.....FF", "...f......f.", "...K......K."] },
-    { name: "ŻÓŁWIK", acc: "ŻÓŁWIKA", pal: { G: "#3f8a3a", g: "#2a5a26", L: "#6ab04a", S: "#a8c860", K: "#1a1a1a" }, rows: [
+    { name: L("ŻÓŁWIK", "TURTLE"), acc: L("ŻÓŁWIKA", "TURTLE"), pal: { G: "#3f8a3a", g: "#2a5a26", L: "#6ab04a", S: "#a8c860", K: "#1a1a1a" }, rows: [
       "....SSS.....", "...SKSKS....", "....SSS.....", "..S.ggg.S...", "..SgGLGLgS..", ".SgLGgGgLGgS", "..gGgLLgGg..",
       "..gLGgGgLg..", "...gGLGLg...", "..S.ggg.S...", "......S....."] },
-    { name: "PAPUŻKA", acc: "PAPUŻKĘ", f: true, pal: { G: "#5ad040", g: "#3a9a2a", Y: "#f0e040", K: "#1a1a1a", O: "#e8a030", B: "#3a6ad0" }, rows: [
+    { name: L("PAPUŻKA", "BUDGIE"), acc: L("PAPUŻKĘ", "BUDGIE"), f: true, pal: { G: "#5ad040", g: "#3a9a2a", Y: "#f0e040", K: "#1a1a1a", O: "#e8a030", B: "#3a6ad0" }, rows: [
       "....YYYY....", "...YYYYYY...", "...YKYYKY...", "...YYOOYY...", "....YOOY....", "...GGGGGG...", "..gGGGGGGg..",
       "..gGGGGGGg..", "..gGgGGgGg..", "...GGGGGG...", "....BBBB....", "....OBBO....", ".....BB....."] },
-    { name: "ŚWINKA MORSKA", acc: "ŚWINKĘ MORSKĄ", f: true, pal: { W: "#f8f4ec", O: "#d8882a", K: "#2a2a2a", P: "#ffb0b0", E: "#1a1a1a" }, rows: [
+    { name: L("ŚWINKA MORSKA", "GUINEA PIG"), acc: L("ŚWINKĘ MORSKĄ", "GUINEA PIG"), f: true, pal: { W: "#f8f4ec", O: "#d8882a", K: "#2a2a2a", P: "#ffb0b0", E: "#1a1a1a" }, rows: [
       "..PO....OP..", ".OOOOWWKKKK.", "OOEOOWWKKEKK", "OOOOWWWWKKKK", "OOOWWPPWWKKK", ".OWWWWWWWWK.", "OOOOWWWWKKKK",
       "OOOOOWWKKKKK", ".OOOOWWKKKK.", "..WW....WW.."] },
   ];
@@ -660,19 +670,19 @@
   }
 
   const LEVELS = [
-    { name: "OSIEDLE", about: "DOMY, PŁOT I LAS DOOKOŁA", animals: 20, build: buildEstate },
-    { name: "LAS", about: "RZEKI I MOSTY", animals: 30, build: () => buildForest({
+    { name: L("OSIEDLE", "THE ESTATE"), about: L("DOMY, PŁOT I LAS DOOKOŁA", "HOUSES, A FENCE AND A FOREST AROUND"), animals: 20, build: buildEstate },
+    { name: L("LAS", "THE FOREST"), about: L("RZEKI I MOSTY", "RIVERS AND BRIDGES"), animals: 30, build: () => buildForest({
       seed: 21, w: 76, h: 54, density: 0.17, pine: 0.35, rocks: 0.012, trails: 6, start: [7, 27],
       grass: ["#52a23a", "#42902e", "#6ab84c"],
       rivers: [{ dir: "v", at: 38, width: 3, bridges: [9, 40] }, { dir: "h", at: 15, width: 2, wander: 4, from: 42, bridges: [52, 66] }] }) },
-    { name: "NAD JEZIOREM", about: "DUŻE JEZIORO I TRZY RZEKI", animals: 30, build: () => buildForest({
+    { name: L("NAD JEZIOREM", "BY THE LAKE"), about: L("DUŻE JEZIORO I TRZY RZEKI", "A BIG LAKE AND THREE RIVERS"), animals: 30, build: () => buildForest({
       seed: 33, w: 80, h: 56, density: 0.15, pine: 0.2, rocks: 0.01, trails: 7, start: [7, 28],
       grass: ["#5aaa3c", "#4a9630", "#72c252"],
       lakes: [{ x: 42, y: 27, rx: 12, ry: 8, seed: 9 }],
       rivers: [{ dir: "v", at: 41, width: 2, wander: 3, from: 0, to: 20, bridges: [7] },
                { dir: "v", at: 43, width: 2, wander: 3, from: 33, to: 55, bridges: [45] },
                { dir: "h", at: 27, width: 2, wander: 3, from: 53, to: 79, bridges: [66] }] }) },
-    { name: "DZIKA PUSZCZA", about: "GĘSTY LAS, SKAŁY I RZEKI", animals: 30, build: () => buildForest({
+    { name: L("DZIKA PUSZCZA", "THE WILD WOODS"), about: L("GĘSTY LAS, SKAŁY I RZEKI", "A THICK FOREST, ROCKS AND RIVERS"), animals: 30, build: () => buildForest({
       seed: 47, w: 84, h: 60, density: 0.22, pine: 0.65, rocks: 0.03, trails: 9, start: [6, 30],
       grass: ["#47923a", "#387e2e", "#5ea84a"],
       rivers: [{ dir: "v", at: 22, width: 3, wander: 4, bridges: [10, 46] }, { dir: "v", at: 58, width: 3, wander: 4, bridges: [20, 50] },
@@ -1048,30 +1058,32 @@
       const c = at(world.m, Math.floor((player.x + dx * i / n) / TILE), Math.floor((player.y - 4 + dy * i / n) / TILE));
       if (c === "~") water = true; else if (c === "f") fence = true;
     }
-    return water ? "PO DRODZE JEST RZEKA - POSZUKAJ MOSTU!" : fence ? "PO DRODZE JEST PŁOT - OBEJDŹ GO!" : "";
+    return water ? L("PO DRODZE JEST RZEKA - POSZUKAJ MOSTU!", "A RIVER IS IN THE WAY - LOOK FOR A BRIDGE!")
+      : fence ? L("PO DRODZE JEST PŁOT - OBEJDŹ GO!", "A FENCE IS IN THE WAY - GO AROUND IT!") : "";
   }
   let dirShown = "", byCode = true;
   function updateDirections(dt) {
     let main, sub, icon = animal ? animal.kind : null;
     if (!animal) {
-      main = levelFound ? "BRAWO!" : "ROZEJRZYJ SIĘ...";
-      sub = levelFound >= world.def.animals ? "TO BYŁO OSTATNIE!" : `ZARAZ ZGUBI SIĘ ${levelFound ? "NASTĘPNE " : ""}ZWIERZĄTKO...`;
+      main = levelFound ? L("BRAWO!", "WELL DONE!") : L("ROZEJRZYJ SIĘ...", "LOOK AROUND...");
+      sub = levelFound >= world.def.animals ? L("TO BYŁO OSTATNIE!", "THAT WAS THE LAST ONE!")
+        : L(`ZARAZ ZGUBI SIĘ ${levelFound ? "NASTĘPNE " : ""}ZWIERZĄTKO...`, `${levelFound ? "ANOTHER" : "AN"} ANIMAL IS ABOUT TO GET LOST...`);
       sector = null; hint = "";
     }
     else {
       const a = ANIMALS[animal.kind], dx = animal.x - player.x, dy = animal.y - player.y, dist = Math.hypot(dx, dy);
-      if (animal.shown) { main = `${a.name} JEST TUTAJ!`; sub = "PODEJDŹ DO NIEGO" + (a.f ? "J" : "") + " BLIŻEJ."; hint = ""; sector = null; }
+      if (animal.shown) { main = L(`${a.name} JEST TUTAJ!`, `THE ${a.name} IS HERE!`); sub = L("PODEJDŹ DO NIEGO" + (a.f ? "J" : "") + " BLIŻEJ.", "GO CLOSER TO IT."); hint = ""; sector = null; }
       else {
         const s = sectorOf(dx, dy, sector);
         if (s !== sector) {
           if (sector !== null) sfx.turn();
-          // every new direction is said the other way: by its letters (NW), or by its Polish name
+          // every new direction is said the other way: by its letters (NW), or by its name (in Polish, or English)
           byCode = !byCode;
         }
         sector = s;
         const d = DIRS[s];
-        main = `IDŹ NA ${byCode ? d.code : d.name}`;
-        sub = dist > 30 * TILE ? "DALEKO" : dist > 12 * TILE ? "CORAZ BLIŻEJ" : "BLISKO!";
+        main = `${L("IDŹ NA", "GO")} ${byCode ? d.code : d.name}`;
+        sub = dist > 30 * TILE ? L("DALEKO", "FAR AWAY") : dist > 12 * TILE ? L("CORAZ BLIŻEJ", "GETTING CLOSER") : L("BLISKO!", "CLOSE!");
         if ((hintTimer -= dt) <= 0) { hintTimer = 0.3; hint = inTheWay(); }
       }
     }
@@ -1098,7 +1110,7 @@
     sector = null; hintTimer = 0;
     sfx.lost();
     const a = ANIMALS[kind];
-    toast(`ZGUBIŁ${a.f ? "A" : ""} SIĘ ${a.name}! GDZIE JEST? CZYTAJ WSKAZÓWKI.`, 2.6);
+    toast(L(`ZGUBIŁ${a.f ? "A" : ""} SIĘ ${a.name}! GDZIE JEST? CZYTAJ WSKAZÓWKI.`, `THE ${a.name} IS LOST! WHERE IS IT? READ THE HINTS.`), 2.6);
   }
   function foundAnimal() {
     const a = ANIMALS[animal.kind];
@@ -1113,7 +1125,7 @@
     animal = null;
     updateHud();
     nextIn = levelFound >= world.def.animals ? 0.9 : NEXT_IN;
-    toast(`${girl() ? "ZNALAZŁAŚ" : "ZNALAZŁEŚ"} ${a.acc}! +${pts} PUNKTÓW`, 2.2, "good");
+    toast(L(`${girl() ? "ZNALAZŁAŚ" : "ZNALAZŁEŚ"} ${a.acc}! +${pts} PUNKTÓW`, `YOU FOUND THE ${a.acc}! +${pts} POINTS`), 2.2, "good");
   }
   let particles = [];
 
@@ -1179,11 +1191,15 @@
     state = "intro";
     const d = world.def;
     showOverlay(`
-      <div class="big">POZIOM ${i + 1}: ${escapeHtml(d.name)}</div>
-      <div>ZNAJDŹ <span class="sub">${d.animals}</span> ZAGUBIONYCH ZWIERZĄTEK. GUBIĄ SIĘ PO JEDNYM - NASTĘPNE DOPIERO, GDY ZNAJDZIESZ POPRZEDNIE.</div>
-      ${i === 0 ? `<div>STOISZ PRZED SWOIM DOMEM. OSIEDLE JEST OGRODZONE - WYJŚCIA SĄ NA ZACHODZIE (W) I NA WSCHODZIE (E), TAM, GDZIE BIEGNIE ŻWIROWA DROGA.</div>` : ""}
-      <div>NIE WIDAĆ ICH - CZYTAJ WSKAZÓWKI NAD MAPĄ, NA PRZYKŁAD <span class="sub">IDŹ NA POŁUDNIOWY ZACHÓD</span>.</div>
-      <div class="dim">GÓRA EKRANU TO ZAWSZE PÓŁNOC (N), DÓŁ - POŁUDNIE (S), PRAWO - WSCHÓD (E), LEWO - ZACHÓD (W).</div>
+      <div class="big">${L("POZIOM", "LEVEL")} ${i + 1}: ${escapeHtml(d.name)}</div>
+      <div>${L(`ZNAJDŹ <span class="sub">${d.animals}</span> ZAGUBIONYCH ZWIERZĄTEK. GUBIĄ SIĘ PO JEDNYM - NASTĘPNE DOPIERO, GDY ZNAJDZIESZ POPRZEDNIE.`,
+               `FIND <span class="sub">${d.animals}</span> LOST ANIMALS. THEY GET LOST ONE AT A TIME - THE NEXT ONE ONLY WHEN YOU HAVE FOUND THE ONE BEFORE.`)}</div>
+      ${i === 0 ? `<div>${L("STOISZ PRZED SWOIM DOMEM. OSIEDLE JEST OGRODZONE - WYJŚCIA SĄ NA ZACHODZIE (W) I NA WSCHODZIE (E), TAM, GDZIE BIEGNIE ŻWIROWA DROGA.",
+                            "YOU ARE IN FRONT OF YOUR HOUSE. THE ESTATE HAS A FENCE AROUND IT - THE WAYS OUT ARE TO THE WEST (W) AND TO THE EAST (E), WHERE THE GRAVEL ROAD GOES.")}</div>` : ""}
+      <div>${L(`NIE WIDAĆ ICH - CZYTAJ WSKAZÓWKI NAD MAPĄ, NA PRZYKŁAD <span class="sub">IDŹ NA POŁUDNIOWY ZACHÓD</span>.`,
+               `YOU CAN'T SEE THEM - READ THE HINTS ABOVE THE MAP, FOR EXAMPLE <span class="sub">GO SOUTH-WEST</span>.`)}</div>
+      <div class="dim">${L("GÓRA EKRANU TO ZAWSZE PÓŁNOC (N), DÓŁ - POŁUDNIE (S), PRAWO - WSCHÓD (E), LEWO - ZACHÓD (W).",
+                         "THE TOP OF THE SCREEN IS ALWAYS NORTH (N), THE BOTTOM - SOUTH (S), RIGHT - EAST (E), LEFT - WEST (W).")}</div>
       <button class="main-btn" data-primary>START</button>`, play);
   }
   function play() {
@@ -1197,9 +1213,9 @@
   function pause() {
     if (state !== "playing") return;
     state = "paused";
-    showOverlay(`<div class="big">PAUZA</div>
-      <div class="btns"><button class="main-btn" data-primary>GRAJ DALEJ</button>
-      <button class="main-btn alt" data-end>ZAKOŃCZ I ZAPISZ WYNIK</button><button class="main-btn alt" data-menu>MENU</button></div>`, play);
+    showOverlay(`<div class="big">${L("PAUZA", "PAUSED")}</div>
+      <div class="btns"><button class="main-btn" data-primary>${L("GRAJ DALEJ", "PLAY ON")}</button>
+      <button class="main-btn alt" data-end>${L("ZAKOŃCZ I ZAPISZ WYNIK", "STOP AND SAVE THE SCORE")}</button><button class="main-btn alt" data-menu>MENU</button></div>`, play);
   }
   function levelComplete() {
     state = "done";
@@ -1207,12 +1223,12 @@
     const before = run.score;
     run.score += PTS_LEVEL;
     updateHud();
-    const stats = `<div>CZAS POZIOMU: <span class="sub">${fmtTime(levelTime)}</span> · WSZYSTKIE ZWIERZĄTKA: <span class="sub">+${PTS_LEVEL}</span></div>
-      <div>PUNKTY: <span class="sub">${before}</span> → <span style="color:var(--yellow)">${run.score}</span></div>`;
+    const stats = `<div>${L("CZAS POZIOMU", "LEVEL TIME")}: <span class="sub">${fmtTime(levelTime)}</span> · ${L("WSZYSTKIE ZWIERZĄTKA", "EVERY ANIMAL")}: <span class="sub">+${PTS_LEVEL}</span></div>
+      <div>${L("PUNKTY", "SCORE")}: <span class="sub">${before}</span> → <span style="color:var(--yellow)">${run.score}</span></div>`;
     if (run.level < LEVELS.length - 1) {
-      showOverlay(`<div class="big">POZIOM ${run.level + 1} UKOŃCZONY!</div>
-        <div>${girl() ? "ZNALAZŁAŚ" : "ZNALAZŁEŚ"} WSZYSTKIE ${world.def.animals} ZWIERZĄTEK!</div>${stats}
-        <div class="btns"><button class="main-btn" data-primary>NASTĘPNY POZIOM</button><button class="main-btn alt" data-end>ZAKOŃCZ I ZAPISZ WYNIK</button></div>`,
+      showOverlay(`<div class="big">${L(`POZIOM ${run.level + 1} UKOŃCZONY!`, `LEVEL ${run.level + 1} DONE!`)}</div>
+        <div>${L(`${girl() ? "ZNALAZŁAŚ" : "ZNALAZŁEŚ"} WSZYSTKIE ${world.def.animals} ZWIERZĄTEK!`, `YOU FOUND ALL ${world.def.animals} ANIMALS!`)}</div>${stats}
+        <div class="btns"><button class="main-btn" data-primary>${L("NASTĘPNY POZIOM", "NEXT LEVEL")}</button><button class="main-btn alt" data-end>${L("ZAKOŃCZ I ZAPISZ WYNIK", "STOP AND SAVE THE SCORE")}</button></div>`,
         () => loadLevel(run.level + 1));
     } else endRun(true, stats);
   }
@@ -1259,51 +1275,51 @@
     result = { completed, score: run.score, time: run.time, level: run.level, startLevel: run.startLevel, found: run.found, extra, entry: null, hofError: false };
     const r = result;
     if (r.score <= 0) { showResult(); return; }
-    showOverlay(`${resultHtml(r)}<div class="blink">ŁADOWANIE SALI SŁAWY...</div>`);
+    showOverlay(`${resultHtml(r)}<div class="blink">${L("ŁADOWANIE SALI SŁAWY...", "LOADING THE HALL OF FAME...")}</div>`);
     hofLoad()
       .then(() => { if (result === r && state === "over") (hofRank(r) ? showNameEntry() : showResult()); })
       .catch(() => { if (result === r && state === "over") { r.hofError = true; showResult(); } });
   }
   function resultHtml(r) {
     const head = r.completed
-      ? `<div class="big">WSZYSTKIE ZWIERZĄTKA ODNALEZIONE!</div><div>BRAWO! ${girl() ? "PRZESZŁAŚ" : "PRZESZEDŁEŚ"} WSZYSTKIE POZIOMY.</div>`
-      : `<div class="big">KONIEC GRY</div><div>${girl() ? "DOSZŁAŚ" : "DOSZEDŁEŚ"} DO POZIOMU ${r.level + 1}.</div>`;
-    return `${head}${r.extra}<div>PUNKTY: <span style="color:var(--yellow)">${r.score}</span> · ZWIERZĄTKA: <span class="sub">${r.found}</span> · CZAS: <span class="sub">${fmtTime(r.time)}</span></div>`;
+      ? `<div class="big">${L("WSZYSTKIE ZWIERZĄTKA ODNALEZIONE!", "EVERY ANIMAL FOUND!")}</div><div>${L(`BRAWO! ${girl() ? "PRZESZŁAŚ" : "PRZESZEDŁEŚ"} WSZYSTKIE POZIOMY.`, "WELL DONE! YOU FINISHED EVERY LEVEL.")}</div>`
+      : `<div class="big">${L("KONIEC GRY", "GAME OVER")}</div><div>${L(`${girl() ? "DOSZŁAŚ" : "DOSZEDŁEŚ"} DO POZIOMU ${r.level + 1}.`, `YOU GOT TO LEVEL ${r.level + 1}.`)}</div>`;
+    return `${head}${r.extra}<div>${L("PUNKTY", "SCORE")}: <span style="color:var(--yellow)">${r.score}</span> · ${L("ZWIERZĄTKA", "ANIMALS")}: <span class="sub">${r.found}</span> · ${L("CZAS", "TIME")}: <span class="sub">${fmtTime(r.time)}</span></div>`;
   }
   function showResult() {
     const r = result;
     showOverlay(`${resultHtml(r)}
-      ${r.hofError ? `<div style="color:var(--red)">SALA SŁAWY NIEDOSTĘPNA - BRAK POŁĄCZENIA Z SERWEREM</div>` : ""}
-      <div class="btns"><button class="main-btn" data-primary>JESZCZE RAZ</button><button class="main-btn alt" data-menu>MENU</button>
-      <button class="main-btn alt" data-hof>SALA SŁAWY</button></div>`, () => startRun(r.startLevel));
+      ${r.hofError ? `<div style="color:var(--red)">${L("SALA SŁAWY NIEDOSTĘPNA - BRAK POŁĄCZENIA Z SERWEREM", "HALL OF FAME UNAVAILABLE - NO CONNECTION TO THE SERVER")}</div>` : ""}
+      <div class="btns"><button class="main-btn" data-primary>${L("JESZCZE RAZ", "AGAIN")}</button><button class="main-btn alt" data-menu>MENU</button>
+      <button class="main-btn alt" data-hof>${L("SALA SŁAWY", "HALL OF FAME")}</button></div>`, () => startRun(r.startLevel));
   }
   function showNameEntry() {
     state = "entry";
     const r = result;
     showOverlay(`${resultHtml(r)}
-      <div style="color:var(--yellow)">JESTEŚ W SALI SŁAWY! MIEJSCE #${hofRank(r)}</div>
+      <div style="color:var(--yellow)">${L("JESTEŚ W SALI SŁAWY! MIEJSCE", "YOU ARE IN THE HALL OF FAME! PLACE")} #${hofRank(r)}</div>
       <form class="name-form" id="nameForm" autocomplete="off">
-        <label for="nameInput">WPISZ SWOJE IMIĘ:</label>
+        <label for="nameInput">${L("WPISZ SWOJE IMIĘ:", "ENTER YOUR NAME:")}</label>
         <input id="nameInput" maxlength="12" spellcheck="false" value="${escapeHtml(lastName)}">
-        <div class="btns"><button class="main-btn" type="submit">ZAPISZ</button>
-        <button class="main-btn alt" type="button" id="btnSkip" hidden>POMIŃ</button></div>
+        <div class="btns"><button class="main-btn" type="submit">${L("ZAPISZ", "SAVE")}</button>
+        <button class="main-btn alt" type="button" id="btnSkip" hidden>${L("POMIŃ", "SKIP")}</button></div>
         <div id="nameError" style="color:var(--red)"></div>
       </form>`);
     const input = $("nameInput"), form = $("nameForm");
     setTimeout(() => { input.focus(); input.select(); }, 0);
     form.onsubmit = async e => {
       e.preventDefault();
-      const name = input.value.trim().toUpperCase().slice(0, 12) || (girl() ? "ODKRYWCZYNI" : "ODKRYWCA").slice(0, 12);
+      const name = input.value.trim().toUpperCase().slice(0, 12) || L(girl() ? "ODKRYWCZYNI" : "ODKRYWCA", "EXPLORER").slice(0, 12);
       lastName = name;
       try { localStorage.setItem("zwierzatka-name", name); } catch (err) { /* ignore */ }
       const saveBtn = form.querySelector("[type=submit]");
-      saveBtn.disabled = true; saveBtn.textContent = "ZAPISYWANIE...";
+      saveBtn.disabled = true; saveBtn.textContent = L("ZAPISYWANIE...", "SAVING...");
       try {
         const saved = await hofPost({ name, score: r.score, time: Math.floor(r.time), level: r.level + 1, completed: r.completed });
         r.entry = saved.entry;
       } catch (err) {
-        saveBtn.disabled = false; saveBtn.textContent = "SPRÓBUJ PONOWNIE";
-        $("nameError").textContent = "NIE UDAŁO SIĘ ZAPISAĆ (" + err.message + ")";
+        saveBtn.disabled = false; saveBtn.textContent = L("SPRÓBUJ PONOWNIE", "TRY AGAIN");
+        $("nameError").textContent = L("NIE UDAŁO SIĘ ZAPISAĆ (", "COULD NOT SAVE (") + err.message + ")";
         $("btnSkip").hidden = false;
         return;
       }
@@ -1318,19 +1334,19 @@
     showScreen("hof");
     const box = $("hofScreen");
     const buttons = afterGame && result
-      ? `<div class="btns"><button class="main-btn" id="hofAgain">JESZCZE RAZ</button><button class="main-btn alt" id="hofMenu">MENU</button></div>`
-      : `<div class="btns"><button class="main-btn" id="hofMenu">WRÓĆ</button></div>`;
+      ? `<div class="btns"><button class="main-btn" id="hofAgain">${L("JESZCZE RAZ", "AGAIN")}</button><button class="main-btn alt" id="hofMenu">MENU</button></div>`
+      : `<div class="btns"><button class="main-btn" id="hofMenu">${L("WRÓĆ", "BACK")}</button></div>`;
     const show = body => {
-      box.innerHTML = `<div class="menu-title">SALA SŁAWY</div>${body}${buttons}`;
+      box.innerHTML = `<div class="menu-title">${L("SALA SŁAWY", "HALL OF FAME")}</div>${body}${buttons}`;
       if ($("hofAgain")) $("hofAgain").onclick = () => startRun(result.startLevel);
       $("hofMenu").onclick = goMenu;
     };
     if (fetchFirst) {
       const req = ++hofRequest, stillHere = () => req === hofRequest && state === "hof";
-      show(`<div class="blink">ŁADOWANIE...</div>`);
+      show(`<div class="blink">${L("ŁADOWANIE...", "LOADING...")}</div>`);
       hofLoad()
         .then(() => { if (stillHere()) showHallOfFame(highlight, afterGame, false); })
-        .catch(err => { if (stillHere()) show(`<div style="color:var(--red)">BRAK POŁĄCZENIA Z SERWEREM (${escapeHtml(err.message)})</div>`); });
+        .catch(err => { if (stillHere()) show(`<div style="color:var(--red)">${L("BRAK POŁĄCZENIA Z SERWEREM", "NO CONNECTION TO THE SERVER")} (${escapeHtml(err.message)})</div>`); });
       return;
     }
     const medal = ["gold", "silver", "bronze"];
@@ -1340,9 +1356,9 @@
       const cls = [medal[i] || "", highlight && e.id === highlight.id ? "me" : ""].join(" ");
       return `<tr class="${cls}"><td class="num">${i + 1}.</td><td class="name">${escapeHtml(e.name)}</td><td class="num">${e.score}</td>
         <td class="num">${e.time == null ? "--:--" : fmtTime(e.time)}</td><td class="num">${e.level == null ? "-" : e.level}</td>
-        <td>${e.completed ? `<span class="fin">WSZYSTKIE!</span>` : ""}</td></tr>`;
+        <td>${e.completed ? `<span class="fin">${L("WSZYSTKIE!", "ALL!")}</span>` : ""}</td></tr>`;
     }).join("");
-    show(`<table class="hof"><tr><th class="num">#</th><th>IMIĘ</th><th class="num">PUNKTY</th><th class="num">CZAS</th><th class="num">POZIOM</th><th></th></tr>${rows}</table>`);
+    show(`<table class="hof"><tr><th class="num">#</th><th>${L("IMIĘ", "NAME")}</th><th class="num">${L("PUNKTY", "SCORE")}</th><th class="num">${L("CZAS", "TIME")}</th><th class="num">${L("POZIOM", "LEVEL")}</th><th></th></tr>${rows}</table>`);
   }
 
   // ---------- Update ----------
@@ -1441,7 +1457,7 @@
   function toggleSound() {
     soundOn = !soundOn;
     try { localStorage.setItem("zwierzatka-sound", soundOn ? "on" : "off"); } catch (e) { /* ignore */ }
-    $("btnSound").textContent = soundOn ? "DŹWIĘK: WŁ." : "DŹWIĘK: WYŁ.";
+    $("btnSound").textContent = soundOn ? L("DŹWIĘK: WŁ.", "SOUND: ON") : L("DŹWIĘK: WYŁ.", "SOUND: OFF");
   }
   window.addEventListener("keydown", e => {
     if (state === "entry" || state === "hof") return;
@@ -1474,7 +1490,7 @@
   });
   $("btnPause").addEventListener("click", pause);
   $("btnSound").addEventListener("click", toggleSound);
-  $("btnSound").textContent = soundOn ? "DŹWIĘK: WŁ." : "DŹWIĘK: WYŁ.";
+  $("btnSound").textContent = soundOn ? L("DŹWIĘK: WŁ.", "SOUND: ON") : L("DŹWIĘK: WYŁ.", "SOUND: OFF");
 
   // ---------- Menu ----------
   function buildMenu() {
@@ -1483,14 +1499,14 @@
     LEVELS.forEach((lv, i) => {
       const b = document.createElement("button");
       b.className = "opt" + (i === menuLevel ? " sel" : "");
-      b.innerHTML = `<b>${i + 1}</b>${escapeHtml(lv.name)}<small>${escapeHtml(lv.about)} · ${lv.animals} ZWIERZĄTEK</small>`;
+      b.innerHTML = `<b>${i + 1}</b>${escapeHtml(lv.name)}<small>${escapeHtml(lv.about)} · ${lv.animals} ${L("ZWIERZĄTEK", "ANIMALS")}</small>`;
       b.addEventListener("click", () => { menuLevel = i; buildMenu(); });
       box.appendChild(b);
     });
     // the eight directions, laid out like a compass
     const dirOf = Object.fromEntries(DIRS.map(d => [d.code, d]));
     $("legend").innerHTML = ["NW", "N", "NE", "W", "", "E", "SW", "S", "SE"].map(c => c
-      ? `<div><b>${c}</b>${dirOf[c].name}</div>` : `<div class="mid">GÓRA = PÓŁNOC</div>`).join("");
+      ? `<div><b>${c}</b>${dirOf[c].name}</div>` : `<div class="mid">${L("GÓRA = PÓŁNOC", "UP = NORTH")}</div>`).join("");
   }
   $("btnPlay").addEventListener("click", () => startRun(menuLevel));
   $("btnHofMenu").addEventListener("click", () => { result = null; showHallOfFame(null, false); });
@@ -1520,7 +1536,7 @@
         box.appendChild(b);
       });
     };
-    choice($("optGender"), [["boy", "CHŁOPIEC", { ...look, gender: "boy" }], ["girl", "DZIEWCZYNKA", { ...look, gender: "girl" }]],
+    choice($("optGender"), [["boy", L("CHŁOPIEC", "BOY"), { ...look, gender: "boy" }], ["girl", L("DZIEWCZYNKA", "GIRL"), { ...look, gender: "girl" }]],
       v => look.gender === v, v => { look.gender = v; });
     choice($("optHair"), Object.entries(HAIR).map(([k, h]) => [k, h.name, { ...look, hair: k }]), v => look.hair === v, v => { look.hair = v; });
     const swatches = (box, colors, field) => {
@@ -1569,6 +1585,7 @@
     get run() { return run; }, spawnAnimal, foundAnimal, levelComplete,
   };
 
+  for (const el of document.querySelectorAll("[data-lang]")) el.hidden = el.dataset.lang !== LANG;
   buildMenu();
   showScreen("menu");
   if (document.fonts) document.fonts.ready.then(() => { dirShown = ""; });

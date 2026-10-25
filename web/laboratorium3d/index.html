@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tajne Laboratorium 3D</title>
+<title data-en="Secret Lab 3D">Tajne Laboratorium 3D</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap" rel="stylesheet">
 <style>
@@ -282,63 +282,72 @@
 <!-- Sets GRY_ORIGIN, the API's address when this page is opened from disk
      (file://) - written per machine by 065_gry.yml. -->
 <script src="../lib/origin.js"></script>
+<!-- The language of the page: Polish, or English after a click on its flag. -->
+<script src="../lib/lang.js"></script>
 </head>
 <body>
 <div class="wrap">
-  <h1>TAJNE LABORATORIUM 3D</h1>
+  <h1 data-en="SECRET LAB 3D">TAJNE LABORATORIUM 3D</h1>
 
   <section class="screen frame" id="menu">
     <div class="menu-top">
       <canvas class="hero" id="menuHero" width="14" height="24"></canvas>
-      <p>TYM RAZEM WCHODZISZ DO <b>TAJNEGO LABORATORIUM</b> NAPRAWDĘ - WIDZISZ WSZYSTKO SWOIMI OCZAMI! CHODZISZ PO KORYTARZACH I POKOJACH, ZBIERASZ <b>KOLOROWE KLUCZE</b> (OTWIERAJĄ DRZWI W TYM SAMYM KOLORZE), <b>DIAMENTY</b>, <b>DYSKIETKI</b>, <b>PŁYTY CD</b> I <b>LITERY</b> SŁOWA NAUKA. DRZWI <b>NA PIN</b> OTWIERASZ, ROZWIĄZUJĄC 4 ZADANIA. UWAŻAJ NA <b>MUTANTY</b> I TOKSYCZNE KAŁUŻE - DOTKNIĘCIE ZABIERA ŻYCIE. ZNAJDŹ <b>PISTOLET</b>, ŻEBY STRZELAĆ DO MUTANTÓW I ROZBIJAĆ PĘKNIĘTE ŚCIANY. ROZWIĄŻ ZADANIA NA WSZYSTKICH <b>KOMPUTERACH</b>, A OTWORZY SIĘ <b>WYJŚCIE</b>. W ROGU WIDAĆ <b>MAPĘ</b> TEGO, CO JUŻ ZOBACZYŁEŚ.</p>
+      <!-- in each language: the script shows the one of the page -->
+      <p data-lang="en" hidden>THIS TIME YOU REALLY GO INTO THE <b>SECRET LAB</b> - YOU SEE EVERYTHING WITH YOUR OWN EYES! YOU WALK THE CORRIDORS AND ROOMS, COLLECT <b>COLOURED KEYS</b> (THEY OPEN THE DOORS OF THE SAME COLOUR), <b>DIAMONDS</b>, <b>FLOPPY DISKS</b>, <b>CDS</b> AND THE <b>LETTERS</b> OF THE WORD NAUKA (SCIENCE). YOU OPEN <b>PIN</b> DOORS BY SOLVING 4 TASKS. WATCH OUT FOR <b>MUTANTS</b> AND TOXIC PUDDLES - TOUCHING THEM COSTS A LIFE. FIND A <b>PISTOL</b> TO SHOOT MUTANTS AND BREAK CRACKED WALLS. SOLVE THE TASKS ON ALL THE <b>COMPUTERS</b>, AND THE <b>EXIT</b> OPENS. IN THE CORNER YOU SEE A <b>MAP</b> OF WHAT YOU HAVE SEEN SO FAR.</p>
+      <p data-lang="pl">TYM RAZEM WCHODZISZ DO <b>TAJNEGO LABORATORIUM</b> NAPRAWDĘ - WIDZISZ WSZYSTKO SWOIMI OCZAMI! CHODZISZ PO KORYTARZACH I POKOJACH, ZBIERASZ <b>KOLOROWE KLUCZE</b> (OTWIERAJĄ DRZWI W TYM SAMYM KOLORZE), <b>DIAMENTY</b>, <b>DYSKIETKI</b>, <b>PŁYTY CD</b> I <b>LITERY</b> SŁOWA NAUKA. DRZWI <b>NA PIN</b> OTWIERASZ, ROZWIĄZUJĄC 4 ZADANIA. UWAŻAJ NA <b>MUTANTY</b> I TOKSYCZNE KAŁUŻE - DOTKNIĘCIE ZABIERA ŻYCIE. ZNAJDŹ <b>PISTOLET</b>, ŻEBY STRZELAĆ DO MUTANTÓW I ROZBIJAĆ PĘKNIĘTE ŚCIANY. ROZWIĄŻ ZADANIA NA WSZYSTKICH <b>KOMPUTERACH</b>, A OTWORZY SIĘ <b>WYJŚCIE</b>. W ROGU WIDAĆ <b>MAPĘ</b> TEGO, CO JUŻ ZOBACZYŁEŚ.</p>
     </div>
-    <div class="menu-title">WYBIERZ POZIOM</div>
+    <div class="menu-title" data-en="PICK A LEVEL">WYBIERZ POZIOM</div>
     <div class="levels" id="levelBtns"></div>
-    <div class="menu-title">ZADANIA NA KOMPUTERACH</div>
+    <div class="menu-title" data-en="TASKS ON THE COMPUTERS">ZADANIA NA KOMPUTERACH</div>
     <div class="ops" id="opBtns"></div>
-    <div class="menu-title">TRUDNOŚĆ ZADAŃ</div>
+    <div class="menu-title" data-en="DIFFICULTY OF THE TASKS">TRUDNOŚĆ ZADAŃ</div>
     <div class="ranges" id="rangeBtns"></div>
     <div class="range-hint" id="rangeHint"></div>
     <div class="btns">
-      <button class="main-btn" id="btnPlay">GRAJ</button>
-      <button class="main-btn alt" id="btnCreator">ZMIEŃ POSTAĆ</button>
-      <button class="main-btn alt" id="btnHofMenu">SALA SŁAWY</button>
+      <button class="main-btn" id="btnPlay" data-en="PLAY">GRAJ</button>
+      <button class="main-btn alt" id="btnCreator" data-en="CHANGE CHARACTER">ZMIEŃ POSTAĆ</button>
+      <button class="main-btn alt" id="btnHofMenu" data-en="HALL OF FAME">SALA SŁAWY</button>
     </div>
-    <div class="menu-hint">
+    <div data-gry-flags></div>
+    <div class="menu-hint" data-lang="pl">
       <b>W / STRZAŁKA W GÓRĘ</b> NAPRZÓD &nbsp; <b>S / STRZAŁKA W DÓŁ</b> DO TYŁU &nbsp; <b>STRZAŁKI W BOK</b> OBRÓT &nbsp; <b>A D</b> KROK W BOK<br>
       <b>MYSZ</b> (KLIKNIJ W GRĘ) ROZGLĄDANIE &nbsp; <b>SPACJA / KLIK</b> STRZAŁ &nbsp; <b>E / ENTER</b> UŻYJ &nbsp; <b>TAB</b> DUŻA MAPA &nbsp; <b>P</b> PAUZA &nbsp; <b>M</b> DŹWIĘK
+    </div>
+    <div class="menu-hint" data-lang="en" hidden>
+      <b>W / UP ARROW</b> FORWARD &nbsp; <b>S / DOWN ARROW</b> BACK &nbsp; <b>LEFT / RIGHT ARROWS</b> TURN &nbsp; <b>A D</b> STEP SIDEWAYS<br>
+      <b>MOUSE</b> (CLICK IN THE GAME) LOOK AROUND &nbsp; <b>SPACE / CLICK</b> SHOOT &nbsp; <b>E / ENTER</b> USE &nbsp; <b>TAB</b> BIG MAP &nbsp; <b>P</b> PAUSE &nbsp; <b>M</b> SOUND
     </div>
   </section>
 
   <section class="screen frame hidden" id="hofScreen"></section>
 
   <section class="screen frame hidden" id="creator">
-    <div class="menu-title">STWÓRZ SWOJĄ POSTAĆ</div>
+    <div class="menu-title" data-en="MAKE YOUR CHARACTER">STWÓRZ SWOJĄ POSTAĆ</div>
     <div class="creator">
       <div class="preview"><canvas id="preview" width="14" height="24"></canvas></div>
       <div class="opts">
-        <div><span class="label">POSTAĆ</span><div class="choices" id="optGender"></div></div>
-        <div><span class="label">FRYZURA</span><div class="choices" id="optHair"></div></div>
-        <div><span class="label">KOLOR WŁOSÓW</span><div class="swatches" id="optHairColor"></div></div>
-        <div><span class="label">KOLOR KOSZULKI</span><div class="swatches" id="optShirt"></div></div>
-        <div><span class="label">KOLOR SPODNI</span><div class="swatches" id="optPants"></div></div>
+        <div><span class="label" data-en="CHARACTER">POSTAĆ</span><div class="choices" id="optGender"></div></div>
+        <div><span class="label" data-en="HAIRSTYLE">FRYZURA</span><div class="choices" id="optHair"></div></div>
+        <div><span class="label" data-en="HAIR COLOUR">KOLOR WŁOSÓW</span><div class="swatches" id="optHairColor"></div></div>
+        <div><span class="label" data-en="SHIRT COLOUR">KOLOR KOSZULKI</span><div class="swatches" id="optShirt"></div></div>
+        <div><span class="label" data-en="TROUSERS COLOUR">KOLOR SPODNI</span><div class="swatches" id="optPants"></div></div>
       </div>
     </div>
     <div class="btns">
-      <button class="main-btn alt" id="btnRandom">LOSUJ</button>
-      <button class="main-btn" id="btnDone">GOTOWE</button>
+      <button class="main-btn alt" id="btnRandom" data-en="RANDOM">LOSUJ</button>
+      <button class="main-btn" id="btnDone" data-en="DONE">GOTOWE</button>
     </div>
   </section>
 
   <div class="hud frame hidden" id="hud">
-    <div><span class="label">POZIOM</span><span class="val" id="hudLevel">1</span></div>
-    <div><span class="label">CZAS</span><span class="val" id="hudTime">00:00</span></div>
-    <div><span class="label">ZADANIA</span><span class="val" id="hudTasks">0/0</span></div>
-    <div><span class="label">KLUCZE</span><div id="hudKeys"></div></div>
-    <div><span class="label">ŻYCIA</span><div id="hudLives"></div></div>
-    <div><span class="label">NABOJE</span><div id="hudAmmo"></div></div>
-    <div><span class="label">PUNKTY</span><span class="val" id="hudScore">0</span></div>
-    <div><span class="label">LITERY</span><div id="hudLetters"></div></div>
+    <div><span class="label" data-en="LEVEL">POZIOM</span><span class="val" id="hudLevel">1</span></div>
+    <div><span class="label" data-en="TIME">CZAS</span><span class="val" id="hudTime">00:00</span></div>
+    <div><span class="label" data-en="TASKS">ZADANIA</span><span class="val" id="hudTasks">0/0</span></div>
+    <div><span class="label" data-en="KEYS">KLUCZE</span><div id="hudKeys"></div></div>
+    <div><span class="label" data-en="LIVES">ŻYCIA</span><div id="hudLives"></div></div>
+    <div><span class="label" data-en="AMMO">NABOJE</span><div id="hudAmmo"></div></div>
+    <div><span class="label" data-en="SCORE">PUNKTY</span><span class="val" id="hudScore">0</span></div>
+    <div><span class="label" data-en="LETTERS">LITERY</span><div id="hudLetters"></div></div>
   </div>
   <div class="board frame hidden" id="board">
     <canvas id="game" width="400" height="240"></canvas>
@@ -348,39 +357,39 @@
   </div>
   <div class="touch" id="touch">
     <div class="pad move">
-      <button data-hold="fwd" class="up" aria-label="Naprzód"><svg viewBox="0 0 10 10"><path d="M1 7h8L5 2z"/></svg></button>
-      <button data-hold="turnL" class="row2" aria-label="Obrót w lewo"><svg viewBox="0 0 10 10"><path d="M7 1v8L2 5z"/></svg></button>
-      <button data-hold="back" class="row2" aria-label="Do tyłu"><svg viewBox="0 0 10 10"><path d="M1 3h8L5 8z"/></svg></button>
-      <button data-hold="turnR" class="row2" aria-label="Obrót w prawo"><svg viewBox="0 0 10 10"><path d="M3 1v8l5-4z"/></svg></button>
+      <button data-hold="fwd" class="up" aria-label="Naprzód" data-en-aria-label="Forward"><svg viewBox="0 0 10 10"><path d="M1 7h8L5 2z"/></svg></button>
+      <button data-hold="turnL" class="row2" aria-label="Obrót w lewo" data-en-aria-label="Turn left"><svg viewBox="0 0 10 10"><path d="M7 1v8L2 5z"/></svg></button>
+      <button data-hold="back" class="row2" aria-label="Do tyłu" data-en-aria-label="Back"><svg viewBox="0 0 10 10"><path d="M1 3h8L5 8z"/></svg></button>
+      <button data-hold="turnR" class="row2" aria-label="Obrót w prawo" data-en-aria-label="Turn right"><svg viewBox="0 0 10 10"><path d="M3 1v8l5-4z"/></svg></button>
     </div>
     <div class="pad acts">
-      <button data-hold="map">MAPA</button>
-      <button data-hold="fire" id="btnFire" class="hidden">STRZAŁ</button>
-      <button data-hold="use">UŻYJ</button>
+      <button data-hold="map" data-en="MAP">MAPA</button>
+      <button data-hold="fire" id="btnFire" class="hidden" data-en="FIRE">STRZAŁ</button>
+      <button data-hold="use" data-en="USE">UŻYJ</button>
     </div>
   </div>
   <div class="below hidden" id="below">
-    <div class="help"><span class="keys-only"><b>W S / ↑ ↓</b> CHODZENIE · <b>← →</b> OBRÓT · <b>A D</b> KROK W BOK · <b>MYSZ</b> ROZGLĄDANIE · <b>SPACJA</b> STRZAŁ · <b>E</b> UŻYJ · <b>TAB</b> MAPA · <b>P</b> PAUZA</span></div>
+    <div class="help"><span class="keys-only" data-lang="pl"><b>W S / ↑ ↓</b> CHODZENIE · <b>← →</b> OBRÓT · <b>A D</b> KROK W BOK · <b>MYSZ</b> ROZGLĄDANIE · <b>SPACJA</b> STRZAŁ · <b>E</b> UŻYJ · <b>TAB</b> MAPA · <b>P</b> PAUZA</span><span class="keys-only" data-lang="en" hidden><b>W S / ↑ ↓</b> WALK · <b>← →</b> TURN · <b>A D</b> STEP SIDEWAYS · <b>MOUSE</b> LOOK AROUND · <b>SPACE</b> SHOOT · <b>E</b> USE · <b>TAB</b> MAP · <b>P</b> PAUSE</span></div>
     <div class="row">
-      <button class="btn-small" id="btnPause">PAUZA</button>
+      <button class="btn-small" id="btnPause" data-en="PAUSE">PAUZA</button>
       <button class="btn-small" id="btnSound">DŹWIĘK: WŁ.</button>
     </div>
   </div>
 </div>
 
-<div class="modal hidden" id="terminal" role="dialog" aria-modal="true" aria-label="Komputer">
+<div class="modal hidden" id="terminal" role="dialog" aria-modal="true" aria-label="Komputer" data-en-aria-label="Computer">
   <div class="monitor" id="monitor">
     <div class="crt">
       <div class="t-head"><span id="tHead">LAB-OS 3.1</span><span id="tNum">TERMINAL 1/1</span></div>
-      <div class="t-line" id="tLine1">&gt; SYSTEM ZABLOKOWANY.</div>
-      <div class="t-line" id="tLine2">&gt; PODAJ WYNIK, ABY GO ODBLOKOWAĆ:</div>
+      <div class="t-line" id="tLine1" data-en="&gt; SYSTEM LOCKED.">&gt; SYSTEM ZABLOKOWANY.</div>
+      <div class="t-line" id="tLine2" data-en="&gt; ENTER THE ANSWER TO UNLOCK IT:">&gt; PODAJ WYNIK, ABY GO ODBLOKOWAĆ:</div>
       <div class="t-pin hidden" id="tPin"></div>
       <div class="t-q" id="tQuestion">?</div>
-      <div class="t-in">&gt; <input id="tInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" aria-label="Wynik"></div>
+      <div class="t-in">&gt; <input id="tInput" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" aria-label="Wynik" data-en-aria-label="Answer"></div>
       <div class="t-msg" id="tMsg">&nbsp;</div>
       <div class="keypad" id="keypad"></div>
     </div>
-    <div class="bezel"><span><span class="led"></span> BILLY-TRON 486</span><button id="tClose">ZAMKNIJ (ESC)</button></div>
+    <div class="bezel"><span><span class="led"></span> BILLY-TRON 486</span><button id="tClose" data-en="CLOSE (ESC)">ZAMKNIJ (ESC)</button></div>
   </div>
 </div>
 
@@ -389,6 +398,10 @@ import * as THREE from "../lib/three/three.module.min.js";
 
 (() => {
   "use strict";
+
+  // ---------- Language (lib/lang.js: Polish unless the English flag was picked) ----------
+  const LANG = window.GryLang ? window.GryLang.lang : "pl";
+  const L = (pl, en) => LANG === "en" ? en : pl;
 
   // ---------- Settings ----------
   // The map is a grid of 1 x 1 tiles (walls are 1 high); x goes east, y south.
@@ -434,8 +447,9 @@ import * as THREE from "../lib/three/three.module.min.js";
   // things in the way: t tank, W water cooler, c toxic barrel, f lab table, s server rack,
   // Q a professor (says the level's `tip` when the player comes near).
   const LEVELS = [
-    { name: "WEJŚCIE", theme: "lab", dir: "S", letters: [0, 1],
-      tip: "PSST! CZERWONY KLUCZ JEST ZA DREWNIANYMI DRZWIAMI OBOK. ROZWIĄŻ ZADANIA NA WSZYSTKICH KOMPUTERACH, A OTWORZY SIĘ WYJŚCIE!",
+    { name: L("WEJŚCIE", "THE ENTRANCE"), theme: "lab", dir: "S", letters: [0, 1],
+      tip: L("PSST! CZERWONY KLUCZ JEST ZA DREWNIANYMI DRZWIAMI OBOK. ROZWIĄŻ ZADANIA NA WSZYSTKICH KOMPUTERACH, A OTWORZY SIĘ WYJŚCIE!",
+             "PSST! THE RED KEY IS BEHIND THE WOODEN DOOR NEXT TO US. SOLVE THE TASKS ON ALL THE COMPUTERS, AND THE EXIT OPENS!"),
       map: [
         "##4#######1####1###3#3####",
         "#Q....#........#........@#",
@@ -455,8 +469,8 @@ import * as THREE from "../lib/three/three.module.min.js";
         "#*.*#####.........#......#",
         "##########################",
       ] },
-    { name: "MAGAZYN", theme: "store", dir: "S", letters: [2, 3],
-      tip: "PSST! PĘKNIĘTĄ ŚCIANĘ ROZBIJESZ TRZEMA STRZAŁAMI. CIEKAWE, CO JEST ZA NIĄ...",
+    { name: L("MAGAZYN", "THE WAREHOUSE"), theme: "store", dir: "S", letters: [2, 3],
+      tip: L("PSST! PĘKNIĘTĄ ŚCIANĘ ROZBIJESZ TRZEMA STRZAŁAMI. CIEKAWE, CO JEST ZA NIĄ...", "PSST! THREE SHOTS BREAK A CRACKED WALL. I WONDER WHAT IS BEHIND IT..."),
       map: [
         "############################",
         "#......x.....#........#***.#",
@@ -479,8 +493,8 @@ import * as THREE from "../lib/three/three.module.min.js";
         "#.@...F.#.h..O....#.W......#",
         "############################",
       ] },
-    { name: "REAKTOR", theme: "toxic", dir: "S", letters: [4],
-      tip: "UWAŻAJ NA ZIELONE KAŁUŻE! A TOKSYCZNE KOTY TRZEBA TRAFIĆ DWA RAZY...",
+    { name: L("REAKTOR", "THE REACTOR"), theme: "toxic", dir: "S", letters: [4],
+      tip: L("UWAŻAJ NA ZIELONE KAŁUŻE! A TOKSYCZNE KOTY TRZEBA TRAFIĆ DWA RAZY...", "WATCH OUT FOR THE GREEN PUDDLES! AND THE TOXIC CATS TAKE TWO HITS..."),
       map: [
         "##############################",
         "#.....#..........#...........#",
@@ -509,19 +523,19 @@ import * as THREE from "../lib/three/three.module.min.js";
   const DIRS = { E: 0, S: Math.PI / 2, W: Math.PI, N: -Math.PI / 2 };
 
   const KEY_INFO = {
-    r: { name: "CZERWONY", doors: "CZERWONE", main: "#e83b3b", light: "#ff9a8a", dark: "#7c1414" },
-    b: { name: "NIEBIESKI", doors: "NIEBIESKIE", main: "#3b74f0", light: "#9ec0ff", dark: "#142a7c" },
-    g: { name: "ZIELONY", doors: "ZIELONE", main: "#2fc45a", light: "#9dffb8", dark: "#0e5a24" },
-    y: { name: "ŻÓŁTY", doors: "ŻÓŁTE", main: "#f2c81a", light: "#fff2a0", dark: "#7a5a00" },
+    r: { name: L("CZERWONY", "RED"), doors: L("CZERWONE", "RED"), main: "#e83b3b", light: "#ff9a8a", dark: "#7c1414" },
+    b: { name: L("NIEBIESKI", "BLUE"), doors: L("NIEBIESKIE", "BLUE"), main: "#3b74f0", light: "#9ec0ff", dark: "#142a7c" },
+    g: { name: L("ZIELONY", "GREEN"), doors: L("ZIELONE", "GREEN"), main: "#2fc45a", light: "#9dffb8", dark: "#0e5a24" },
+    y: { name: L("ŻÓŁTY", "YELLOW"), doors: L("ŻÓŁTE", "YELLOW"), main: "#f2c81a", light: "#fff2a0", dark: "#7a5a00" },
   };
 
   // ---------- Computer tasks ----------
   // The same kinds of tasks as in Liczożerca: the result r is at most max.
   const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
   const TASKS = {
-    add: { name: "DODAWANIE", sym: "+", gen(max) { const r = randInt(2, max), a = randInt(1, r - 1); return [a, r - a, r]; } },
-    sub: { name: "ODEJMOWANIE", sym: "-", gen(max) { const r = randInt(1, max - 1), a = randInt(r + 1, max); return [a, a - r, r]; } },
-    mul: { name: "MNOŻENIE", sym: "×", gen(max) {
+    add: { name: L("DODAWANIE", "ADDITION"), sym: "+", gen(max) { const r = randInt(2, max), a = randInt(1, r - 1); return [a, r - a, r]; } },
+    sub: { name: L("ODEJMOWANIE", "SUBTRACTION"), sym: "-", gen(max) { const r = randInt(1, max - 1), a = randInt(r + 1, max); return [a, a - r, r]; } },
+    mul: { name: L("MNOŻENIE", "MULTIPLICATION"), sym: "×", gen(max) {
       // prefer real multiplications (no ×1): pick a result that has a pair of factors >= 2
       const results = [];
       for (let n = 4; n <= max; n++) for (let a = 2; a * a <= n; a++) if (n % a === 0) { results.push(n); break; }
@@ -530,10 +544,10 @@ import * as THREE from "../lib/three/three.module.min.js";
       const [a, b] = pairs[randInt(0, pairs.length - 1)];
       return [a, b, r];
     } },
-    div: { name: "DZIELENIE", sym: ":", gen(max) { const r = randInt(1, max), b = randInt(2, 9); return [r * b, b, r]; } },
+    div: { name: L("DZIELENIE", "DIVISION"), sym: ":", gen(max) { const r = randInt(1, max), b = randInt(2, 9); return [r * b, b, r]; } },
   };
   const TASK_MODES = { ...Object.fromEntries(Object.entries(TASKS).map(([k, t]) => [k, { name: t.name, sym: t.sym }])),
-                       all: { name: "WSZYSTKO", sym: "+-×:" } };
+                       all: { name: L("WSZYSTKO", "ALL"), sym: "+-×:" } };
   const rangeMax = n => n * 10;
   // the same settings as in the 2D laboratory
   let taskSettings = { op: "add", range: 1 };
@@ -557,12 +571,12 @@ import * as THREE from "../lib/three/three.module.min.js";
   }
 
   // ---------- Character (the same one as in the 2D laboratory) ----------
-  const HAIR_COLORS = [["CZARNE", "#23222b"], ["BRĄZOWE", "#6e3f1c"], ["BLOND", "#f0c75a"], ["RUDE", "#d4581f"],
-                       ["SIWE", "#d9dbe6"], ["NIEBIESKIE", "#3d7bff"], ["RÓŻOWE", "#ff6fb8"], ["ZIELONE", "#3ec46d"]];
-  const SHIRT_COLORS = [["CZERWONA", "#d63a3a"], ["NIEBIESKA", "#2f6fe0"], ["ZIELONA", "#2fa84a"], ["ŻÓŁTA", "#efc21c"],
-                        ["FIOLETOWA", "#8a4fd8"], ["POMARAŃCZOWA", "#f07a1a"], ["RÓŻOWA", "#f06fb0"], ["BIAŁA", "#e6e6e6"]];
-  const PANTS_COLORS = [["NIEBIESKIE", "#2e4a9e"], ["CZARNE", "#26262e"], ["BRĄZOWE", "#6b4a2b"], ["SZARE", "#70757f"],
-                        ["ZIELONE", "#3b6b34"], ["CZERWONE", "#a12a2a"], ["FIOLETOWE", "#5c3a8e"], ["BIAŁE", "#d8d8d8"]];
+  const HAIR_COLORS = [[L("CZARNE", "BLACK"), "#23222b"], [L("BRĄZOWE", "BROWN"), "#6e3f1c"], [L("BLOND", "BLOND"), "#f0c75a"], [L("RUDE", "GINGER"), "#d4581f"],
+                       [L("SIWE", "GREY"), "#d9dbe6"], [L("NIEBIESKIE", "BLUE"), "#3d7bff"], [L("RÓŻOWE", "PINK"), "#ff6fb8"], [L("ZIELONE", "GREEN"), "#3ec46d"]];
+  const SHIRT_COLORS = [[L("CZERWONA", "RED"), "#d63a3a"], [L("NIEBIESKA", "BLUE"), "#2f6fe0"], [L("ZIELONA", "GREEN"), "#2fa84a"], [L("ŻÓŁTA", "YELLOW"), "#efc21c"],
+                        [L("FIOLETOWA", "PURPLE"), "#8a4fd8"], [L("POMARAŃCZOWA", "ORANGE"), "#f07a1a"], [L("RÓŻOWA", "PINK"), "#f06fb0"], [L("BIAŁA", "WHITE"), "#e6e6e6"]];
+  const PANTS_COLORS = [[L("NIEBIESKIE", "BLUE"), "#2e4a9e"], [L("CZARNE", "BLACK"), "#26262e"], [L("BRĄZOWE", "BROWN"), "#6b4a2b"], [L("SZARE", "GREY"), "#70757f"],
+                        [L("ZIELONE", "GREEN"), "#3b6b34"], [L("CZERWONE", "RED"), "#a12a2a"], [L("FIOLETOWE", "PURPLE"), "#5c3a8e"], [L("BIAŁE", "WHITE"), "#d8d8d8"]];
 
   // 12 x 22 sprites facing right: S skin, E eyes, M mouth, T/t shirt, P/p pants, B shoes.
   const HEAD = [
@@ -622,7 +636,7 @@ import * as THREE from "../lib/three/three.module.min.js";
   const JUMP_NECK = ".S...SS...S.";   // hands up next to the neck
   // Overlays on the sprite: H hair, h darker hair ("." keeps what's under it).
   const HAIR = {
-    short: { name: "KRÓTKIE", rows: [
+    short: { name: L("KRÓTKIE", "SHORT"), rows: [
       "............",
       "....HHHHH...",
       "..HHHHHHHH..",
@@ -631,7 +645,7 @@ import * as THREE from "../lib/three/three.module.min.js";
       "..HH........",
       "..Hh........",
     ] },
-    spiky: { name: "JEŻYK", rows: [
+    spiky: { name: L("JEŻYK", "SPIKY"), rows: [
       "..H.H.H.H...",
       "..HHHHHHHH..",
       ".HHHHHHHHHH.",
@@ -639,7 +653,7 @@ import * as THREE from "../lib/three/three.module.min.js";
       "..HHh...H...",
       "..Hh........",
     ] },
-    long: { name: "DŁUGIE", rows: [
+    long: { name: L("DŁUGIE", "LONG"), rows: [
       "............",
       "....HHHHH...",
       "..HHHHHHHH..",
@@ -654,7 +668,7 @@ import * as THREE from "../lib/three/three.module.min.js";
       ".HHh........",
       "..hh........",
     ] },
-    ponytail: { name: "KUCYK", rows: [
+    ponytail: { name: L("KUCYK", "PONYTAIL"), rows: [
       "............",
       "....HHHHH...",
       "..HHHHHHHH..",
@@ -666,7 +680,7 @@ import * as THREE from "../lib/three/three.module.min.js";
       "Hh..........",
       ".h..........",
     ] },
-    curly: { name: "KRĘCONE", rows: [
+    curly: { name: L("KRĘCONE", "CURLY"), rows: [
       "...HHHHH....",
       "..HhHHHhH...",
       ".HHHHHHHHH..",
@@ -676,7 +690,7 @@ import * as THREE from "../lib/three/three.module.min.js";
       "HHH.........",
       ".Hh.........",
     ] },
-    mohawk: { name: "IROKEZ", rows: [
+    mohawk: { name: L("IROKEZ", "MOHAWK"), rows: [
       ".....HH.....",
       "....HHHH....",
       "....HhHH....",
@@ -807,7 +821,7 @@ import * as THREE from "../lib/three/three.module.min.js";
   // E is a glowing eye (its colour is the mutant's `glow`).
   const MUTANT_PAL2 = { K: "#3a3a48", k: "#22222c", n: "#ff7a9a", F: "#ffffff", f: "#2a2228", w: "#d8d4c8", v: "#a8a498", h: "#8a7a5a", G: "#8fd16a" };
   const MUTANTS = {
-    d: { name: "PSA", speed: 13, frames: [[
+    d: { name: L("PSA", "DOG"), speed: 13, frames: [[
       "...........d.d.......",
       "...........DDDD......",
       "..........DDDeDDN....",
@@ -834,7 +848,7 @@ import * as THREE from "../lib/three/three.module.min.js";
       "...DD.DD...DD.DD.....",
       "...dd.dd...dd.dd.....",
     ]] },
-    h: { name: "ŚWINIĘ", speed: 9, frames: [[
+    h: { name: L("ŚWINIĘ", "PIG"), speed: 9, frames: [[
       "...........p.p..",
       "..........pPPPp.",
       "...PPPPPPPWWWPP.",
@@ -857,7 +871,7 @@ import * as THREE from "../lib/three/three.module.min.js";
       "..PP..PP.PP..PP.",
       "..pp..pp.pp..pp.",
     ]].map(f => f.map(r => r.replace("e", "N"))) },
-    u: { name: "ŚWIŃSKI TYŁEK", speed: 0, frames: [[
+    u: { name: L("ŚWIŃSKI TYŁEK", "PIG'S BOTTOM"), speed: 0, frames: [[
       ".....cc.......",
       "....c..c......",
       ".....c.c......",
@@ -987,7 +1001,7 @@ import * as THREE from "../lib/three/three.module.min.js";
   // A floppy disk (B body, S metal shutter, h its hole, L label, l writing)
   // and a compact disc (C silver, r/y/c rainbow shine, o the hole).
   const DISKS = {
-    F: { name: "DYSKIETKA", sprite: makeSprite([
+    F: { name: L("DYSKIETKA", "FLOPPY DISK"), sprite: makeSprite([
       "BBBBBBBBBBB.",
       "BBBSSSSShSBB",
       "BBBSSSSShSBB",
@@ -1000,7 +1014,7 @@ import * as THREE from "../lib/three/three.module.min.js";
       "BBLLLLLLLLBB",
       "BBLLLLLLLLBB",
     ], { B: "#2f4fc8", S: "#c8ccd6", h: "#2f4fc8", L: "#f2f2f2", l: "#d63a3a" }) },
-    O: { name: "PŁYTA CD", sprite: makeSprite([
+    O: { name: L("PŁYTA CD", "CD"), sprite: makeSprite([
       "...CCCCC...",
       "..CrrCCCC..",
       ".CrryCCCCC.",
@@ -1028,10 +1042,10 @@ import * as THREE from "../lib/three/three.module.min.js";
 
   // Mutants in 3D: h pig, d dog, a toxic cat (2 shots).
   const ENEMIES = {
-    h: { name: "ŚWINIA", caught: "ŚWINIA CIĘ DOPADŁA!", hp: 1, speed: 0.7, chase: 1.25, frames: MUTANTS.h.frames.map(f => makeSprite(f, MUTANT_PAL)), blood: "#f29ab0", beaten: "ŚWINIA POKONANA!" },
-    d: { name: "PIES", caught: "PIES CIĘ DOPADŁ!", hp: 1, speed: 0.9, chase: 1.6, frames: MUTANTS.d.frames.map(f => makeSprite(f, MUTANT_PAL)), blood: "#9a6a3a", beaten: "PIES POKONANY!" },
-    a: { name: "KOT", caught: "KOT CIĘ PODRAPAŁ!", hp: 2, speed: 0.9, chase: 1.7, frames: CAT_LEGS.map(l => makeSprite(CAT.concat(l), { ...MUTANT_PAL2, E: "#6dff3a" })),
-         blood: "#6dff3a", beaten: "TOKSYCZNY KOT POKONANY!" },
+    h: { name: L("ŚWINIA", "PIG"), caught: L("ŚWINIA CIĘ DOPADŁA!", "THE PIG GOT YOU!"), hp: 1, speed: 0.7, chase: 1.25, frames: MUTANTS.h.frames.map(f => makeSprite(f, MUTANT_PAL)), blood: "#f29ab0", beaten: L("ŚWINIA POKONANA!", "PIG BEATEN!") },
+    d: { name: L("PIES", "DOG"), caught: L("PIES CIĘ DOPADŁ!", "THE DOG GOT YOU!"), hp: 1, speed: 0.9, chase: 1.6, frames: MUTANTS.d.frames.map(f => makeSprite(f, MUTANT_PAL)), blood: "#9a6a3a", beaten: L("PIES POKONANY!", "DOG BEATEN!") },
+    a: { name: L("KOT", "CAT"), caught: L("KOT CIĘ PODRAPAŁ!", "THE CAT SCRATCHED YOU!"), hp: 2, speed: 0.9, chase: 1.7, frames: CAT_LEGS.map(l => makeSprite(CAT.concat(l), { ...MUTANT_PAL2, E: "#6dff3a" })),
+         blood: "#6dff3a", beaten: L("TOKSYCZNY KOT POKONANY!", "TOXIC CAT BEATEN!") },
   };
 
   // Things in the way (s, scale): pixel art standing on the floor.
@@ -1652,7 +1666,7 @@ import * as THREE from "../lib/three/three.module.min.js";
     if (state !== "playing") return;
 
     // a toxic puddle under the feet
-    if (world.puddles.has(Math.floor(player.y) * world.w + Math.floor(player.x))) loseLife("TOKSYCZNA KAŁUŻA!");
+    if (world.puddles.has(Math.floor(player.y) * world.w + Math.floor(player.x))) loseLife(L("TOKSYCZNA KAŁUŻA!", "A TOXIC PUDDLE!"));
     if (state !== "playing") return;
 
     pickUp();
@@ -1675,16 +1689,16 @@ import * as THREE from "../lib/three/three.module.min.js";
       const d = dr.kind === "N" && !dr.open && facing(dr.x + 0.5, dr.y + 0.5);
       if (d) { best = d; nearPin = dr; nearComputer = null; }
     }
-    const useKey = coarse ? "UŻYJ" : "E";
-    if (nearComputer) toast(`NACIŚNIJ ${useKey}, ABY WŁĄCZYĆ KOMPUTER`, 0.15, 0);
-    else if (nearPin) toast(`DRZWI NA PIN! NACIŚNIJ ${useKey} I ROZWIĄŻ ${PIN_TASKS} ZADANIA`, 0.15, 0);
+    const useKey = coarse ? L("UŻYJ", "USE") : "E";
+    if (nearComputer) toast(L(`NACIŚNIJ ${useKey}, ABY WŁĄCZYĆ KOMPUTER`, `PRESS ${useKey} TO TURN ON THE COMPUTER`), 0.15, 0);
+    else if (nearPin) toast(L(`DRZWI NA PIN! NACIŚNIJ ${useKey} I ROZWIĄŻ ${PIN_TASKS} ZADANIA`, `A PIN DOOR! PRESS ${useKey} AND SOLVE ${PIN_TASKS} TASKS`), 0.15, 0);
     else {
       const k = world.cracks.find(k => !k.broken && dist(player, k.x + 0.5, k.y + 0.5) < 1.6);
-      if (k) toast(run.pistol ? "TA ŚCIANA JEST PĘKNIĘTA... STRZEL W NIĄ!" : "TA ŚCIANA JEST PĘKNIĘTA...", 0.15, 0);
+      if (k) toast(run.pistol ? L("TA ŚCIANA JEST PĘKNIĘTA... STRZEL W NIĄ!", "THIS WALL IS CRACKED... SHOOT AT IT!") : L("TA ŚCIANA JEST PĘKNIĘTA...", "THIS WALL IS CRACKED..."), 0.15, 0);
     }
     for (const p of world.profs) {
       if (p.told > 0) p.told -= dt;
-      if (dist(player, p.x + 0.5, p.y + 0.5) < 1.7 && p.told <= 0) { toast(`PROFESOR: ${world.def.tip}`, 5, 2); p.told = 9; }
+      if (dist(player, p.x + 0.5, p.y + 0.5) < 1.7 && p.told <= 0) { toast(`${L("PROFESOR", "PROFESSOR")}: ${world.def.tip}`, 5, 2); p.told = 9; }
     }
     if (pressed.use) {
       pressed.use = false;
@@ -1705,27 +1719,29 @@ import * as THREE from "../lib/three/three.module.min.js";
       k.taken = true; scene.remove(k.sprite);
       inventory.add(k.color);
       sfx.key();
-      toast(`MASZ ${KEY_INFO[k.color].name} KLUCZ!`, 2.5, 2, "good");
+      toast(L(`MASZ ${KEY_INFO[k.color].name} KLUCZ!`, `YOU HAVE THE ${KEY_INFO[k.color].name} KEY!`), 2.5, 2, "good");
       updateHudKeys();
     }
     for (const it of world.items) {
       if (it.taken || !near(it.x, it.y)) continue;
       it.taken = true; scene.remove(it.sprite);
       if (it.kind === "*") { sfx.gem(); addPoints(PTS_DIAMOND); }
-      else if (it.kind === "F" || it.kind === "O") { sfx.disk(); addPoints(PTS_DISK); toast(`${DISKS[it.kind].name}! +${PTS_DISK} PUNKTY`, 1.8, 1, "good"); }
+      else if (it.kind === "F" || it.kind === "O") { sfx.disk(); addPoints(PTS_DISK); toast(`${DISKS[it.kind].name}! +${PTS_DISK} ${L("PUNKTY", "POINTS")}`, 1.8, 1, "good"); }
       else if (it.kind === "o") {
         const first = !run.pistol;
         run.pistol = true; run.ammo += AMMO_PER_PISTOL;
         updateHudAmmo(); sfx.gun();
-        toast(first ? `MASZ PISTOLET! NABOJE: ${run.ammo}. STRZELASZ ${coarse ? "PRZYCISKIEM STRZAŁ" : "SPACJĄ ALBO KLIKNIĘCIEM"}.`
-                    : `+${AMMO_PER_PISTOL} NABOJÓW! MASZ ICH TERAZ ${run.ammo}.`, 3, 2, "good");
+        toast(first ? L(`MASZ PISTOLET! NABOJE: ${run.ammo}. STRZELASZ ${coarse ? "PRZYCISKIEM STRZAŁ" : "SPACJĄ ALBO KLIKNIĘCIEM"}.`,
+                        `YOU HAVE A PISTOL! AMMO: ${run.ammo}. SHOOT WITH ${coarse ? "THE FIRE BUTTON" : "SPACE OR A CLICK"}.`)
+                    : L(`+${AMMO_PER_PISTOL} NABOJÓW! MASZ ICH TERAZ ${run.ammo}.`, `+${AMMO_PER_PISTOL} BULLETS! NOW YOU HAVE ${run.ammo}.`), 3, 2, "good");
       } else if (it.kind === "@") {
         run.letters[it.idx] = true;
         sfx.letter();
         updateHudLetters();
         const have = run.letters.filter(Boolean).length;
-        if (have === WORD.length) { toast(`${WORD}! WSZYSTKIE LITERY - BONUS +${PTS_WORD} PUNKTÓW!`, 3.5, 3, "good"); addPoints(PTS_WORD); }
-        else toast(`LITERA ${WORD[it.idx]}! MASZ ${have} Z ${WORD.length} LITER SŁOWA ${WORD}.`, 3, 2, "good");
+        if (have === WORD.length) { toast(L(`${WORD}! WSZYSTKIE LITERY - BONUS +${PTS_WORD} PUNKTÓW!`, `${WORD}! ALL THE LETTERS - A BONUS OF +${PTS_WORD} POINTS!`), 3.5, 3, "good"); addPoints(PTS_WORD); }
+        // the word stays NAUKA in English too: its letters are in the maps
+        else toast(L(`LITERA ${WORD[it.idx]}! MASZ ${have} Z ${WORD.length} LITER SŁOWA ${WORD}.`, `LETTER ${WORD[it.idx]}! YOU HAVE ${have} OF THE ${WORD.length} LETTERS OF ${WORD} (SCIENCE).`), 3, 2, "good");
       }
     }
   }
@@ -1746,12 +1762,13 @@ import * as THREE from "../lib/three/three.module.min.js";
         if (d.unlocked) openDoor(d);
         else if (lockedCooldown <= 0) {
           lockedCooldown = 1.2; sfx.locked();
-          toast(`WYJŚCIE ZAMKNIĘTE! ROZWIĄŻ ZADANIA NA WSZYSTKICH KOMPUTERACH (${world.computers.filter(c => c.solved).length}/${world.computers.length}).`, 2.5, 2, "bad");
+          toast(L(`WYJŚCIE ZAMKNIĘTE! ROZWIĄŻ ZADANIA NA WSZYSTKICH KOMPUTERACH (${world.computers.filter(c => c.solved).length}/${world.computers.length}).`,
+                   `THE EXIT IS LOCKED! SOLVE THE TASKS ON ALL THE COMPUTERS (${world.computers.filter(c => c.solved).length}/${world.computers.length}).`), 2.5, 2, "bad");
         }
       } else if (d.kind !== "N") {
         const info = KEY_INFO[d.kind.toLowerCase()];
-        if (inventory.has(d.kind.toLowerCase())) { openDoor(d); toast(`${info.doors} DRZWI OTWARTE!`, 2, 2, "good"); }
-        else if (lockedCooldown <= 0) { lockedCooldown = 1.2; sfx.locked(); toast(`DRZWI ZAMKNIĘTE! POTRZEBNY ${info.name} KLUCZ.`, 2.2, 2, "bad"); }
+        if (inventory.has(d.kind.toLowerCase())) { openDoor(d); toast(L(`${info.doors} DRZWI OTWARTE!`, `THE ${info.doors} DOOR IS OPEN!`), 2, 2, "good"); }
+        else if (lockedCooldown <= 0) { lockedCooldown = 1.2; sfx.locked(); toast(L(`DRZWI ZAMKNIĘTE! POTRZEBNY ${info.name} KLUCZ.`, `THE DOOR IS LOCKED! YOU NEED THE ${info.name} KEY.`), 2.2, 2, "bad"); }
       }
     }
     const e = world.exit;
@@ -1795,12 +1812,12 @@ import * as THREE from "../lib/three/three.module.min.js";
 
   function shoot() {
     if (!run.pistol) {
-      if (gunHint <= 0) { gunHint = 2.5; toast("NIE MASZ PISTOLETU - POSZUKAJ GO!", 2.2, 2, "bad"); }
+      if (gunHint <= 0) { gunHint = 2.5; toast(L("NIE MASZ PISTOLETU - POSZUKAJ GO!", "YOU HAVE NO PISTOL - FIND ONE!"), 2.2, 2, "bad"); }
       return;
     }
     if (run.ammo <= 0) {
       fireCooldown = FIRE_COOLDOWN; sfx.empty();
-      toast("BRAK NABOJÓW! ZNAJDŹ KOLEJNY PISTOLET.", 2.2, 2, "bad");
+      toast(L("BRAK NABOJÓW! ZNAJDŹ KOLEJNY PISTOLET.", "NO AMMO! FIND ANOTHER PISTOL."), 2.2, 2, "bad");
       return;
     }
     run.ammo--; fireCooldown = FIRE_COOLDOWN; recoil = 0.12; flash = 0.06;
@@ -1829,7 +1846,7 @@ import * as THREE from "../lib/three/three.module.min.js";
     if (e.hp > 0) {
       e.flash = 0.15; e.stun = 0.4; e.sprite.material.color.set(0xff6060);
       sfx.hit(); beep(160, 0.12, "sawtooth", 0.05, 90);
-      toast("TRAFIONY! JESZCZE JEDEN STRZAŁ!", 1.6, 2);
+      toast(L("TRAFIONY! JESZCZE JEDEN STRZAŁ!", "HIT! ONE MORE SHOT!"), 1.6, 2);
       return;
     }
     e.dead = true;
@@ -1843,13 +1860,13 @@ import * as THREE from "../lib/three/three.module.min.js";
     burst(hx, hy, EYE, "#66729c", 10);
     if (k.hits < CRACK_HITS) {
       sfx.hit(); beep(90, 0.12, "sawtooth", 0.05, 50);
-      toast(k.hits === 1 ? "ŚCIANA PĘKA!" : "JESZCZE TROCHĘ I SIĘ ROZPADNIE!", 1.6, 2);
+      toast(k.hits === 1 ? L("ŚCIANA PĘKA!", "THE WALL IS CRACKING!") : L("JESZCZE TROCHĘ I SIĘ ROZPADNIE!", "A LITTLE MORE AND IT FALLS APART!"), 1.6, 2);
       return;
     }
     breakCrack(k);
     sfx.splat(); beep(70, 0.5, "sawtooth", 0.07, 30);
     burst(k.x + 0.5, k.y + 0.5, 0.5, "#454f72", 24, 2.2);
-    toast("ŚCIANA ROZBITA! ZA NIĄ JEST UKRYTA SKRYTKA!", 2.8, 3, "good");
+    toast(L("ŚCIANA ROZBITA! ZA NIĄ JEST UKRYTA SKRYTKA!", "THE WALL IS BROKEN! A HIDDEN STASH IS BEHIND IT!"), 2.8, 3, "good");
   }
   function breakCrack(k) {
     k.broken = true;
@@ -1966,7 +1983,7 @@ import * as THREE from "../lib/three/three.module.min.js";
     c.fillStyle = "#ff8bd0"; c.fillRect(Math.round(pxl) - 1, Math.round(pyl) - 1, 3, 3);
     if (whole) {
       c.fillStyle = "#ffd800"; c.font = "8px Tiny5, monospace"; c.textAlign = "center";
-      c.fillText("MAPA - N ↑", VIEW_W / 2, y0 - 6 > 6 ? y0 - 6 : 8);
+      c.fillText(L("MAPA - N ↑", "MAP - N ↑"), VIEW_W / 2, y0 - 6 > 6 ? y0 - 6 : 8);
     }
   }
 
@@ -2001,8 +2018,8 @@ import * as THREE from "../lib/three/three.module.min.js";
   function updateHudKeys() {
     const colors = [...new Set(world.keys.map(k => k.color))];
     $("hudKeys").innerHTML = colors.length
-      ? colors.map(c => `<img src="${keyImages[c]}" alt="${KEY_INFO[c].name} KLUCZ" title="${KEY_INFO[c].name} KLUCZ" class="${inventory.has(c) ? "" : "missing"}">`).join("")
-      : `<span class="none">BRAK</span>`;
+      ? colors.map(c => `<img src="${keyImages[c]}" alt="${KEY_INFO[c].name} ${L("KLUCZ", "KEY")}" title="${KEY_INFO[c].name} ${L("KLUCZ", "KEY")}" class="${inventory.has(c) ? "" : "missing"}">`).join("")
+      : `<span class="none">${L("BRAK", "NONE")}</span>`;
   }
   let hudLivesShown = -1, hudAmmoShown = -1;
   function updateHudLives() {
@@ -2010,14 +2027,14 @@ import * as THREE from "../lib/three/three.module.min.js";
     hudLivesShown = run.lives;
     $("hudLives").innerHTML = Array.from({ length: START_LIVES }, (_, i) =>
       `<img src="${heartImage}" alt="" class="${i < run.lives ? "" : "lost"}">`).join("");
-    $("hudLives").title = `ŻYCIA: ${run.lives}`;
+    $("hudLives").title = `${L("ŻYCIA", "LIVES")}: ${run.lives}`;
   }
   function updateHudAmmo() {
     const v = run.pistol ? run.ammo : null;
     if (hudAmmoShown === v) return;
     hudAmmoShown = v;
     const el = $("hudAmmo");
-    el.innerHTML = run.pistol ? `<img src="${pistolImage}" alt="PISTOLET"><span class="val">${run.ammo}</span>` : `<span class="none">BRAK</span>`;
+    el.innerHTML = run.pistol ? `<img src="${pistolImage}" alt="${L("PISTOLET", "PISTOL")}"><span class="val">${run.ammo}</span>` : `<span class="none">${L("BRAK", "NONE")}</span>`;
     el.classList.toggle("empty", !!run.pistol && run.ammo === 0);
     $("btnFire").classList.toggle("hidden", !run.pistol);
   }
@@ -2081,17 +2098,20 @@ import * as THREE from "../lib/three/three.module.min.js";
     const nKeys = world.keys.length;
     state = "intro";
     showOverlay(`
-      <div class="big">POZIOM ${i + 1}: ${escapeHtml(world.name)}</div>
-      <div>KOMPUTERY DO ODBLOKOWANIA: <span class="sub">${world.computers.length}</span>${nKeys ? ` · KLUCZE: <span class="sub">${nKeys}</span>` : ""}</div>
-      <div>ZADANIA: <span class="sub">${TASK_MODES[taskSettings.op].name}</span> · WYNIK DO <span class="sub">${rangeMax(taskSettings.range)}</span></div>
-      ${world.theme === "toxic" ? `<div style="color:#6dff3a">STREFA SKAŻONA! TUTAJ NAWET PROFESOROWIE SIĘ ZMIENILI...</div>` : ""}
-      ${world.enemies.length ? `<div style="color:var(--red)">UWAGA, MUTANTY! UCIEKAJ ALBO STRZELAJ${world.enemies.some(e => e.hp > 1) ? " - TOKSYCZNE KOTY TRZEBA TRAFIĆ DWA RAZY" : ""}.</div>` : ""}
-      ${world.puddles.size ? `<div style="color:#6dff3a">NIE WCHODŹ W TOKSYCZNE KAŁUŻE!</div>` : ""}
-      <div>ŻYCIA: <span class="sub">${run.lives}</span> · ${run.pistol ? `NABOJE: <span class="sub">${run.ammo}</span>` : "PISTOLET: <span class=\"sub\">POSZUKAJ GO!</span>"}</div>
-      <div class="dim">ROZWIĄŻ ZADANIA NA WSZYSTKICH KOMPUTERACH, A OTWORZY SIĘ WYJŚCIE.<br>${coarse ? "PRZESUWAJ PALCEM PO OBRAZIE, ŻEBY SIĘ ROZGLĄDAĆ." : "KLIKNIJ W OBRAZ, ŻEBY ROZGLĄDAĆ SIĘ MYSZĄ (ESC ODDAJE MYSZ)."}</div>
+      <div class="big">${L("POZIOM", "LEVEL")} ${i + 1}: ${escapeHtml(world.name)}</div>
+      <div>${L("KOMPUTERY DO ODBLOKOWANIA", "COMPUTERS TO UNLOCK")}: <span class="sub">${world.computers.length}</span>${nKeys ? ` · ${L("KLUCZE", "KEYS")}: <span class="sub">${nKeys}</span>` : ""}</div>
+      <div>${L("ZADANIA", "TASKS")}: <span class="sub">${TASK_MODES[taskSettings.op].name}</span> · ${L("WYNIK DO", "ANSWERS UP TO")} <span class="sub">${rangeMax(taskSettings.range)}</span></div>
+      ${world.theme === "toxic" ? `<div style="color:#6dff3a">${L("STREFA SKAŻONA! TUTAJ NAWET PROFESOROWIE SIĘ ZMIENILI...", "A CONTAMINATED ZONE! EVEN THE PROFESSORS HAVE CHANGED HERE...")}</div>` : ""}
+      ${world.enemies.length ? `<div style="color:var(--red)">${L(`UWAGA, MUTANTY! UCIEKAJ ALBO STRZELAJ${world.enemies.some(e => e.hp > 1) ? " - TOKSYCZNE KOTY TRZEBA TRAFIĆ DWA RAZY" : ""}.`,
+        `WATCH OUT, MUTANTS! RUN OR SHOOT${world.enemies.some(e => e.hp > 1) ? " - THE TOXIC CATS TAKE TWO HITS" : ""}.`)}</div>` : ""}
+      ${world.puddles.size ? `<div style="color:#6dff3a">${L("NIE WCHODŹ W TOKSYCZNE KAŁUŻE!", "DON'T STEP INTO THE TOXIC PUDDLES!")}</div>` : ""}
+      <div>${L("ŻYCIA", "LIVES")}: <span class="sub">${run.lives}</span> · ${run.pistol ? `${L("NABOJE", "AMMO")}: <span class="sub">${run.ammo}</span>` : L("PISTOLET: <span class=\"sub\">POSZUKAJ GO!</span>", "PISTOL: <span class=\"sub\">FIND ONE!</span>")}</div>
+      <div class="dim">${L("ROZWIĄŻ ZADANIA NA WSZYSTKICH KOMPUTERACH, A OTWORZY SIĘ WYJŚCIE.", "SOLVE THE TASKS ON ALL THE COMPUTERS, AND THE EXIT OPENS.")}<br>${coarse
+        ? L("PRZESUWAJ PALCEM PO OBRAZIE, ŻEBY SIĘ ROZGLĄDAĆ.", "DRAG A FINGER OVER THE PICTURE TO LOOK AROUND.")
+        : L("KLIKNIJ W OBRAZ, ŻEBY ROZGLĄDAĆ SIĘ MYSZĄ (ESC ODDAJE MYSZ).", "CLICK IN THE PICTURE TO LOOK AROUND WITH THE MOUSE (ESC GIVES IT BACK).")}</div>
       <button class="main-btn" data-primary>START</button>`, play);
-    if (!renderer) showOverlay(`<div class="big" style="color:var(--red)">BRAK 3D</div>
-      <div>TA PRZEGLĄDARKA NIE POTRAFI WYŚWIETLIĆ GRAFIKI 3D (WEBGL).</div>
+    if (!renderer) showOverlay(`<div class="big" style="color:var(--red)">${L("BRAK 3D", "NO 3D")}</div>
+      <div>${L("TA PRZEGLĄDARKA NIE POTRAFI WYŚWIETLIĆ GRAFIKI 3D (WEBGL).", "THIS BROWSER CAN'T SHOW 3D GRAPHICS (WEBGL).")}</div>
       <div class="btns"><button class="main-btn alt" data-menu>MENU</button></div>`);
   }
 
@@ -2108,8 +2128,8 @@ import * as THREE from "../lib/three/three.module.min.js";
     if (state !== "playing") return;
     state = "paused";
     releaseMouse();
-    showOverlay(`<div class="big">PAUZA</div>
-      <div class="btns"><button class="main-btn" data-primary>GRAJ DALEJ</button><button class="main-btn alt" data-menu>MENU</button></div>`, play);
+    showOverlay(`<div class="big">${L("PAUZA", "PAUSED")}</div>
+      <div class="btns"><button class="main-btn" data-primary>${L("GRAJ DALEJ", "PLAY ON")}</button><button class="main-btn alt" data-menu>MENU</button></div>`, play);
   }
 
   function levelComplete() {
@@ -2122,15 +2142,15 @@ import * as THREE from "../lib/three/three.module.min.js";
     const [limit, bonus] = LEVEL_BONUS.find(([lim]) => levelTime < lim);
     addPoints(bonus);
     if (!levelHurt) addPoints(PTS_NO_HARM);
-    const stats = `CZAS POZIOMU: <span class="sub">${fmtTime(levelTime)}</span> · BŁĘDNE ODPOWIEDZI: <span class="sub">${levelMistakes}</span>`;
-    const points = `<div>UKOŃCZENIE POZIOMU${limit < Infinity ? ` W MNIEJ NIŻ ${limit / 60} MIN.` : ""}: <span class="sub">+${bonus}</span>
-      ${levelHurt ? "" : `· BEZ UTRATY ŻYCIA: <span class="sub">+${PTS_NO_HARM}</span>`}</div>
-      <div>PUNKTY: <span class="sub">${scoreBefore}</span> → <span style="color:var(--yellow)">${run.score}</span></div>`;
+    const stats = `${L("CZAS POZIOMU", "LEVEL TIME")}: <span class="sub">${fmtTime(levelTime)}</span> · ${L("BŁĘDNE ODPOWIEDZI", "WRONG ANSWERS")}: <span class="sub">${levelMistakes}</span>`;
+    const points = `<div>${L("UKOŃCZENIE POZIOMU", "LEVEL CLEARED")}${limit < Infinity ? L(` W MNIEJ NIŻ ${limit / 60} MIN.`, ` IN UNDER ${limit / 60} MIN.`) : ""}: <span class="sub">+${bonus}</span>
+      ${levelHurt ? "" : `· ${L("BEZ UTRATY ŻYCIA", "NO LIFE LOST")}: <span class="sub">+${PTS_NO_HARM}</span>`}</div>
+      <div>${L("PUNKTY", "SCORE")}: <span class="sub">${scoreBefore}</span> → <span style="color:var(--yellow)">${run.score}</span></div>`;
     if (!last) {
       showOverlay(`
-        <div class="big">POZIOM ${run.level + 1} UKOŃCZONY!</div>
+        <div class="big">${L(`POZIOM ${run.level + 1} UKOŃCZONY!`, `LEVEL ${run.level + 1} CLEARED!`)}</div>
         <div>${stats}</div>${points}
-        <div class="btns"><button class="main-btn" data-primary>NASTĘPNY POZIOM</button><button class="main-btn alt" data-menu>MENU</button></div>`,
+        <div class="btns"><button class="main-btn" data-primary>${L("NASTĘPNY POZIOM", "NEXT LEVEL")}</button><button class="main-btn alt" data-menu>MENU</button></div>`,
         () => loadLevel(run.level + 1));
     } else {
       endRun(true, `<div>${stats}</div>${points}`);
@@ -2145,19 +2165,19 @@ import * as THREE from "../lib/three/three.module.min.js";
       if (run.lives < START_LIVES) {
         run.lives++;
         sfx.life();
-        toast(`${run.nextLife - LIFE_EVERY} PUNKTÓW - DODATKOWE ŻYCIE!`, 2.5, 3, "good");
+        toast(L(`${run.nextLife - LIFE_EVERY} PUNKTÓW - DODATKOWE ŻYCIE!`, `${run.nextLife - LIFE_EVERY} POINTS - AN EXTRA LIFE!`), 2.5, 3, "good");
       }
     }
     updateHud();
   }
 
-  function loseLife(why = "AUĆ!") {
+  function loseLife(why = L("AUĆ!", "OUCH!")) {
     if (hurtTimer > 0 || state !== "playing") return;
     run.lives = Math.max(0, run.lives - 1);
     levelHurt = true;
     updateHudLives();
     sfx.hurt();
-    if (run.lives > 0) { hurtTimer = SAFE_TIME; toast(`${why} ZOSTAŁO ŻYĆ: ${run.lives}`, 2, 3, "bad"); return; }
+    if (run.lives > 0) { hurtTimer = SAFE_TIME; toast(`${why} ${L("ZOSTAŁO ŻYĆ", "LIVES LEFT")}: ${run.lives}`, 2, 3, "bad"); return; }
     sfx.over();
     endRun(false);
   }
@@ -2214,55 +2234,55 @@ import * as THREE from "../lib/three/three.module.min.js";
                extra, entry: null, hofError: false };
     const r = result;
     if (r.score <= 0) { showResult(); return; }
-    showOverlay(`${resultHtml(r)}<div class="blink">ŁADOWANIE SALI SŁAWY...</div>`);
+    showOverlay(`${resultHtml(r)}<div class="blink">${L("ŁADOWANIE SALI SŁAWY...", "LOADING THE HALL OF FAME...")}</div>`);
     hofLoad()
       .then(() => { if (result === r && state === "over") (hofRank(r) ? showNameEntry() : showResult()); })
       .catch(() => { if (result === r && state === "over") { r.hofError = true; showResult(); } });
   }
   function resultHtml(r) {
     const head = r.completed
-      ? `<div class="big">MISJA UKOŃCZONA!</div>
-         <div>${girl() ? "BRAWO, AGENTKO! UCIEKŁAŚ" : "BRAWO, AGENCIE! UCIEKŁEŚ"} Z TAJNEGO LABORATORIUM.</div>`
-      : `<div class="big" style="color:var(--red)">KONIEC GRY</div>
-         <div>${girl() ? "STRACIŁAŚ" : "STRACIŁEŚ"} WSZYSTKIE ŻYCIA NA POZIOMIE ${r.level + 1}.</div>`;
+      ? `<div class="big">${L("MISJA UKOŃCZONA!", "MISSION COMPLETE!")}</div>
+         <div>${L(`${girl() ? "BRAWO, AGENTKO! UCIEKŁAŚ" : "BRAWO, AGENCIE! UCIEKŁEŚ"} Z TAJNEGO LABORATORIUM.`, "WELL DONE, AGENT! YOU ESCAPED FROM THE SECRET LAB.")}</div>`
+      : `<div class="big" style="color:var(--red)">${L("KONIEC GRY", "GAME OVER")}</div>
+         <div>${L(`${girl() ? "STRACIŁAŚ" : "STRACIŁEŚ"} WSZYSTKIE ŻYCIA NA POZIOMIE ${r.level + 1}.`, `YOU LOST ALL YOUR LIVES ON LEVEL ${r.level + 1}.`)}</div>`;
     return `${head}${r.extra}
-      <div>PUNKTY: <span style="color:var(--yellow)">${r.score}</span> · ŁĄCZNY CZAS: <span class="sub">${fmtTime(r.time)}</span>
-        · LITERY: <span class="sub">${r.letters}/${WORD.length}</span> · BŁĘDY: <span class="sub">${r.mistakes}</span></div>`;
+      <div>${L("PUNKTY", "SCORE")}: <span style="color:var(--yellow)">${r.score}</span> · ${L("ŁĄCZNY CZAS", "TOTAL TIME")}: <span class="sub">${fmtTime(r.time)}</span>
+        · ${L("LITERY", "LETTERS")}: <span class="sub">${r.letters}/${WORD.length}</span> · ${L("BŁĘDY", "MISTAKES")}: <span class="sub">${r.mistakes}</span></div>`;
   }
   function showResult() {
     const r = result;
     showOverlay(`${resultHtml(r)}
-      ${r.hofError ? `<div style="color:var(--red)">SALA SŁAWY NIEDOSTĘPNA - BRAK POŁĄCZENIA Z SERWEREM</div>` : ""}
-      <div class="btns"><button class="main-btn" data-primary>JESZCZE RAZ</button><button class="main-btn alt" data-menu>MENU</button>
-      <button class="main-btn alt" data-hof>SALA SŁAWY</button></div>`, () => startRun(r.startLevel));
+      ${r.hofError ? `<div style="color:var(--red)">${L("SALA SŁAWY NIEDOSTĘPNA - BRAK POŁĄCZENIA Z SERWEREM", "HALL OF FAME UNAVAILABLE - NO CONNECTION TO THE SERVER")}</div>` : ""}
+      <div class="btns"><button class="main-btn" data-primary>${L("JESZCZE RAZ", "AGAIN")}</button><button class="main-btn alt" data-menu>MENU</button>
+      <button class="main-btn alt" data-hof>${L("SALA SŁAWY", "HALL OF FAME")}</button></div>`, () => startRun(r.startLevel));
   }
   function showNameEntry() {
     state = "entry";
     const r = result;
     showOverlay(`${resultHtml(r)}
-      <div style="color:var(--yellow)">JESTEŚ W SALI SŁAWY! MIEJSCE #${hofRank(r)}</div>
+      <div style="color:var(--yellow)">${L("JESTEŚ W SALI SŁAWY! MIEJSCE", "YOU ARE IN THE HALL OF FAME! PLACE")} #${hofRank(r)}</div>
       <form class="name-form" id="nameForm" autocomplete="off">
-        <label for="nameInput">WPISZ SWOJE IMIĘ:</label>
+        <label for="nameInput">${L("WPISZ SWOJE IMIĘ:", "ENTER YOUR NAME:")}</label>
         <input id="nameInput" maxlength="12" spellcheck="false" value="${escapeHtml(lastName)}">
-        <div class="btns"><button class="main-btn" type="submit">ZAPISZ</button>
-        <button class="main-btn alt" type="button" id="btnSkip" hidden>POMIŃ</button></div>
+        <div class="btns"><button class="main-btn" type="submit">${L("ZAPISZ", "SAVE")}</button>
+        <button class="main-btn alt" type="button" id="btnSkip" hidden>${L("POMIŃ", "SKIP")}</button></div>
         <div id="nameError" style="color:var(--red)"></div>
       </form>`);
     const input = $("nameInput"), form = $("nameForm");
     setTimeout(() => { input.focus(); input.select(); }, 0);
     form.onsubmit = async e => {
       e.preventDefault();
-      const name = input.value.trim().toUpperCase().slice(0, 12) || (girl() ? "AGENTKA" : "AGENT");
+      const name = input.value.trim().toUpperCase().slice(0, 12) || L(girl() ? "AGENTKA" : "AGENT", "AGENT");
       lastName = name;
       try { localStorage.setItem("laboratorium-name", name); } catch (err) { /* ignore */ }
       const saveBtn = form.querySelector("[type=submit]");
-      saveBtn.disabled = true; saveBtn.textContent = "ZAPISYWANIE...";
+      saveBtn.disabled = true; saveBtn.textContent = L("ZAPISYWANIE...", "SAVING...");
       try {
         const saved = await hofPost({ name, score: r.score, category: r.op, time: Math.floor(r.time), level: r.range, completed: r.completed });
         r.entry = saved.entry;
       } catch (err) {
-        saveBtn.disabled = false; saveBtn.textContent = "SPRÓBUJ PONOWNIE";
-        $("nameError").textContent = "NIE UDAŁO SIĘ ZAPISAĆ (" + err.message + ")";
+        saveBtn.disabled = false; saveBtn.textContent = L("SPRÓBUJ PONOWNIE", "TRY AGAIN");
+        $("nameError").textContent = L("NIE UDAŁO SIĘ ZAPISAĆ (", "COULD NOT SAVE (") + err.message + ")";
         $("btnSkip").hidden = false;
         return;
       }
@@ -2279,23 +2299,23 @@ import * as THREE from "../lib/three/three.module.min.js";
     showScreen("hof");
     const box = $("hofScreen");
     const buttons = afterGame && result
-      ? `<div class="btns"><button class="main-btn" id="hofAgain">JESZCZE RAZ</button><button class="main-btn alt" id="hofMenu">MENU</button></div>`
-      : `<div class="btns"><button class="main-btn" id="hofMenu">WRÓĆ</button></div>`;
+      ? `<div class="btns"><button class="main-btn" id="hofAgain">${L("JESZCZE RAZ", "AGAIN")}</button><button class="main-btn alt" id="hofMenu">MENU</button></div>`
+      : `<div class="btns"><button class="main-btn" id="hofMenu">${L("WRÓĆ", "BACK")}</button></div>`;
     const show = body => {
       const tabs = Object.entries(TASK_MODES).map(([k, m]) =>
         `<button class="opt${k === op ? " sel" : ""}" data-tab="${k}"><b>${escapeHtml(m.sym)}</b>${escapeHtml(m.name)}</button>`).join("");
-      box.innerHTML = `<div class="menu-title">SALA SŁAWY</div><div class="ops">${tabs}</div>${body}${buttons}`;
+      box.innerHTML = `<div class="menu-title">${L("SALA SŁAWY", "HALL OF FAME")}</div><div class="ops">${tabs}</div>${body}${buttons}`;
       box.querySelectorAll("[data-tab]").forEach(b => b.addEventListener("click", () => showHallOfFame(b.dataset.tab, highlight, afterGame, !hof)));
       if ($("hofAgain")) $("hofAgain").onclick = () => startRun(result.startLevel);
       $("hofMenu").onclick = goMenu;
     };
     if (fetchFirst) {
       const req = ++hofRequest;
-      show(`<div class="blink">ŁADOWANIE...</div>`);
+      show(`<div class="blink">${L("ŁADOWANIE...", "LOADING...")}</div>`);
       const stillHere = () => req === hofRequest && state === "hof";
       hofLoad()
         .then(() => { if (stillHere()) showHallOfFame(op, highlight, afterGame, false); })
-        .catch(err => { if (stillHere()) show(`<div style="color:var(--red)">BRAK POŁĄCZENIA Z SERWEREM (${escapeHtml(err.message)})</div>`); });
+        .catch(err => { if (stillHere()) show(`<div style="color:var(--red)">${L("BRAK POŁĄCZENIA Z SERWEREM", "NO CONNECTION TO THE SERVER")} (${escapeHtml(err.message)})</div>`); });
       return;
     }
     const medal = ["gold", "silver", "bronze"];
@@ -2305,9 +2325,9 @@ import * as THREE from "../lib/three/three.module.min.js";
       const cls = [medal[i] || "", highlight && e.id === highlight.id ? "me" : ""].join(" ");
       return `<tr class="${cls}"><td class="num">${i + 1}.</td><td class="name">${escapeHtml(e.name)}</td>
         <td class="num">${e.score}</td><td class="num">${e.time == null ? "--:--" : fmtTime(e.time)}</td>
-        <td class="num">${e.level == null ? "-" : "DO " + rangeMax(e.level)}</td><td>${e.completed ? `<span class="fin">UCIECZKA</span>` : ""}</td></tr>`;
+        <td class="num">${e.level == null ? "-" : L("DO ", "UP TO ") + rangeMax(e.level)}</td><td>${e.completed ? `<span class="fin">${L("UCIECZKA", "ESCAPED")}</span>` : ""}</td></tr>`;
     }).join("");
-    show(`<table class="hof"><tr><th class="num">#</th><th>IMIĘ</th><th class="num">PUNKTY</th><th class="num">CZAS</th><th class="num">WYNIKI</th><th></th></tr>${rows}</table>`);
+    show(`<table class="hof"><tr><th class="num">#</th><th>${L("IMIĘ", "NAME")}</th><th class="num">${L("PUNKTY", "SCORE")}</th><th class="num">${L("CZAS", "TIME")}</th><th class="num">${L("WYNIKI", "ANSWERS")}</th><th></th></tr>${rows}</table>`);
   }
 
   // ---------- Computer terminal (also the keypad of a door with a PIN) ----------
@@ -2329,8 +2349,8 @@ import * as THREE from "../lib/three/three.module.min.js";
     if (!c.task) c.task = newTask(usedTasks);
     $("tHead").textContent = "LAB-OS 3.1";
     $("tNum").textContent = `TERMINAL ${c.n}/${world.computers.length}`;
-    $("tLine1").textContent = "> SYSTEM ZABLOKOWANY.";
-    $("tLine2").textContent = "> PODAJ WYNIK, ABY GO ODBLOKOWAĆ:";
+    $("tLine1").textContent = L("> SYSTEM ZABLOKOWANY.", "> SYSTEM LOCKED.");
+    $("tLine2").textContent = L("> PODAJ WYNIK, ABY GO ODBLOKOWAĆ:", "> ENTER THE ANSWER TO UNLOCK IT:");
     $("tPin").classList.add("hidden");
     $("tQuestion").textContent = c.task.text;
     showTerminal();
@@ -2341,16 +2361,16 @@ import * as THREE from "../lib/three/three.module.min.js";
     activePin = d; activeComputer = null;
     terminalLock = false;
     if (!d.tasks) { d.tasks = Array.from({ length: PIN_TASKS }, () => newTask(usedTasks)); d.done = 0; }
-    $("tHead").textContent = "ZAMEK SZYFROWY";
-    $("tLine1").textContent = "> DRZWI ZAMKNIĘTE NA PIN.";
-    $("tLine2").textContent = `> ROZWIĄŻ ${PIN_TASKS} ZADANIA - WYNIKI TO PIN:`;
+    $("tHead").textContent = L("ZAMEK SZYFROWY", "CODE LOCK");
+    $("tLine1").textContent = L("> DRZWI ZAMKNIĘTE NA PIN.", "> THE DOOR IS LOCKED WITH A PIN.");
+    $("tLine2").textContent = L(`> ROZWIĄŻ ${PIN_TASKS} ZADANIA - WYNIKI TO PIN:`, `> SOLVE ${PIN_TASKS} TASKS - THE ANSWERS ARE THE PIN:`);
     $("tPin").classList.remove("hidden");
     showPinTask(d);
     showTerminal();
   }
   function showPinTask(d) {
     const cur = Math.min(d.done, PIN_TASKS - 1), t = d.tasks[cur];
-    $("tNum").textContent = `ZADANIE ${cur + 1}/${PIN_TASKS}`;
+    $("tNum").textContent = `${L("ZADANIE", "TASK")} ${cur + 1}/${PIN_TASKS}`;
     $("tPin").innerHTML = d.tasks.map((t, i) =>
       `<span class="${i < d.done ? "ok" : i === d.done ? "cur" : ""}">${i < d.done ? t.answer : "?"}</span>`).join("");
     $("tQuestion").textContent = d.done > cur ? t.text.replace("?", t.answer) : t.text;
@@ -2387,7 +2407,7 @@ import * as THREE from "../lib/three/three.module.min.js";
         c.solved = true;
         pendingSolve = true;
         $("tQuestion").textContent = c.task.text.replace("?", c.task.answer);
-        tMsg.textContent = "> DOBRZE! DOSTĘP PRZYZNANY."; tMsg.className = "t-msg good";
+        tMsg.textContent = L("> DOBRZE! DOSTĘP PRZYZNANY.", "> RIGHT! ACCESS GRANTED."); tMsg.className = "t-msg good";
         setTimeout(() => { if (activeComputer === c) closeTerminal(); }, 1100);
         return;
       }
@@ -2396,7 +2416,7 @@ import * as THREE from "../lib/three/three.module.min.js";
       showPinTask(d);
       $("tQuestion").textContent = task.text.replace("?", task.answer);
       if (d.done < PIN_TASKS) {
-        tMsg.textContent = `> DOBRZE! ZOSTAŁO ZADAŃ: ${PIN_TASKS - d.done}.`; tMsg.className = "t-msg good";
+        tMsg.textContent = L(`> DOBRZE! ZOSTAŁO ZADAŃ: ${PIN_TASKS - d.done}.`, `> RIGHT! TASKS LEFT: ${PIN_TASKS - d.done}.`); tMsg.className = "t-msg good";
         setTimeout(() => {
           if (activePin !== d) return;
           terminalLock = false; tInput.value = "";
@@ -2404,12 +2424,12 @@ import * as THREE from "../lib/three/three.module.min.js";
         }, 900);
       } else {
         pendingSolve = true;
-        tMsg.textContent = "> PIN PRZYJĘTY! DRZWI OTWARTE."; tMsg.className = "t-msg good";
+        tMsg.textContent = L("> PIN PRZYJĘTY! DRZWI OTWARTE.", "> PIN ACCEPTED! THE DOOR IS OPEN."); tMsg.className = "t-msg good";
         setTimeout(() => { if (activePin === d) closeTerminal(); }, 1200);
       }
     } else {
       run.mistakes++; levelMistakes++;
-      tMsg.textContent = "> BŁĄD! SPRÓBUJ JESZCZE RAZ."; tMsg.className = "t-msg bad";
+      tMsg.textContent = L("> BŁĄD! SPRÓBUJ JESZCZE RAZ.", "> WRONG! TRY AGAIN."); tMsg.className = "t-msg bad";
       tInput.value = "";
       monitor.classList.remove("shake"); void monitor.offsetWidth; monitor.classList.add("shake");
       sfx.bad();
@@ -2418,7 +2438,7 @@ import * as THREE from "../lib/three/three.module.min.js";
 
   function pinAccepted(d) {
     openDoor(d);
-    toast("PIN PRZYJĘTY! DRZWI OTWARTE!", 2.5, 2, "good");
+    toast(L("PIN PRZYJĘTY! DRZWI OTWARTE!", "PIN ACCEPTED! THE DOOR IS OPEN!"), 2.5, 2, "good");
   }
 
   function afterSolve(c) {
@@ -2429,9 +2449,9 @@ import * as THREE from "../lib/three/three.module.min.js";
       world.exit.unlocked = true;
       world.exit.face.map = world.tex.doorEopen;
       sfx.alarm();
-      toast("WSZYSTKIE ZADANIA ROZWIĄZANE! WYJŚCIE JEST OTWARTE - ZNAJDŹ ZIELONE DRZWI!", 4, 3, "good");
+      toast(L("WSZYSTKIE ZADANIA ROZWIĄZANE! WYJŚCIE JEST OTWARTE - ZNAJDŹ ZIELONE DRZWI!", "ALL THE TASKS SOLVED! THE EXIT IS OPEN - FIND THE GREEN DOOR!"), 4, 3, "good");
     } else {
-      toast(`ZADANIE ROZWIĄZANE! ZOSTAŁO: ${left}`, 2.5, 2, "good");
+      toast(L(`ZADANIE ROZWIĄZANE! ZOSTAŁO: ${left}`, `TASK SOLVED! LEFT: ${left}`), 2.5, 2, "good");
     }
   }
 
@@ -2443,7 +2463,7 @@ import * as THREE from "../lib/three/three.module.min.js";
     b.addEventListener("click", () => typeDigit(d));
     keypad.appendChild(b);
   });
-  [["USUŃ", () => { if (!terminalLock) tInput.value = tInput.value.slice(0, -1); }], ["OK", submitAnswer]].forEach(([label, fn]) => {
+  [[L("USUŃ", "DEL"), () => { if (!terminalLock) tInput.value = tInput.value.slice(0, -1); }], ["OK", submitAnswer]].forEach(([label, fn]) => {
     const b = document.createElement("button");
     b.textContent = label; b.className = label === "OK" ? "wide ok" : "wide";
     b.addEventListener("click", fn);
@@ -2464,7 +2484,7 @@ import * as THREE from "../lib/three/three.module.min.js";
   function toggleSound() {
     soundOn = !soundOn;
     try { localStorage.setItem("laboratorium-sound", soundOn ? "on" : "off"); } catch (e) { /* ignore */ }
-    $("btnSound").textContent = soundOn ? "DŹWIĘK: WŁ." : "DŹWIĘK: WYŁ.";
+    $("btnSound").textContent = soundOn ? L("DŹWIĘK: WŁ.", "SOUND: ON") : L("DŹWIĘK: WYŁ.", "SOUND: OFF");
   }
 
   window.addEventListener("keydown", e => {
@@ -2540,7 +2560,9 @@ import * as THREE from "../lib/three/three.module.min.js";
   });
   $("btnPause").addEventListener("click", pause);
   $("btnSound").addEventListener("click", toggleSound);
-  $("btnSound").textContent = soundOn ? "DŹWIĘK: WŁ." : "DŹWIĘK: WYŁ.";
+  $("btnSound").textContent = soundOn ? L("DŹWIĘK: WŁ.", "SOUND: ON") : L("DŹWIĘK: WYŁ.", "SOUND: OFF");
+
+  for (const el of document.querySelectorAll("[data-lang]")) el.hidden = el.dataset.lang !== LANG;
 
   // ---------- Menu ----------
   function buildMenu() {
@@ -2568,12 +2590,12 @@ import * as THREE from "../lib/three/three.module.min.js";
       const b = document.createElement("button");
       b.className = "opt" + (taskSettings.range === n ? " sel" : "");
       b.textContent = n;
-      b.title = `WYNIK DO ${rangeMax(n)}`;
+      b.title = `${L("WYNIK DO", "ANSWERS UP TO")} ${rangeMax(n)}`;
       b.addEventListener("click", () => { taskSettings.range = n; saveTaskSettings(); buildMenu(); });
       ranges.appendChild(b);
     }
-    $("rangeHint").textContent = `WYNIK MAKSYMALNIE ${rangeMax(taskSettings.range)}` +
-      (taskSettings.op === "all" ? " · DZIAŁANIA LOSOWANE PRZY KAŻDYM KOMPUTERZE" : "");
+    $("rangeHint").textContent = `${L("WYNIK MAKSYMALNIE", "ANSWERS UP TO")} ${rangeMax(taskSettings.range)}` +
+      (taskSettings.op === "all" ? L(" · DZIAŁANIA LOSOWANE PRZY KAŻDYM KOMPUTERZE", " · A RANDOM OPERATION AT EVERY COMPUTER") : "");
   }
   $("btnPlay").addEventListener("click", () => startRun(menuLevel));
   $("btnHofMenu").addEventListener("click", () => { result = null; showHallOfFame(taskSettings.op, null, false); });
@@ -2613,7 +2635,7 @@ import * as THREE from "../lib/three/three.module.min.js";
         box.appendChild(b);
       });
     };
-    choice($("optGender"), [["boy", "CHŁOPIEC", { ...look, gender: "boy" }], ["girl", "DZIEWCZYNKA", { ...look, gender: "girl" }]],
+    choice($("optGender"), [["boy", L("CHŁOPIEC", "BOY"), { ...look, gender: "boy" }], ["girl", L("DZIEWCZYNKA", "GIRL"), { ...look, gender: "girl" }]],
       v => look.gender === v, v => { look.gender = v; }, true);
     choice($("optHair"), Object.entries(HAIR).map(([k, h]) => [k, h.name, { ...look, hair: k }]),
       v => look.hair === v, v => { look.hair = v; }, true);

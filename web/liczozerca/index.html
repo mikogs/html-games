@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Liczożerca</title>
+<title data-en="Number Muncher">Liczożerca</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap" rel="stylesheet">
 <style>
@@ -186,15 +186,17 @@
 <!-- Sets GRY_ORIGIN, the API's address when this page is opened from disk
      (file://) - written per machine by 065_gry.yml. -->
 <script src="../lib/origin.js"></script>
+<!-- The language of the page: Polish, or English after a click on its flag. -->
+<script src="../lib/lang.js"></script>
 </head>
 <body>
 <div class="wrap">
-  <h1>LICZOŻERCA</h1>
+  <h1 data-en="NUMBER MUNCHER">LICZOŻERCA</h1>
   <div class="hud">
-    <div><span class="label">PUNKTY</span><span class="val" id="score">0</span></div>
-    <div><span class="label">CZAS</span><span class="val" id="time">00:00</span></div>
-    <div><span class="label">TRYB</span><span class="val" id="mode">-</span></div>
-    <div><span class="label">ŻYCIA</span><div id="lives"></div></div>
+    <div><span class="label" data-en="SCORE">PUNKTY</span><span class="val" id="score">0</span></div>
+    <div><span class="label" data-en="TIME">CZAS</span><span class="val" id="time">00:00</span></div>
+    <div><span class="label" data-en="MODE">TRYB</span><span class="val" id="mode">-</span></div>
+    <div><span class="label" data-en="LIVES">ŻYCIA</span><div id="lives"></div></div>
   </div>
   <div class="main">
     <div class="board">
@@ -202,21 +204,21 @@
       <div class="overlay" id="overlay"></div>
     </div>
     <div class="side">
-      <h2>ROZWIĄŻ I ZJEDZ!</h2>
+      <h2 data-en="SOLVE AND EAT!">ROZWIĄŻ I ZJEDZ!</h2>
       <ul id="equations"></ul>
       <div class="rules">
-        <b>STRZAŁKI/WSAD</b> RUCH<br>
-        <b>P</b> PAUZA &nbsp; <b>M</b> DŹWIĘK<br>
-        KROPKA = 1 PKT<br>
-        DOBRY WYNIK = 5 PKT<br>
-        ZŁA LICZBA = -1 ŻYCIE<br>
-        POZIOM W &lt; 2:00 = +10 PKT<br>
-        POZIOM W &lt; 1:00 = +20 PKT<br>
-        POZIOM W &lt; 0:40 = +30 PKT
+        <b data-en="ARROWS/WASD">STRZAŁKI/WSAD</b> <span data-en="MOVE">RUCH</span><br>
+        <b>P</b> <span data-en="PAUSE">PAUZA</span> &nbsp; <b>M</b> <span data-en="SOUND">DŹWIĘK</span><br>
+        <span data-en="DOT = 1 PT">KROPKA = 1 PKT</span><br>
+        <span data-en="RIGHT ANSWER = 5 PTS">DOBRY WYNIK = 5 PKT</span><br>
+        <span data-en="WRONG NUMBER = -1 LIFE">ZŁA LICZBA = -1 ŻYCIE</span><br>
+        <span data-en="LEVEL IN &lt; 2:00 = +10 PTS">POZIOM W &lt; 2:00 = +10 PKT</span><br>
+        <span data-en="LEVEL IN &lt; 1:00 = +20 PTS">POZIOM W &lt; 1:00 = +20 PKT</span><br>
+        <span data-en="LEVEL IN &lt; 0:40 = +30 PTS">POZIOM W &lt; 0:40 = +30 PKT</span>
       </div>
       <div class="row">
         <button class="btn-small" id="btnMenu">MENU</button>
-        <button class="btn-small" id="btnSound">DŹWIĘK: WŁ.</button>
+        <button class="btn-small" id="btnSound" data-en="SOUND: ON">DŹWIĘK: WŁ.</button>
       </div>
     </div>
   </div>
@@ -224,6 +226,11 @@
 
 <script>
 (() => {
+  // ---------- Language (lib/lang.js: Polish unless the English flag was picked) ----------
+  const LANG = window.GryLang ? window.GryLang.lang : "pl";
+  const L = (pl, en) => LANG === "en" ? en : pl;
+  const langFlags = () => window.GryLang ? window.GryLang.flags() : "";
+
   // ---------- Config ----------
   const MAP_SRC = [
     "###################",
@@ -264,15 +271,15 @@
   // Each operation generates one equation {a, b, r} whose result r is in [min, max].
   const OPS = {
     add: {
-      name: "DODAWANIE", sym: "+", min: () => 2,
+      name: L("DODAWANIE", "ADDITION"), sym: "+", min: () => 2,
       gen(max) { const r = rnd(2, max), a = rnd(1, r - 1); return { a, b: r - a, r }; },
     },
     sub: {
-      name: "ODEJMOWANIE", sym: "-", min: () => 1,
+      name: L("ODEJMOWANIE", "SUBTRACTION"), sym: "-", min: () => 1,
       gen(max) { const r = rnd(1, max - 1), a = rnd(r + 1, max); return { a, b: a - r, r }; },
     },
     mul: {
-      name: "MNOŻENIE", sym: "×", min: () => 1,
+      name: L("MNOŻENIE", "MULTIPLICATION"), sym: "×", min: () => 1,
       // results are picked as a set (see pickMulResults) so that small levels still have 6 distinct products
       gen(max, r) {
         const pairs = [];
@@ -282,7 +289,7 @@
       },
     },
     div: {
-      name: "DZIELENIE", sym: ":", min: () => 1,
+      name: L("DZIELENIE", "DIVISION"), sym: ":", min: () => 1,
       gen(max) { const r = rnd(1, max), b = rnd(2, 9); return { a: r * b, b, r }; },
     },
   };
@@ -555,11 +562,11 @@
     state = "ready";
     renderEquations(); updateHUD();
     showOverlay(`
-      <div class="big" style="color:var(--yellow)">${carry ? `POZIOM ${settings.level}` : "GOTOWY?"}</div>
-      <div>${OPS[settings.op].name}<br>POZIOM ${settings.level}/${NUM_LEVELS} · WYNIK DO ${levelMax(settings.level)}</div>
-      ${carry ? `<div>PUNKTY <span style="color:var(--yellow)">${score}</span> · ŻYCIA <span style="color:var(--red)">${lives}</span></div>` : ""}
-      <div>ZJADAJ WYNIKI DZIAŁAŃ.<br><span style="color:var(--red)">UNIKAJ ZŁYCH LICZB!</span></div>
-      <div class="blink">NACIŚNIJ STRZAŁKĘ</div>
+      <div class="big" style="color:var(--yellow)">${carry ? `${L("POZIOM", "LEVEL")} ${settings.level}` : L("GOTOWY?", "READY?")}</div>
+      <div>${OPS[settings.op].name}<br>${L("POZIOM", "LEVEL")} ${settings.level}/${NUM_LEVELS} · ${L("WYNIK DO", "ANSWERS UP TO")} ${levelMax(settings.level)}</div>
+      ${carry ? `<div>${L("PUNKTY", "SCORE")} <span style="color:var(--yellow)">${score}</span> · ${L("ŻYCIA", "LIVES")} <span style="color:var(--red)">${lives}</span></div>` : ""}
+      <div>${L("ZJADAJ WYNIKI DZIAŁAŃ.", "EAT THE ANSWERS.")}<br><span style="color:var(--red)">${L("UNIKAJ ZŁYCH LICZB!", "AVOID THE WRONG NUMBERS!")}</span></div>
+      <div class="blink">${L("NACIŚNIJ STRZAŁKĘ", "PRESS AN ARROW")}</div>
       <button class="main-btn" id="btnStart">START</button>`);
     document.getElementById("btnStart").onclick = startPlaying;
   }
@@ -576,20 +583,21 @@
     runResult = null;
     settings.level = runStartLevel;   // menu shows the level the run started at
     state = "menu";
-    elEq.innerHTML = `<li class="empty">WYBIERZ DZIAŁANIE I POZIOM, ABY ZOBACZYĆ RÓWNANIA.</li>`;
+    elEq.innerHTML = `<li class="empty">${L("WYBIERZ DZIAŁANIE I POZIOM, ABY ZOBACZYĆ RÓWNANIA.", "PICK AN OPERATION AND A LEVEL TO SEE THE EQUATIONS.")}</li>`;
     elMode.textContent = "-";
     const opBtns = Object.entries(OPS).map(([k, o]) =>
       `<button class="opt${settings.op === k ? " sel" : ""}" data-op="${k}"><span class="sym">${o.sym}</span>${o.name}</button>`).join("");
     const lvlBtns = Array.from({ length: NUM_LEVELS }, (_, i) =>
       `<button class="opt lvl${settings.level === i + 1 ? " sel" : ""}" data-lvl="${i + 1}">${i + 1}</button>`).join("");
     showOverlay(`
-      <div class="menu-title">WYBIERZ DZIAŁANIE</div>
+      <div class="menu-title">${L("WYBIERZ DZIAŁANIE", "PICK AN OPERATION")}</div>
       <div class="ops">${opBtns}</div>
-      <div class="menu-title">WYBIERZ POZIOM</div>
+      <div class="menu-title">${L("WYBIERZ POZIOM", "PICK A LEVEL")}</div>
       <div class="levels">${lvlBtns}</div>
-      <div class="menu-hint">WYNIK MAKSYMALNIE ${levelMax(settings.level)}</div>
-      <button class="main-btn" id="btnPlay">GRAJ!</button>
-      <button class="hof-link" id="btnHof">SALA SŁAWY</button>`);
+      <div class="menu-hint">${L("WYNIK MAKSYMALNIE", "ANSWERS UP TO")} ${levelMax(settings.level)}</div>
+      <button class="main-btn" id="btnPlay">${L("GRAJ!", "PLAY!")}</button>
+      <button class="hof-link" id="btnHof">${L("SALA SŁAWY", "HALL OF FAME")}</button>
+      ${langFlags()}`);
     document.getElementById("btnHof").onclick = () => showHallOfFame(settings.op, null, showMenu);
     overlay.querySelectorAll("[data-op]").forEach(b => b.onclick = () => { settings.op = b.dataset.op; sfx.click(); saveSettings(); showMenu(); });
     overlay.querySelectorAll("[data-lvl]").forEach(b => b.onclick = () => { settings.level = runStartLevel = +b.dataset.lvl; sfx.click(); saveSettings(); showMenu(); });
@@ -608,7 +616,7 @@
   function updateHUD() {
     elScore.textContent = score;
     elTime.textContent = fmtTime(elapsed);
-    elMode.textContent = `${OPS[settings.op].sym} POZ.${settings.level}`;
+    elMode.textContent = `${OPS[settings.op].sym} ${L("POZ.", "LV.")}${settings.level}`;
     elLives.innerHTML = Array.from({ length: LIVES }, (_, i) => heartSVG(i < lives)).join("");
   }
   function showOverlay(html) { overlay.innerHTML = html; overlay.classList.remove("hidden"); }
@@ -633,8 +641,8 @@
                     allDone: won, levelClear, entry: null, hofError: false };
       // Ask for a name only if the score makes the current top 10 - so fetch it first.
       state = "loading";
-      showOverlay(`<div class="big" style="color:${won ? "var(--green)" : "var(--red)"}">KONIEC GRY</div>
-        <div class="blink">ŁADOWANIE SALI SŁAWY...</div>`);
+      showOverlay(`<div class="big" style="color:${won ? "var(--green)" : "var(--red)"}">${L("KONIEC GRY", "GAME OVER")}</div>
+        <div class="blink">${L("ŁADOWANIE SALI SŁAWY...", "LOADING THE HALL OF FAME...")}</div>`);
       const r = runResult;
       hofLoad()
         .then(() => { if (runResult === r) (hofRank(r.op, r.score, r.time) ? showNameEntry() : showRunOver()); })
@@ -643,27 +651,27 @@
     }
     const solved = equations.filter(e => e.solved).length;
     showOverlay(`
-      <div class="big" style="color:var(--green)">POZIOM ${settings.level} UKOŃCZONY!</div>
+      <div class="big" style="color:var(--green)">${L(`POZIOM ${settings.level} UKOŃCZONY!`, `LEVEL ${settings.level} CLEARED!`)}</div>
       ${bonusLine(levelClear)}
-      <div>PUNKTY <span style="color:var(--yellow)">${score}</span><br>
-      CZAS <span style="color:var(--cyan)">${fmtTime(elapsed)}</span><br>
-      ŻYCIA <span style="color:var(--red)">${lives}/${LIVES}</span><br>
-      ROZWIĄZANE ${solved}/${equations.length}</div>
-      <div class="blink">ENTER = NASTĘPNY POZIOM</div>
+      <div>${L("PUNKTY", "SCORE")} <span style="color:var(--yellow)">${score}</span><br>
+      ${L("CZAS", "TIME")} <span style="color:var(--cyan)">${fmtTime(elapsed)}</span><br>
+      ${L("ŻYCIA", "LIVES")} <span style="color:var(--red)">${lives}/${LIVES}</span><br>
+      ${L("ROZWIĄZANE", "SOLVED")} ${solved}/${equations.length}</div>
+      <div class="blink">${L("ENTER = NASTĘPNY POZIOM", "ENTER = NEXT LEVEL")}</div>
       <div class="btns">
-        <button class="main-btn" id="btnNext">NASTĘPNY POZIOM</button>
+        <button class="main-btn" id="btnNext">${L("NASTĘPNY POZIOM", "NEXT LEVEL")}</button>
         <button class="main-btn alt" id="btnToMenu">MENU</button>
       </div>`);
     document.getElementById("btnToMenu").onclick = showMenu;
     document.getElementById("btnNext").onclick = nextLevel;
   }
 
-  // "CZAS POZIOMU 00:48 · BONUS +20" for the level just cleared (nothing if none was)
+  // "LEVEL TIME 00:48 · TIME BONUS +20 PTS" for the level just cleared (nothing if none was)
   function bonusLine(clear) {
     if (!clear) return "";
-    return `<div>CZAS POZIOMU <span style="color:var(--cyan)">${fmtTime(clear.time)}</span> · ${clear.bonus
-      ? `<span style="color:var(--green)">BONUS ZA CZAS +${clear.bonus} PKT</span>`
-      : `<span style="color:var(--dim)">BEZ BONUSU (PONIŻEJ 2:00 = +10)</span>`}</div>`;
+    return `<div>${L("CZAS POZIOMU", "LEVEL TIME")} <span style="color:var(--cyan)">${fmtTime(clear.time)}</span> · ${clear.bonus
+      ? `<span style="color:var(--green)">${L("BONUS ZA CZAS", "TIME BONUS")} +${clear.bonus} ${L("PKT", "PTS")}</span>`
+      : `<span style="color:var(--dim)">${L("BEZ BONUSU (PONIŻEJ 2:00 = +10)", "NO BONUS (UNDER 2:00 = +10)")}</span>`}</div>`;
   }
 
   // Final screen of a run (lost all lives, or finished the last level)
@@ -671,19 +679,19 @@
     state = "over";
     const r = runResult;
     showOverlay(`
-      <div class="big" style="color:${r.allDone ? "var(--green)" : "var(--red)"}">KONIEC GRY</div>
-      ${r.allDone ? `<div style="color:var(--yellow)">UKOŃCZONO WSZYSTKIE POZIOMY!</div>` : ""}
+      <div class="big" style="color:${r.allDone ? "var(--green)" : "var(--red)"}">${L("KONIEC GRY", "GAME OVER")}</div>
+      ${r.allDone ? `<div style="color:var(--yellow)">${L("UKOŃCZONO WSZYSTKIE POZIOMY!", "ALL LEVELS CLEARED!")}</div>` : ""}
       ${bonusLine(r.levelClear)}
-      <div>PUNKTY <span style="color:var(--yellow)">${r.score}</span><br>
-      CZAS <span style="color:var(--cyan)">${fmtTime(r.time)}</span><br>
-      UKOŃCZONE POZIOMY ${r.levelsDone}</div>
-      ${r.hofError ? `<div style="color:var(--red)">SALA SŁAWY NIEDOSTĘPNA - BRAK POŁĄCZENIA Z SERWEREM</div>` : ""}
-      <div class="blink">ENTER = ZAGRAJ PONOWNIE</div>
+      <div>${L("PUNKTY", "SCORE")} <span style="color:var(--yellow)">${r.score}</span><br>
+      ${L("CZAS", "TIME")} <span style="color:var(--cyan)">${fmtTime(r.time)}</span><br>
+      ${L("UKOŃCZONE POZIOMY", "LEVELS CLEARED")} ${r.levelsDone}</div>
+      ${r.hofError ? `<div style="color:var(--red)">${L("SALA SŁAWY NIEDOSTĘPNA - BRAK POŁĄCZENIA Z SERWEREM", "HALL OF FAME UNAVAILABLE - NO CONNECTION TO THE SERVER")}</div>` : ""}
+      <div class="blink">${L("ENTER = ZAGRAJ PONOWNIE", "ENTER = PLAY AGAIN")}</div>
       <div class="btns">
-        <button class="main-btn" id="btnAgain">ZAGRAJ PONOWNIE</button>
+        <button class="main-btn" id="btnAgain">${L("ZAGRAJ PONOWNIE", "PLAY AGAIN")}</button>
         <button class="main-btn alt" id="btnToMenu">MENU</button>
       </div>
-      <button class="hof-link" id="btnHof">SALA SŁAWY</button>`);
+      <button class="hof-link" id="btnHof">${L("SALA SŁAWY", "HALL OF FAME")}</button>`);
     document.getElementById("btnAgain").onclick = newGame;
     document.getElementById("btnToMenu").onclick = showMenu;
     document.getElementById("btnHof").onclick = () => showHallOfFame(r.op, r.entry, showRunOver);
@@ -693,34 +701,34 @@
     state = "entry";
     const r = runResult, rank = hofRank(r.op, r.score, r.time);
     showOverlay(`
-      <div class="big" style="color:var(--yellow)">NOWY REKORD!</div>
+      <div class="big" style="color:var(--yellow)">${L("NOWY REKORD!", "NEW RECORD!")}</div>
       ${bonusLine(r.levelClear)}
-      <div>${r.allDone ? `<span style="color:var(--green)">UKOŃCZONO WSZYSTKIE POZIOMY!</span><br>` : ""}
-      ${OPS[r.op].name} · MIEJSCE <span style="color:var(--yellow)">#${rank}</span><br>
-      PUNKTY <span style="color:var(--yellow)">${r.score}</span> · CZAS <span style="color:var(--cyan)">${fmtTime(r.time)}</span></div>
+      <div>${r.allDone ? `<span style="color:var(--green)">${L("UKOŃCZONO WSZYSTKIE POZIOMY!", "ALL LEVELS CLEARED!")}</span><br>` : ""}
+      ${OPS[r.op].name} · ${L("MIEJSCE", "PLACE")} <span style="color:var(--yellow)">#${rank}</span><br>
+      ${L("PUNKTY", "SCORE")} <span style="color:var(--yellow)">${r.score}</span> · ${L("CZAS", "TIME")} <span style="color:var(--cyan)">${fmtTime(r.time)}</span></div>
       <form id="nameForm" autocomplete="off">
-        <label for="nameInput">WPISZ SWOJE IMIĘ:</label>
+        <label for="nameInput">${L("WPISZ SWOJE IMIĘ:", "ENTER YOUR NAME:")}</label>
         <input id="nameInput" maxlength="12" spellcheck="false" value="${escapeHtml(lastName)}">
-        <button class="main-btn" type="submit">ZAPISZ</button>
+        <button class="main-btn" type="submit">${L("ZAPISZ", "SAVE")}</button>
         <div id="nameError" style="color:var(--red)"></div>
-        <button class="main-btn alt" type="button" id="btnSkip" hidden>POMIŃ</button>
+        <button class="main-btn alt" type="button" id="btnSkip" hidden>${L("POMIŃ", "SKIP")}</button>
       </form>`);
     const input = document.getElementById("nameInput");
     setTimeout(() => { input.focus(); input.select(); }, 0);
     const form = document.getElementById("nameForm");
     form.onsubmit = async e => {
       e.preventDefault();
-      const name = input.value.trim().toUpperCase().slice(0, 12) || "GRACZ";
+      const name = input.value.trim().toUpperCase().slice(0, 12) || L("GRACZ", "PLAYER");
       lastName = name;
       try { localStorage.setItem("liczozerca-name", name); } catch (err) { /* ignore */ }
       const saveBtn = form.querySelector("[type=submit]"), errorEl = document.getElementById("nameError");
-      saveBtn.disabled = true; saveBtn.textContent = "ZAPISYWANIE...";
+      saveBtn.disabled = true; saveBtn.textContent = L("ZAPISYWANIE...", "SAVING...");
       try {
         const saved = await hofPost({ name, score: r.score, category: r.op, time: r.time, level: r.level, completed: r.allDone });
         r.entry = saved.entry;
       } catch (err) {
-        saveBtn.disabled = false; saveBtn.textContent = "SPRÓBUJ PONOWNIE";
-        errorEl.textContent = "NIE UDAŁO SIĘ ZAPISAĆ (" + err.message + ")";
+        saveBtn.disabled = false; saveBtn.textContent = L("SPRÓBUJ PONOWNIE", "TRY AGAIN");
+        errorEl.textContent = L("NIE UDAŁO SIĘ ZAPISAĆ (", "COULD NOT SAVE (") + err.message + ")";
         document.getElementById("btnSkip").hidden = false;
         return;
       }
@@ -738,9 +746,9 @@
     hofBack = onBack;
     const fromRun = onBack === showRunOver;
     const buttons = `<div class="btns">
-        ${fromRun ? `<button class="main-btn" id="btnAgain">ZAGRAJ PONOWNIE</button>
+        ${fromRun ? `<button class="main-btn" id="btnAgain">${L("ZAGRAJ PONOWNIE", "PLAY AGAIN")}</button>
                      <button class="main-btn alt" id="btnToMenu">MENU</button>`
-                  : `<button class="main-btn" id="btnBack">WRÓĆ</button>`}
+                  : `<button class="main-btn" id="btnBack">${L("WRÓĆ", "BACK")}</button>`}
       </div>`;
     const wireButtons = () => {
       if (fromRun) {
@@ -752,16 +760,16 @@
     };
     if (fetchFirst) {
       const req = ++hofRequest;
-      showOverlay(`<div class="big" style="color:var(--yellow)">SALA SŁAWY</div>
-        <div class="blink">ŁADOWANIE...</div>${buttons}`);
+      showOverlay(`<div class="big" style="color:var(--yellow)">${L("SALA SŁAWY", "HALL OF FAME")}</div>
+        <div class="blink">${L("ŁADOWANIE...", "LOADING...")}</div>${buttons}`);
       wireButtons();
       const stillHere = () => req === hofRequest && state === "hof";
       hofLoad()
         .then(() => { if (stillHere()) showHallOfFame(op, highlight, onBack, false); })
         .catch(err => {
           if (!stillHere()) return;
-          showOverlay(`<div class="big" style="color:var(--yellow)">SALA SŁAWY</div>
-            <div style="color:var(--red)">BRAK POŁĄCZENIA Z SERWEREM<br>(${escapeHtml(err.message)})</div>${buttons}`);
+          showOverlay(`<div class="big" style="color:var(--yellow)">${L("SALA SŁAWY", "HALL OF FAME")}</div>
+            <div style="color:var(--red)">${L("BRAK POŁĄCZENIA Z SERWEREM", "NO CONNECTION TO THE SERVER")}<br>(${escapeHtml(err.message)})</div>${buttons}`);
           wireButtons();
         });
       return;
@@ -777,11 +785,11 @@
         <td class="num">${e.score}</td><td class="num">${e.time == null ? "--:--" : fmtTime(e.time)}</td><td class="num">${e.level ?? "-"}</td></tr>`;
     }).join("");
     showOverlay(`
-      <div class="big" style="color:var(--yellow)">SALA SŁAWY</div>
+      <div class="big" style="color:var(--yellow)">${L("SALA SŁAWY", "HALL OF FAME")}</div>
       <div class="tabs">${tabs}</div>
       <div class="menu-title">${OPS[op].name}</div>
       <table class="hof">
-        <tr><th class="num">#</th><th>IMIĘ</th><th class="num">PKT</th><th class="num">CZAS</th><th class="num">POZ.</th></tr>
+        <tr><th class="num">#</th><th>${L("IMIĘ", "NAME")}</th><th class="num">${L("PKT", "PTS")}</th><th class="num">${L("CZAS", "TIME")}</th><th class="num">${L("POZ.", "LV.")}</th></tr>
         ${rows}
       </table>
       ${buttons}`);
@@ -797,7 +805,7 @@
   function togglePause() {
     if (state === "playing") {
       state = "paused";
-      showOverlay(`<div class="big" style="color:var(--cyan)">PAUZA</div><div class="blink">NACIŚNIJ P</div>`);
+      showOverlay(`<div class="big" style="color:var(--cyan)">${L("PAUZA", "PAUSED")}</div><div class="blink">${L("NACIŚNIJ P", "PRESS P")}</div>`);
     } else if (state === "paused") {
       state = "playing";
       hideOverlay();
@@ -830,7 +838,7 @@
       } else {
         lives -= 1;
         flashT = 0.35; shakeT = 0.35; freezeT = 0.6;
-        addFloater(x, y, "AŁA!", "#ff3b3b");
+        addFloater(x, y, L("AŁA!", "OUCH!"), "#ff3b3b");
         sfx.bad();
         if (lives <= 0) { updateHUD(); endGame(false); return; }
       }
@@ -1046,7 +1054,7 @@
 
   function toggleSound() {
     soundOn = !soundOn;
-    btnSound.textContent = "DŹWIĘK: " + (soundOn ? "WŁ." : "WYŁ.");
+    btnSound.textContent = L("DŹWIĘK: ", "SOUND: ") + (soundOn ? L("WŁ.", "ON") : L("WYŁ.", "OFF"));
   }
   btnSound.onclick = e => { toggleSound(); e.currentTarget.blur(); };
   document.getElementById("btnMenu").onclick = e => { e.currentTarget.blur(); showMenu(); };

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Szalona Szosa</title>
+<title data-en="Crazy Road">Szalona Szosa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap" rel="stylesheet">
 <style>
@@ -181,24 +181,34 @@
 <!-- Sets GRY_ORIGIN, the API's address when this page is opened from disk
      (file://) - written per machine by 065_gry.yml. -->
 <script src="../lib/origin.js"></script>
+<!-- The language of the page: Polish, or English after a click on its flag. -->
+<script src="../lib/lang.js"></script>
 </head>
 <body>
 <div class="wrap">
-  <h1>SZALONA SZOSA</h1>
+  <h1 data-en="CRAZY ROAD">SZALONA SZOSA</h1>
 
   <section class="screen frame" id="garage">
-    <div class="title">WYBIERZ SAMOCHÓD</div>
+    <div class="title" data-en="PICK A CAR">WYBIERZ SAMOCHÓD</div>
     <div class="cars" id="carOpts"></div>
-    <div class="title">KOLOR</div>
+    <div class="title" data-en="COLOUR">KOLOR</div>
     <div class="swatches" id="colorOpts"></div>
-    <div class="rules">
-      DOJEDŹ DO <b>METY</b> JAK NAJSZYBCIEJ - TRASA MA <b id="routeLen"></b>. OMIJAJ AUTA! NA CZTEROPASMÓWCE DWA PRAWE PASY JADĄ W TWOJĄ STRONĘ, DWA LEWE - <b>PROSTO NA CIEBIE</b>.
+    <!-- the rules in each language: buildGarage() shows one (and fills in the length of the route) -->
+    <div class="rules" data-lang="pl">
+      DOJEDŹ DO <b>METY</b> JAK NAJSZYBCIEJ - TRASA MA <b data-route-len></b>. OMIJAJ AUTA! NA CZTEROPASMÓWCE DWA PRAWE PASY JADĄ W TWOJĄ STRONĘ, DWA LEWE - <b>PROSTO NA CIEBIE</b>.
       NA WĄSKIEJ SZOSIE <b>WYPRZEDZAJ</b>, ALE UWAŻAJ NA AUTA Z NAPRZECIWKA. ZAMKNIĘTYM PASEM PRZY <b>PRACACH DROGOWYCH</b> JEDZIESZ BARDZO WOLNO, A UDERZENIE W BARIERĘ ZABIERA ŻYCIE.
       MASZ <b>10 ŻYĆ</b> - KAŻDE ZDERZENIE ZABIERA JEDNO, A GDY SIĘ SKOŃCZĄ, TO KONIEC GRY.<br>
       <b>STRZAŁKI / WSAD</b> - GÓRA GAZ, DÓŁ HAMULEC, LEWO I PRAWO SKRĘT &nbsp; <b>P</b> PAUZA &nbsp; <b>M</b> DŹWIĘK
     </div>
+    <div class="rules" data-lang="en" hidden>
+      GET TO THE <b>FINISH</b> AS FAST AS YOU CAN - THE ROUTE IS <b data-route-len></b>. DODGE THE CARS! ON THE DUAL CARRIAGEWAY THE TWO RIGHT LANES GO YOUR WAY, THE TWO LEFT ONES - <b>STRAIGHT AT YOU</b>.
+      ON THE NARROW ROAD <b>OVERTAKE</b>, BUT WATCH OUT FOR ONCOMING CARS. ON A LANE CLOSED FOR <b>ROAD WORKS</b> YOU DRIVE VERY SLOWLY, AND HITTING THE BARRIER COSTS A LIFE.
+      YOU HAVE <b>10 LIVES</b> - EVERY CRASH TAKES ONE, AND WHEN THEY RUN OUT, THE GAME IS OVER.<br>
+      <b>ARROWS / WASD</b> - UP GAS, DOWN BRAKE, LEFT AND RIGHT STEER &nbsp; <b>P</b> PAUSE &nbsp; <b>M</b> SOUND
+    </div>
     <div class="btns"><button class="main-btn" id="btnStart">START!</button></div>
-    <button class="hof-link" id="btnHofMenu">SALA SŁAWY</button>
+    <button class="hof-link" id="btnHofMenu" data-en="HALL OF FAME">SALA SŁAWY</button>
+    <div data-gry-flags></div>
   </section>
 
   <section class="screen frame hidden" id="hofScreen"></section>
@@ -206,29 +216,29 @@
   <div class="board frame hidden" id="board">
     <canvas id="game" width="320" height="200"></canvas>
     <div class="hud">
-      <div><span class="label">CZAS</span><span id="hudTime">0:00.0</span></div>
-      <div><span class="label">ŻYCIA</span><div id="hudLives"></div></div>
-      <div class="right"><span class="label">DO METY</span><span id="hudLeft">0 M</span><div class="prog"><i id="hudProg"></i></div></div>
+      <div><span class="label" data-en="TIME">CZAS</span><span id="hudTime">0:00.0</span></div>
+      <div><span class="label" data-en="LIVES">ŻYCIA</span><div id="hudLives"></div></div>
+      <div class="right"><span class="label" data-en="TO THE FINISH">DO METY</span><span id="hudLeft">0 M</span><div class="prog"><i id="hudProg"></i></div></div>
     </div>
     <div class="speedo"><span id="hudSpeed">0</span> <small>KM/H</small><div class="bar"><i id="hudBar"></i></div></div>
     <div class="pop hidden" id="pop"></div>
-    <div class="warn hidden" id="warn">WRÓĆ NA DROGĘ!</div>
+    <div class="warn hidden" id="warn" data-en="BACK ON THE ROAD!">WRÓĆ NA DROGĘ!</div>
     <div class="overlay hidden" id="overlay"></div>
   </div>
   <div class="touch" id="touch">
     <div class="pad">
-      <button data-hold="left" aria-label="W lewo"><svg viewBox="0 0 10 10"><path d="M7 1v8L2 5z"/></svg></button>
-      <button data-hold="right" aria-label="W prawo"><svg viewBox="0 0 10 10"><path d="M3 1v8l5-4z"/></svg></button>
+      <button data-hold="left" aria-label="W lewo" data-en-aria-label="Left"><svg viewBox="0 0 10 10"><path d="M7 1v8L2 5z"/></svg></button>
+      <button data-hold="right" aria-label="W prawo" data-en-aria-label="Right"><svg viewBox="0 0 10 10"><path d="M3 1v8l5-4z"/></svg></button>
     </div>
     <div class="pad">
-      <button data-hold="brake">HAMUJ</button>
-      <button data-hold="gas">GAZ</button>
+      <button data-hold="brake" data-en="BRAKE">HAMUJ</button>
+      <button data-hold="gas" data-en="GAS">GAZ</button>
     </div>
   </div>
   <div class="below hidden" id="below">
-    <div class="help"><span class="keys"><b>GÓRA / W</b> GAZ · <b>DÓŁ / S</b> HAMULEC · <b>LEWO / PRAWO / A D</b> SKRĘT · <b>P</b> PAUZA · <b>M</b> DŹWIĘK</span></div>
+    <div class="help"><span class="keys" data-lang="pl"><b>GÓRA / W</b> GAZ · <b>DÓŁ / S</b> HAMULEC · <b>LEWO / PRAWO / A D</b> SKRĘT · <b>P</b> PAUZA · <b>M</b> DŹWIĘK</span><span class="keys" data-lang="en" hidden><b>UP / W</b> GAS · <b>DOWN / S</b> BRAKE · <b>LEFT / RIGHT / A D</b> STEER · <b>P</b> PAUSE · <b>M</b> SOUND</span></div>
     <div class="row">
-      <button class="btn-small" id="btnPause">PAUZA</button>
+      <button class="btn-small" id="btnPause" data-en="PAUSE">PAUZA</button>
       <button class="btn-small" id="btnSound">DŹWIĘK: WŁ.</button>
     </div>
   </div>
@@ -237,6 +247,11 @@
 <script>
 (() => {
   "use strict";
+
+  // ---------- Language (lib/lang.js: Polish unless the English flag was picked) ----------
+  const LANG = window.GryLang ? window.GryLang.lang : "pl";
+  const L = (pl, en) => LANG === "en" ? en : pl;
+  const langFlags = () => window.GryLang ? window.GryLang.flags() : "";
 
   // ---------- Settings ----------
   const W = 320, H = 200;                  // canvas pixels (Amiga low-res)
@@ -306,7 +321,7 @@
   // units) and a drawing for the back ("rear") and the front ("front").
   // `s` shifts the cabin sideways - the player's car leans into turns.
   const VEHICLES = {
-    small: { name: "MAŁY", w: 34, h: 28, len: 900, draw(r, view, c, s) {
+    small: { name: L("MAŁY", "SMALL"), w: 34, h: 28, len: 900, draw(r, view, c, s) {
       r(1, 26, 32, 2, SHADOW);
       r(2, 20, 7, 7, TIRE); r(25, 20, 7, 7, TIRE);
       r(2, 11, 30, 3, c.C);
@@ -324,7 +339,7 @@
         r(0, 20, 34, 2, CHROME); r(14, 20, 6, 2, PLATE);
       }
     } },
-    kombi: { name: "KOMBI", w: 40, h: 30, len: 1000, draw(r, view, c, s) {
+    kombi: { name: L("KOMBI", "ESTATE"), w: 40, h: 30, len: 1000, draw(r, view, c, s) {
       r(1, 28, 38, 2, SHADOW);
       r(2, 22, 8, 7, TIRE); r(30, 22, 8, 7, TIRE);
       r(0, 13, 40, 10, c.C); r(0, 13, 40, 1, c.L); r(0, 22, 40, 1, c.D);
@@ -341,7 +356,7 @@
         r(0, 20, 40, 2, CHROME); r(16, 20, 8, 2, PLATE);
       }
     } },
-    jeep: { name: "TERENOWY", w: 42, h: 36, len: 950, draw(r, view, c, s) {
+    jeep: { name: L("TERENOWY", "OFF-ROADER"), w: 42, h: 36, len: 950, draw(r, view, c, s) {
       r(1, 34, 40, 2, SHADOW);
       r(1, 24, 10, 11, TIRE); r(31, 24, 10, 11, TIRE);
       for (let y = 26; y < 34; y += 3) { r(1, y, 10, 1, "#2e2e2e"); r(31, y, 10, 1, "#2e2e2e"); }
@@ -362,7 +377,7 @@
         r(0, 22, 42, 3, "#222"); r(17, 22, 8, 2, PLATE);
       }
     } },
-    bus: { name: "AUTOBUS", w: 52, h: 58, len: 2700, draw(r, view, c) {
+    bus: { name: L("AUTOBUS", "BUS"), w: 52, h: 58, len: 2700, draw(r, view, c) {
       r(1, 56, 50, 2, SHADOW);
       r(3, 48, 10, 9, TIRE); r(39, 48, 10, 9, TIRE);
       r(0, 2, 52, 47, c.C); r(1, 0, 50, 2, c.L); r(0, 2, 1, 47, c.D); r(51, 2, 1, 47, c.D);
@@ -382,7 +397,7 @@
         r(0, 45, 52, 4, "#3a3a3a"); r(22, 45, 8, 3, PLATE);
       }
     } },
-    truck: { name: "CIĘŻARÓWKA", w: 52, h: 60, len: 3000, draw(r, view, c) {
+    truck: { name: L("CIĘŻARÓWKA", "TRUCK"), w: 52, h: 60, len: 3000, draw(r, view, c) {
       const box = c.box;
       r(1, 58, 50, 2, SHADOW);
       if (view === "rear") {
@@ -410,9 +425,9 @@
   };
   const PLAYER_TYPES = ["small", "kombi", "jeep"];
   const TRAFFIC = [["small", 3], ["kombi", 3], ["jeep", 2], ["bus", 2], ["truck", 3]];
-  const CAR_COLORS = [["CZERWONY", "#d82828"], ["NIEBIESKI", "#2858d8"], ["ŻÓŁTY", "#f0c818"], ["ZIELONY", "#28a838"],
-                      ["BIAŁY", "#e8e8e8"], ["CZARNY", "#34343c"], ["POMARAŃCZOWY", "#f07818"], ["FIOLETOWY", "#8838c8"],
-                      ["SREBRNY", "#a8b0b8"], ["RÓŻOWY", "#f070b0"]];
+  const CAR_COLORS = [[L("CZERWONY", "RED"), "#d82828"], [L("NIEBIESKI", "BLUE"), "#2858d8"], [L("ŻÓŁTY", "YELLOW"), "#f0c818"], [L("ZIELONY", "GREEN"), "#28a838"],
+                      [L("BIAŁY", "WHITE"), "#e8e8e8"], [L("CZARNY", "BLACK"), "#34343c"], [L("POMARAŃCZOWY", "ORANGE"), "#f07818"], [L("FIOLETOWY", "PURPLE"), "#8838c8"],
+                      [L("SREBRNY", "SILVER"), "#a8b0b8"], [L("RÓŻOWY", "PINK"), "#f070b0"]];
   const BUS_COLORS = ["#f0b818", "#d83030", "#2a6ad8", "#2a9a4a"];
   const BOX_COLORS = ["#dcdcdc", "#d0d8e0", "#e8d8a8", "#c8302a", "#3a6ab0"];
 
@@ -482,6 +497,8 @@
     W: ["10001", "10001", "10101", "10101", "01010"], M: ["10001", "11011", "10101", "10001", "10001"],
     0: ["111", "101", "101", "101", "111"], 1: ["010", "110", "010", "010", "111"], " ": ["0", "0", "0", "0", "0"],
     S: ["011", "100", "010", "001", "110"], T: ["111", "010", "010", "010", "010"],
+    F: ["111", "100", "110", "100", "100"], H: ["101", "101", "111", "101", "101"], I: ["111", "010", "010", "010", "111"],
+    K: ["101", "101", "110", "101", "101"], N: ["1001", "1101", "1011", "1001", "1001"],
   };
   function pixelText(r, str, cx, y, col, sc = 1) {
     const glyphs = [...str].map(ch => GLYPHS[ch]);
@@ -500,7 +517,7 @@
     r(0, 4, 96, 10, col);
     pixelText(r, text, 48, 4, "#ffffff", 2);
   });
-  const START_GATE = gate("START", "#2858d8"), FINISH_GATE = gate("META", "#d82020");
+  const START_GATE = gate("START", "#2858d8"), FINISH_GATE = gate(L("META", "FINISH"), "#d82020");
 
   // the A-14 "road works" warning triangle over a yellow board
   const SIGN = canvasOf(44, 64, r => {
@@ -514,9 +531,9 @@
     r(19, 8, 2, 2, "#111"); r(18, 10, 3, 4, "#111"); r(17, 14, 2, 3, "#111"); r(20, 14, 2, 3, "#111");
     r(21, 11, 2, 1, "#111"); r(23, 9, 1, 7, "#111"); r(23, 16, 3, 1, "#111"); r(25, 15, 4, 2, "#111");
     r(0, 21, 44, 25, "#111"); r(1, 22, 42, 23, "#f8d020");
-    pixelText(r, "PRACE", 22, 24, "#111");
-    pixelText(r, "DROGOWE", 22, 31, "#111");
-    pixelText(r, "ZA 100 M", 22, 38, "#111");
+    pixelText(r, L("PRACE", "ROAD"), 22, 24, "#111");
+    pixelText(r, L("DROGOWE", "WORKS"), 22, 31, "#111");
+    pixelText(r, L("ZA 100 M", "IN 100 M"), 22, 38, "#111");
   });
 
   // Polish road signs: D-42/D-43 (built-up area and its end), D-7/D-8 (expressway
@@ -1175,9 +1192,9 @@
     const m = Math.floor(t / 60), sec = t - m * 60;
     return m + ":" + (tenths ? sec.toFixed(1).padStart(4, "0") : String(Math.floor(sec)).padStart(2, "0"));
   }
-  // metres -> "4,2 KM" / "850 M"; distance left rounds up, distance driven down
+  // metres -> "4,2 KM" ("4.2 KM" in English) / "850 M"; distance left rounds up, distance driven down
   const fmtDist = (m, up = false) => m >= 1000
-    ? ((up ? Math.ceil(m / 100) : Math.floor(m / 100)) / 10).toFixed(1).replace(".", ",") + " KM"
+    ? ((up ? Math.ceil(m / 100) : Math.floor(m / 100)) / 10).toFixed(1).replace(".", L(",", ".")) + " KM"
     : (up ? Math.ceil(m / 10) : Math.floor(m / 10)) * 10 + " M";
   const metresLeft = () => Math.max(0, (finishZ - position - PLAYER_Z) / UNITS_PER_M);
   function updateHud() {
@@ -1289,8 +1306,8 @@
     pausedFrom = state;
     state = "paused";
     engineOff();
-    showOverlay(`<div class="big">PAUZA</div>
-      <div class="btns"><button class="main-btn" data-primary>JEDŹ DALEJ</button><button class="main-btn alt" data-garage>GARAŻ</button></div>`, resume);
+    showOverlay(`<div class="big">${L("PAUZA", "PAUSED")}</div>
+      <div class="btns"><button class="main-btn" data-primary>${L("JEDŹ DALEJ", "DRIVE ON")}</button><button class="main-btn alt" data-garage>${L("GARAŻ", "GARAGE")}</button></div>`, resume);
   }
   let pausedFrom = "playing";
   function resume() {
@@ -1305,7 +1322,7 @@
     state = "finishing";
     endT = 2;
     $("warn").classList.add("hidden");
-    showPop("META!");
+    showPop(L("META!", "FINISH!"));
     sfx.record();
   }
   // Out of lives, or past the finish: the results, then the hall of fame.
@@ -1323,52 +1340,52 @@
     const r = run;
     if (r.metres <= 0) { showResult(); return; }
     // ask for a name only if the run makes the current top 10 - so fetch it first
-    showOverlay(`${resultHtml(r)}<div class="blink">ŁADOWANIE SALI SŁAWY...</div>`);
+    showOverlay(`${resultHtml(r)}<div class="blink">${L("ŁADOWANIE SALI SŁAWY...", "LOADING THE HALL OF FAME...")}</div>`);
     hofLoad()
       .then(() => { if (run === r && state === "over") (hofRank(r) ? showNameEntry() : showResult()); })
       .catch(() => { if (run === r && state === "over") { r.hofError = true; showResult(); } });
   }
   function resultHtml(r) {
     return r.finished
-      ? `<div class="big" style="color:var(--green)">META!</div>
-         <div>CZAS: <span class="val">${fmtTime(r.time)}</span> · ŻYCIA: <span class="val">${r.lives}/${LIVES}</span></div>`
-      : `<div class="big">KONIEC GRY</div>
-         <div>SKOŃCZYŁY SIĘ ŻYCIA. PRZEJECHANE: <span class="val">${fmtDist(r.metres)}</span> Z ${fmtDist(routeMetres, true)} · CZAS: <span class="val">${fmtTime(r.time)}</span></div>`;
+      ? `<div class="big" style="color:var(--green)">${L("META!", "FINISH!")}</div>
+         <div>${L("CZAS", "TIME")}: <span class="val">${fmtTime(r.time)}</span> · ${L("ŻYCIA", "LIVES")}: <span class="val">${r.lives}/${LIVES}</span></div>`
+      : `<div class="big">${L("KONIEC GRY", "GAME OVER")}</div>
+         <div>${L("SKOŃCZYŁY SIĘ ŻYCIA. PRZEJECHANE", "OUT OF LIVES. DRIVEN")}: <span class="val">${fmtDist(r.metres)}</span> ${L("Z", "OF")} ${fmtDist(routeMetres, true)} · ${L("CZAS", "TIME")}: <span class="val">${fmtTime(r.time)}</span></div>`;
   }
   function showResult() {
     const r = run;
     showOverlay(`${resultHtml(r)}
-      ${r.hofError ? `<div style="color:var(--red)">SALA SŁAWY NIEDOSTĘPNA - BRAK POŁĄCZENIA Z SERWEREM</div>` : ""}
-      <div class="btns"><button class="main-btn" data-primary>JESZCZE RAZ</button><button class="main-btn alt" data-garage>GARAŻ</button></div>
-      <button class="hof-link" data-hof>SALA SŁAWY</button>`, startRace);
+      ${r.hofError ? `<div style="color:var(--red)">${L("SALA SŁAWY NIEDOSTĘPNA - BRAK POŁĄCZENIA Z SERWEREM", "HALL OF FAME UNAVAILABLE - NO CONNECTION TO THE SERVER")}</div>` : ""}
+      <div class="btns"><button class="main-btn" data-primary>${L("JESZCZE RAZ", "AGAIN")}</button><button class="main-btn alt" data-garage>${L("GARAŻ", "GARAGE")}</button></div>
+      <button class="hof-link" data-hof>${L("SALA SŁAWY", "HALL OF FAME")}</button>`, startRace);
   }
   function showNameEntry() {
     state = "entry";
     const r = run;
     showOverlay(`${resultHtml(r)}
-      <div style="color:var(--yellow)">JESTEŚ W SALI SŁAWY! MIEJSCE #${hofRank(r)}</div>
+      <div style="color:var(--yellow)">${L("JESTEŚ W SALI SŁAWY! MIEJSCE", "YOU ARE IN THE HALL OF FAME! PLACE")} #${hofRank(r)}</div>
       <form class="name-form" id="nameForm" autocomplete="off">
-        <label for="nameInput">WPISZ SWOJE IMIĘ:</label>
+        <label for="nameInput">${L("WPISZ SWOJE IMIĘ:", "ENTER YOUR NAME:")}</label>
         <input id="nameInput" maxlength="12" spellcheck="false" value="${escapeHtml(lastName)}">
-        <div class="btns"><button class="main-btn" type="submit">ZAPISZ</button>
-        <button class="main-btn alt" type="button" id="btnSkip" hidden>POMIŃ</button></div>
+        <div class="btns"><button class="main-btn" type="submit">${L("ZAPISZ", "SAVE")}</button>
+        <button class="main-btn alt" type="button" id="btnSkip" hidden>${L("POMIŃ", "SKIP")}</button></div>
         <div id="nameError" style="color:var(--red)"></div>
       </form>`);
     const input = $("nameInput"), form = $("nameForm");
     setTimeout(() => { input.focus(); input.select(); }, 0);
     form.onsubmit = async e => {
       e.preventDefault();
-      const name = input.value.trim().toUpperCase().slice(0, 12) || "KIEROWCA";
+      const name = input.value.trim().toUpperCase().slice(0, 12) || L("KIEROWCA", "DRIVER");
       lastName = name;
       try { localStorage.setItem("szosa-name", name); } catch (err) { /* ignore */ }
       const saveBtn = form.querySelector("[type=submit]");
-      saveBtn.disabled = true; saveBtn.textContent = "ZAPISYWANIE...";
+      saveBtn.disabled = true; saveBtn.textContent = L("ZAPISYWANIE...", "SAVING...");
       try {
         const saved = await hofPost({ name, score: r.metres, time: Math.floor(r.time), completed: r.finished });
         r.entry = saved.entry;
       } catch (err) {
-        saveBtn.disabled = false; saveBtn.textContent = "SPRÓBUJ PONOWNIE";
-        $("nameError").textContent = "NIE UDAŁO SIĘ ZAPISAĆ (" + err.message + ")";
+        saveBtn.disabled = false; saveBtn.textContent = L("SPRÓBUJ PONOWNIE", "TRY AGAIN");
+        $("nameError").textContent = L("NIE UDAŁO SIĘ ZAPISAĆ (", "COULD NOT SAVE (") + err.message + ")";
         $("btnSkip").hidden = false;
         return;
       }
@@ -1387,21 +1404,22 @@
     showScreen("hof");
     const box = $("hofScreen");
     const buttons = fromRace
-      ? `<div class="btns"><button class="main-btn" id="hofAgain">JESZCZE RAZ</button><button class="main-btn alt" id="hofGarage">GARAŻ</button></div>`
-      : `<div class="btns"><button class="main-btn" id="hofGarage">WRÓĆ</button></div>`;
+      ? `<div class="btns"><button class="main-btn" id="hofAgain">${L("JESZCZE RAZ", "AGAIN")}</button><button class="main-btn alt" id="hofGarage">${L("GARAŻ", "GARAGE")}</button></div>`
+      : `<div class="btns"><button class="main-btn" id="hofGarage">${L("WRÓĆ", "BACK")}</button></div>`;
     const show = body => {
-      box.innerHTML = `<div class="title">SALA SŁAWY</div>
-        <div class="rules">NAJSZYBSI NA METĘ - A POD NIMI CI, KTÓRYM SKOŃCZYŁY SIĘ ŻYCIA, WEDŁUG PRZEJECHANEJ TRASY</div>${body}${buttons}`;
+      box.innerHTML = `<div class="title">${L("SALA SŁAWY", "HALL OF FAME")}</div>
+        <div class="rules">${L("NAJSZYBSI NA METĘ - A POD NIMI CI, KTÓRYM SKOŃCZYŁY SIĘ ŻYCIA, WEDŁUG PRZEJECHANEJ TRASY",
+          "THE FASTEST TO THE FINISH - AND BELOW THEM THOSE WHO RAN OUT OF LIVES, BY HOW FAR THEY GOT")}</div>${body}${buttons}`;
       if (fromRace) $("hofAgain").onclick = startRace;
       $("hofGarage").onclick = goGarage;
     };
     if (fetchFirst) {
       const req = ++hofRequest;
-      show(`<div class="blink">ŁADOWANIE...</div>`);
+      show(`<div class="blink">${L("ŁADOWANIE...", "LOADING...")}</div>`);
       const stillHere = () => req === hofRequest && state === "hof";
       hofLoad()
         .then(() => { if (stillHere()) showHallOfFame(highlight, fromRace, false); })
-        .catch(err => { if (stillHere()) show(`<div style="color:var(--red)">BRAK POŁĄCZENIA Z SERWEREM (${escapeHtml(err.message)})</div>`); });
+        .catch(err => { if (stillHere()) show(`<div style="color:var(--red)">${L("BRAK POŁĄCZENIA Z SERWEREM", "NO CONNECTION TO THE SERVER")} (${escapeHtml(err.message)})</div>`); });
       return;
     }
     const medal = ["gold", "silver", "bronze"];
@@ -1411,9 +1429,9 @@
       const cls = [medal[i] || "", highlight && e.id === highlight.id ? "me" : ""].join(" ");
       return `<tr class="${cls}"><td class="num">${i + 1}.</td><td class="name">${escapeHtml(e.name)}</td>
         <td class="num">${e.time == null ? "-:--" : fmtTime(e.time, false)}</td>
-        <td class="num">${e.completed ? `<span class="fin">META</span>` : fmtDist(e.score)}</td></tr>`;
+        <td class="num">${e.completed ? `<span class="fin">${L("META", "FINISH")}</span>` : fmtDist(e.score)}</td></tr>`;
     }).join("");
-    show(`<table class="hof"><tr><th class="num">#</th><th>IMIĘ</th><th class="num">CZAS</th><th class="num">TRASA</th></tr>${rows}</table>`);
+    show(`<table class="hof"><tr><th class="num">#</th><th>${L("IMIĘ", "NAME")}</th><th class="num">${L("CZAS", "TIME")}</th><th class="num">${L("TRASA", "ROUTE")}</th></tr>${rows}</table>`);
   }
 
   // ---------- Garage ----------
@@ -1443,7 +1461,8 @@
       b.addEventListener("click", () => { choice.color = i; buildGarage(); });
       sw.appendChild(b);
     });
-    $("routeLen").textContent = fmtDist(routeMetres, true);
+    for (const el of document.querySelectorAll("[data-lang]")) el.hidden = el.dataset.lang !== LANG;
+    for (const el of document.querySelectorAll("[data-route-len]")) el.textContent = fmtDist(routeMetres, true);
   }
   $("btnStart").addEventListener("click", startRace);
   $("btnHofMenu").addEventListener("click", () => showHallOfFame(null, false));
@@ -1456,7 +1475,7 @@
   function toggleSound() {
     soundOn = !soundOn;
     try { localStorage.setItem("szosa-sound", soundOn ? "on" : "off"); } catch (e) { /* ignore */ }
-    $("btnSound").textContent = soundOn ? "DŹWIĘK: WŁ." : "DŹWIĘK: WYŁ.";
+    $("btnSound").textContent = soundOn ? L("DŹWIĘK: WŁ.", "SOUND: ON") : L("DŹWIĘK: WYŁ.", "SOUND: OFF");
     if (!soundOn) engineOff(); else if (state === "playing" || state === "countdown") engineOn();
   }
   window.addEventListener("keydown", e => {
@@ -1489,7 +1508,7 @@
   });
   $("btnPause").addEventListener("click", pause);
   $("btnSound").addEventListener("click", toggleSound);
-  $("btnSound").textContent = soundOn ? "DŹWIĘK: WŁ." : "DŹWIĘK: WYŁ.";
+  $("btnSound").textContent = soundOn ? L("DŹWIĘK: WŁ.", "SOUND: ON") : L("DŹWIĘK: WYŁ.", "SOUND: OFF");
 
   // ---------- Main loop ----------
   let last = performance.now(), acc = 0;
