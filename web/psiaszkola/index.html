@@ -265,11 +265,18 @@
     if (s && DOMAINS[s.domain] && !DOMAINS[s.domain].soon && (DOMAINS[s.domain].kinds[s.kind] || String(s.kind).startsWith("set:"))
         && s.level >= 1 && s.level <= DOMAINS[s.domain].levels) settings = s;
   } catch (e) { /* ignore */ }
-  // ---------- Sets of questions written by hand (the gry API, /api/zadania/) ----------
+  // ---------- Sets of questions written by hand (the gry API, /api/v1/question-sets/ and /api/v1/questions/) ----------
   // Each one becomes one more kind of task of its domain, "set:<slug>". Its questions come in a random order,
   // all of them before any comes again.
-  const SETS_URL = (location.protocol === "file:" ? (window.GRY_ORIGIN || "") : "") + "/api/zadania/";
+  const API_URL = (location.protocol === "file:" ? (window.GRY_ORIGIN || "") : "") + "/api/v1/";
+  async function apiGet(path) {            // -> the data of the response: a record or a list of them
+    const res = await fetch(API_URL + path, { cache: "no-store" });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.code || "HTTP " + res.status);
+    return data.data;
+  }
   let setsState = "loading";              // loading | ok | error
+  const setIds = {};                      // slug -> the set's id in the API
   const setQuestions = {};                // slug -> the questions, once fetched
   const setFall = {};                     // slug -> seconds a bone falls through the empty well (the set's own speed), if it has one
   let deck = [];                          // the questions of the set still to come
@@ -278,9 +285,9 @@
   const upper = t => t.toLocaleUpperCase("pl");
   async function loadSets() {
     try {
-      const res = await fetch(SETS_URL, { cache: "no-store" });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      for (const set of (await res.json()).sets) {
+      for (const set of await apiGet("question-sets/?order=Position&limit=100")) {
+        setIds[set.slug] = set.id;
+        if (set.fall_seconds) setFall[set.slug] = set.fall_seconds;
         const d = DOMAINS[set.domain];
         if (d && !d.soon) d.kinds["set:" + set.slug] = { name: upper(set.name), sym: "✎", set: set.slug };
       }
@@ -291,11 +298,8 @@
   }
   async function loadSet(slug) {
     if (setQuestions[slug]) return;
-    const res = await fetch(SETS_URL + encodeURIComponent(slug) + "/", { cache: "no-store" });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-    if (data.fall_seconds) setFall[slug] = data.fall_seconds;
-    setQuestions[slug] = data.questions.map(q => q.type === "tf"
+    const questions = await apiGet("questions/?filter_val_SetID=" + setIds[slug] + "&order=Position&limit=1000");
+    setQuestions[slug] = questions.map(q => q.type === "tf"
       // true or false: always PRAWDA on the left, FAŁSZ on the right
       ? { text: upper(q.text), full: upper(q.full), answer: q.answer, wrong: q.wrong, tf: true }
       : { text: upper(q.text), full: upper(q.full), answer: q.answer, wrong: q.wrong });
@@ -945,11 +949,11 @@
       <div class="btns"><button class="main-btn" data-primary>GRAJ DALEJ</button><button class="main-btn alt" data-menu>MENU</button></div>`,
       () => { hideOverlay(); state = "playing"; });
   }
-  // ---------- Hall of fame (shared by everyone - the gry API, /api/sala_slawy/psiaszkola/) ----------
+  // ---------- Hall of fame (shared by everyone - the gry API, /api/v1/scores/) ----------
   // One list per domain and kind of task ("math-add", ...); score = points, time = whole seconds of the game,
   // level = the level played (1-10). Opened straight from a file there's no /api next to the page,
   // so it goes to the server by name.
-  const HOF_URL = (location.protocol === "file:" ? (window.GRY_ORIGIN || "") : "") + "/api/sala_slawy/psiaszkola/";
+  const HOF_GAME = "psiaszkola";
   const HOF_SIZE = 10;
   // a set of questions has its own list, "set-<slug>"
   const catId = (domain, kind) => isSet(kind) ? "set-" + kind.slice(4) : `${domain}-${kind}`;
@@ -962,17 +966,21 @@
   const escapeHtml = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const hofTime = e => e.time ?? Infinity;
   const hofCompare = (a, b) => b.score - a.score || hofTime(a) - hofTime(b) || a.id - b.id;
+  // one list: its best entries, in the order above (sort_key is the server's)
+  const hofList = category => apiGet("scores/?filter_val_Game=" + HOF_GAME + "&filter_val_Category=" + encodeURIComponent(category)
+    + "&order=SortKey&order_direction=asc&limit=" + HOF_SIZE);
   async function hofLoad() {
-    const res = await fetch(HOF_URL + "?limit=" + HOF_SIZE, { cache: "no-store" });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-    hof = Object.fromEntries(hofCategories().map(c => [c.id, data.categories?.[c.id] ?? []]));
+    const categories = hofCategories().map(c => c.id);
+    const lists = await Promise.all(categories.map(hofList));
+    hof = Object.fromEntries(categories.map((c, i) => [c, lists[i]]));
   }
-  async function hofPost(entry) {          // -> { entry, rank }
-    const res = await fetch(HOF_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(entry) });
+  async function hofPost(entry) {          // -> { entry: { id } }
+    const res = await fetch(API_URL + "scores/", {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game: HOF_GAME, ...entry }),
+    });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || "HTTP " + res.status);
-    return data;
+    if (!res.ok) throw new Error(data.code || "HTTP " + res.status);
+    return { entry: { id: data.data.id } };
   }
   function hofRank(r) {                    // 1-based place this game would take, or 0
     if (r.score <= 0 || !hof) return 0;

@@ -342,28 +342,37 @@
     try { localStorage.setItem("liczozerca-settings", JSON.stringify(settings)); } catch (e) { /* ignore */ }
   }
 
-  // ---------- Hall of fame (shared by everyone - the gry API, /api/sala_slawy/liczozerca/) ----------
+  // ---------- Hall of fame (shared by everyone - the gry API, /api/v1/scores/) ----------
   // Opened straight from a file there's no /api next to the page, so it goes to the server by name.
-  const HOF_URL = (location.protocol === "file:" ? (window.GRY_ORIGIN || "") : "") + "/api/sala_slawy/liczozerca/";
+  const API_URL = (location.protocol === "file:" ? (window.GRY_ORIGIN || "") : "") + "/api/v1/";
+  async function apiGet(path) {            // -> the data of the response: a record or a list of them
+    const res = await fetch(API_URL + path, { cache: "no-store" });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.code || "HTTP " + res.status);
+    return data.data;
+  }
+  const HOF_GAME = "liczozerca";
   const HOF_SIZE = 10;
   let hof = null;          // { add: [...], sub: [...], ... } as last fetched; null until then
   let hofRequest = 0;      // so a slow response can't redraw a screen the player already left
   // Same order as the API: higher score first, then the faster time (none = slowest), then the older entry.
   const hofTime = e => e.time ?? Infinity;
   const hofCompare = (a, b) => b.score - a.score || hofTime(a) - hofTime(b) || a.id - b.id;
+  // one list: its best entries, in the order above (sort_key is the server's)
+  const hofList = category => apiGet("scores/?filter_val_Game=" + HOF_GAME + "&filter_val_Category=" + encodeURIComponent(category)
+    + "&order=SortKey&order_direction=asc&limit=" + HOF_SIZE);
   async function hofLoad() {
-    const res = await fetch(HOF_URL + "?limit=" + HOF_SIZE, { cache: "no-store" });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-    hof = Object.fromEntries(Object.keys(OPS).map(k => [k, data.categories?.[k] ?? []]));
+    const categories = Object.keys(OPS);
+    const lists = await Promise.all(categories.map(hofList));
+    hof = Object.fromEntries(categories.map((c, i) => [c, lists[i]]));
   }
-  async function hofPost(entry) {      // -> { entry, rank }
-    const res = await fetch(HOF_URL, {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(entry),
+  async function hofPost(entry) {          // -> { entry: { id } }
+    const res = await fetch(API_URL + "scores/", {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game: HOF_GAME, ...entry }),
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || "HTTP " + res.status);
-    return data;
+    if (!res.ok) throw new Error(data.code || "HTTP " + res.status);
+    return { entry: { id: data.data.id } };
   }
   function hofRank(op, scoreVal, timeVal) {          // 1-based place this result would take, or 0
     if (scoreVal <= 0 || !hof) return 0;
