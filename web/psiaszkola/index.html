@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Psia Szkoła</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000;
+    --panel: #1c1109;
+    --wall: #b5591f;
+    --wall-dark: #4a2208;
+    --yellow: #ffd800;
+    --green: #3dff6e;
+    --red: #ff3b3b;
+    --cream: #f6f2ea;
+    --cyan: #4ff3ff;
+    --text: #f2f2f2;
+    --dim: #a8907a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: "Nunito", "Segoe UI", Arial, sans-serif; font-weight: 700; font-size: 16px; line-height: 1.5;
+    display: flex; justify-content: center; min-height: 100vh; padding: 16px;
+  }
+  /* CRT scanlines */
+  body::after {
+    content: ""; pointer-events: none; position: fixed; inset: 0; z-index: 100;
+    background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.22) 2px 3px);
+  }
+  .wrap { display: flex; flex-direction: column; gap: 14px; width: min(640px, 100%); margin: auto 0; }
+  .wrap.playing { width: min(480px, 100%, calc((100vh - 200px) * 200 / 339 + 32px)); min-width: min(100%, 260px); }
+  h1 {
+    margin: 0; text-align: center; font-size: 42px; font-weight: 900; letter-spacing: 2px; line-height: 1.1; color: var(--cream);
+    text-shadow: 3px 3px 0 var(--wall), 6px 6px 0 var(--wall-dark);
+  }
+  .frame { border: 4px solid var(--wall); background: var(--panel); box-shadow: 0 0 0 4px #000, 0 0 0 8px var(--wall-dark); }
+  .hidden { display: none !important; }
+  button { font-family: inherit; }
+
+  /* menu */
+  .screen { padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .menu-top { display: flex; gap: 16px; align-items: center; }
+  .teacher { flex: none; width: 168px; image-rendering: pixelated; }
+  .bubble {
+    position: relative; background: var(--cream); color: #2a1a10; padding: 10px 14px; font-size: 15px; line-height: 1.45;
+    border: 3px solid #000; box-shadow: 4px 4px 0 var(--wall-dark);
+  }
+  .bubble::before {
+    content: ""; position: absolute; left: -15px; top: 30px; border: 7px solid transparent; border-right: 8px solid #000;
+  }
+  .bubble b { color: var(--wall); font-weight: normal; }
+  .menu-title { color: var(--yellow); font-size: 18px; font-weight: 800; margin-top: 4px; }
+  .choices { display: flex; flex-wrap: wrap; gap: 8px; }
+  .choice {
+    background: #2e1d10; color: var(--text); border: 3px solid #5a3418; padding: 6px 12px; font-size: 16px; cursor: pointer;
+    box-shadow: 3px 3px 0 #000;
+  }
+  .choice:hover, .choice:focus-visible { border-color: var(--yellow); outline: none; }
+  .choice.on { background: var(--wall); border-color: var(--yellow); color: #fff; }
+  .choice:disabled { opacity: .45; cursor: default; border-color: #3a2410; }
+  .choice small { display: block; font-size: 11px; line-height: 1; color: var(--dim); }
+  .choice .sym { color: var(--yellow); }
+  .levels .choice { min-width: 44px; text-align: center; }
+  .hint { color: var(--dim); font-size: 14px; }
+  .btns { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-top: 6px; }
+  .main-btn {
+    background: var(--yellow); color: #000; border: 4px solid #000; padding: 8px 26px; font-size: 22px; font-weight: 800; cursor: pointer;
+    box-shadow: 4px 4px 0 var(--wall);
+  }
+  .main-btn:hover, .main-btn:focus-visible { outline: 3px solid #fff; }
+  .main-btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--wall); }
+  .main-btn.alt { background: #2e1d10; color: var(--text); border-color: var(--wall); box-shadow: 4px 4px 0 #000; }
+  .keys { color: var(--dim); font-size: 13px; text-align: center; }
+  .keys b { color: var(--text); font-weight: normal; }
+
+  /* hall of fame */
+  table.hof { border-collapse: collapse; width: 100%; font-size: 18px; line-height: 1.5; }
+  table.hof th { color: var(--dim); font-size: 13px; font-weight: normal; text-align: left; padding: 2px 8px; border-bottom: 3px solid #5a3418; }
+  table.hof td { padding: 2px 8px; text-align: left; white-space: nowrap; }
+  table.hof .num { text-align: right; }
+  table.hof .name { max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+  table.hof tr:nth-child(even) td { background: rgba(181, 89, 31, .12); }
+  table.hof tr.empty td { color: #5a4030; }
+  table.hof tr.gold td { color: var(--yellow); }
+  table.hof tr.silver td { color: #e0e0f0; }
+  table.hof tr.bronze td { color: #ffab6b; }
+  table.hof .fin { color: var(--green); font-size: 13px; }
+  table.hof tr.me td { background: #4a3a00; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .blink { animation: blink 1s steps(1) infinite; }
+  .name-form { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .name-form input {
+    font-family: inherit; font-weight: 800; font-size: 22px; text-align: center; width: 10em; text-transform: uppercase;
+    color: var(--yellow); background: #2e1d10; border: 3px solid var(--yellow); padding: 2px 8px; outline: none;
+  }
+
+  /* game */
+  .game { display: flex; flex-direction: column; gap: 12px; }
+  .hud { display: flex; justify-content: space-between; gap: 10px; padding: 6px 12px; font-size: 14px; }
+  .hud .label { display: block; color: var(--dim); font-size: 11px; line-height: 1.1; }
+  .hud .val { color: var(--yellow); font-size: 19px; font-weight: 800; line-height: 1.2; }
+  .hud .val.bad { color: var(--red); }
+  .board { position: relative; padding: 0; line-height: 0; }
+  canvas#game { width: 100%; image-rendering: pixelated; display: block; touch-action: manipulation; }
+  .overlay {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    background: rgba(10, 5, 2, .82); text-align: center; padding: 16px; line-height: 1.5;
+  }
+  .overlay .big { font-size: 30px; font-weight: 900; color: var(--yellow); line-height: 1.1; }
+  .overlay .sub { color: var(--cyan); }
+  .overlay .dim { color: var(--dim); font-size: 14px; }
+  .touch { display: none; gap: 10px; user-select: none; -webkit-user-select: none; }
+  .touch button {
+    flex: 1; height: 58px; background: #2e1d10; color: var(--text); border: 3px solid #5a3418; box-shadow: 3px 3px 0 #000;
+    font-size: 16px; touch-action: manipulation;
+  }
+  .touch button:active { border-color: var(--yellow); background: #4a2c10; }
+  .touch .drop { flex: 0.7; }
+  @media (pointer: coarse), (max-width: 520px) {
+    .wrap.playing .touch { display: flex; }
+    .wrap.playing { width: min(480px, 100%, calc((100vh - 290px) * 200 / 339 + 32px)); }
+  }
+  @media (max-width: 520px) {
+    body { padding: 10px; }
+    h1 { font-size: 30px; }
+    .screen { padding: 12px; }
+    .menu-top { flex-direction: column; }
+    .teacher { width: 126px; }
+    .bubble::before { left: 50%; top: -15px; border: 7px solid transparent; border-bottom: 8px solid #000; margin-left: -7px; }
+    .hud { padding: 5px 8px; gap: 6px; }
+    .hud .val { font-size: 16px; }
+    table.hof { font-size: 14px; line-height: 1.3; }
+    table.hof th, table.hof td { padding: 1px 4px; }
+    table.hof .name { max-width: 110px; }
+  }
+</style>
+<!-- Sets GRY_ORIGIN, the API's address when this page is opened from disk
+     (file://) - written per machine by 065_gry.yml. -->
+<script src="../lib/origin.js"></script>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <h1>PSIA SZKOŁA</h1>
+
+  <section class="screen frame" id="menu">
+    <div class="menu-top">
+      <canvas class="teacher" id="teacher"></canvas>
+      <div class="bubble">HAU! JESTEM <b>PAN BILLY</b>, TWÓJ NAUCZYCIEL. Z GÓRY POWOLI SPADAJĄ <b>KOŚCI Z PYTANIAMI</b>.
+        NA KAŻDEJ SĄ DWIE ODPOWIEDZI - WYBIERZ DOBRĄ <b>STRZAŁKĄ W LEWO</b> ALBO <b>W PRAWO</b>. ZA DOBRĄ DOSTAJESZ <b>10 PUNKTÓW</b>
+        I KOŚĆ ZNIKA. ZŁA ODPOWIEDŹ ALBO BRAK ODPOWIEDZI - KOŚĆ ZOSTAJE NA DOLE. MIEJSCA JEST NA <b>20 KOŚCI</b>!</div>
+    </div>
+    <div class="menu-title">DZIEDZINA</div>
+    <div class="choices" id="domainBtns"></div>
+    <div class="menu-title">RODZAJ ZADAŃ</div>
+    <div class="choices" id="kindBtns"></div>
+    <div class="hint" id="setsHint"></div>
+    <div class="menu-title" id="levelTitle">POZIOM</div>
+    <div class="choices levels" id="levelBtns"></div>
+    <div class="hint" id="levelHint"></div>
+    <div class="btns"><button class="main-btn" id="btnPlay">GRAJ</button><button class="main-btn alt" id="btnHof">SALA SŁAWY</button></div>
+    <div class="keys"><b>STRZAŁKA W LEWO / A</b> LEWA ODPOWIEDŹ &nbsp; <b>STRZAŁKA W PRAWO / D</b> PRAWA ODPOWIEDŹ<br>
+      <b>STRZAŁKA W DÓŁ / S</b> KOŚĆ OD RAZU NA DÓŁ (POKAŻE DOBRĄ ODPOWIEDŹ) &nbsp; <b>P</b> PAUZA &nbsp; <b>M</b> DŹWIĘK</div>
+  </section>
+
+  <section class="screen frame hidden" id="hofScreen"></section>
+
+  <section class="game hidden" id="gameScreen">
+    <div class="hud frame">
+      <div><span class="label">PUNKTY</span><span class="val" id="hudScore">0</span></div>
+      <div><span class="label">DOBRZE</span><span class="val" id="hudGood">0</span></div>
+      <div><span class="label">BŁĘDY</span><span class="val" id="hudBad">0/20</span></div>
+      <div><span class="label">CZAS</span><span class="val" id="hudTime">00:00</span></div>
+      <div id="hudLeftBox"><span class="label">ZOSTAŁO</span><span class="val" id="hudLeft">0</span></div>
+    </div>
+    <div class="board frame">
+      <canvas id="game" width="600" height="1017"></canvas>
+      <div class="overlay hidden" id="overlay"></div>
+    </div>
+    <div class="touch" id="touch">
+      <button data-act="left">◀ LEWA</button>
+      <button class="drop" data-act="drop">▼</button>
+      <button data-act="right">PRAWA ▶</button>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  // ---------- Settings ----------
+  const W = 200, H = 339, SCALE = 3;   // drawn in W x H pixels, each 3 x 3 on the canvas (so the text is smooth)
+  const TOP = 52;                       // the chalkboard with the teacher, above the well
+  const ROWS = 20;                      // the well fits 20 bones: 20 mistakes and the game is over
+  const FB = 20;                        // the falling bone's height - big, to be easy to read
+  const TB = 55;                        // ... and of the tallest one: the question (in up to 2 lines) on top, two long answers under it
+  const PROW = 12;                      // the bones on the pile are thinner
+  const WELL_H = (ROWS - 1) * PROW + TB;
+  const WELL_X = 4, WELL_W = 192;
+  const FALL_SPEED = 8;                 // px/s - slow (a long question takes a while to read); a set of questions can set its own
+  const WRONG_SPEED = 420;              // px/s a bone falls once answered wrong
+  const LOCK_TIME = 1.6;                // s a bone lies on the pile, blinking, before it stays there for good
+  const NEXT_DELAY = 0.4;               // s between one bone and the next
+  const PTS_GOOD = 10;
+  const MAX_MISTAKES = ROWS;
+
+  const randInt = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const pick = a => a[randInt(0, a.length - 1)];
+  const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = randInt(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+  // ---------- Questions ----------
+  // Every domain gives questions: { text, answer, wrong: [1-5 wrong answers], full } - one of the wrong
+  // answers is shown next to the right one. `full` is the question with its answer, shown on a bone that stays.
+  const MATH = {
+    add: { name: "DODAWANIE", sym: "+", gen(max) { const r = randInt(2, max), a = randInt(1, r - 1); return [a, r - a, r]; } },
+    sub: { name: "ODEJMOWANIE", sym: "-", gen(max) { const r = randInt(1, max - 1), a = randInt(r + 1, max); return [a, a - r, r]; } },
+    mul: { name: "MNOŻENIE", sym: "×", gen(max) {
+      // real multiplications (no ×1): a result that has a pair of factors >= 2
+      const results = [];
+      for (let n = 4; n <= max; n++) for (let a = 2; a * a <= n; a++) if (n % a === 0) { results.push(n); break; }
+      const r = pick(results), pairs = [];
+      for (let a = 2; a * 2 <= r; a++) if (r % a === 0) pairs.push([a, r / a]);
+      const [a, b] = pick(pairs);
+      return [a, b, r];
+    } },
+    div: { name: "DZIELENIE", sym: ":", gen(max) { const r = randInt(1, max), b = randInt(2, 9); return [r * b, b, r]; } },
+  };
+  // wrong answers that look right: a bit more or less, the digits swapped, the wrong operation
+  function mathWrong(op, a, b, r, max) {
+    // (multiplying: the next or previous row of the tables, never 1 off - 53 is plainly not 9×6)
+    const c = op === "mul" ? [r + a, r - a, r + b, r - b, r + 2, r - 2, r + 10, r - 10] : [r + 1, r - 1, r + 2, r - 2, r + 10, r - 10, r + 3];
+    if (r >= 10) c.push(Number(String(r).split("").reverse().join("")));
+    if (op === "add") c.push(Math.abs(a - b), r + 1, r - 1);
+    if (op === "sub") c.push(a + b, r + 1);
+    if (op === "mul") c.push(a + b);
+    if (op === "div") c.push(a - b, r + 1, b);
+    const ok = [...new Set(c)].filter(n => Number.isInteger(n) && n >= 0 && n !== r && n <= Math.max(max, r) + 10 &&
+                                           !(op === "mul" && Math.abs(n - r) === 1));
+    return shuffle(ok).slice(0, randInt(1, 5));
+  }
+  const DOMAINS = {
+    math: {
+      name: "MATEMATYKA",
+      kinds: { ...Object.fromEntries(Object.entries(MATH).map(([k, t]) => [k, { name: t.name, sym: t.sym }])), all: { name: "WSZYSTKO", sym: "+-×:" } },
+      levels: 10,
+      levelHint: n => `WYNIKI DO ${n * 10}`,
+      gen(kind, level) {
+        const op = kind === "all" ? pick(Object.keys(MATH)) : kind, max = level * 10;
+        const [a, b, r] = MATH[op].gen(max), sym = MATH[op].sym;
+        return { text: `${a} ${sym} ${b} = ?`, full: `${a} ${sym} ${b} = ${r}`, answer: String(r), wrong: mathWrong(op, a, b, r, max).map(String) };
+      },
+    },
+    // coming next: words to translate
+    en: { name: "ANGIELSKI", soon: true },
+    de: { name: "NIEMIECKI", soon: true },
+  };
+
+  let settings = { domain: "math", kind: "add", level: 1 };
+  try {
+    const s = JSON.parse(localStorage.getItem("psiaszkola") || "null");
+    if (s && DOMAINS[s.domain] && !DOMAINS[s.domain].soon && (DOMAINS[s.domain].kinds[s.kind] || String(s.kind).startsWith("set:"))
+        && s.level >= 1 && s.level <= DOMAINS[s.domain].levels) settings = s;
+  } catch (e) { /* ignore */ }
+  // ---------- Sets of questions written by hand (the gry API, /api/v1/question-sets/ and /api/v1/questions/) ----------
+  // Each one becomes one more kind of task of its domain, "set:<slug>". Its questions come in a random order,
+  // all of them before any comes again.
+  const API_URL = (location.protocol === "file:" ? (window.GRY_ORIGIN || "") : "") + "/api/v1/";
+  async function apiGet(path) {            // -> the data of the response: a record or a list of them
+    const res = await fetch(API_URL + path, { cache: "no-store" });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.code || "HTTP " + res.status);
+    return data.data;
+  }
+  let setsState = "loading";              // loading | ok | error
+  const setIds = {};                      // slug -> the set's id in the API
+  const setQuestions = {};                // slug -> the questions, once fetched
+  const setFall = {};                     // slug -> seconds a bone falls through the empty well (the set's own speed), if it has one
+  let deck = [];                          // the questions of the set still to come
+  let fallSpeed = FALL_SPEED;
+  const isSet = kind => String(kind).startsWith("set:");
+  const upper = t => t.toLocaleUpperCase("pl");
+  async function loadSets() {
+    try {
+      for (const set of await apiGet("question-sets/?order=Position&limit=100")) {
+        setIds[set.slug] = set.id;
+        if (set.fall_seconds) setFall[set.slug] = set.fall_seconds;
+        const d = DOMAINS[set.domain];
+        if (d && !d.soon) d.kinds["set:" + set.slug] = { name: upper(set.name), sym: "✎", set: set.slug };
+      }
+      setsState = "ok";
+    } catch (e) { setsState = "error"; }
+    if (isSet(settings.kind) && !DOMAINS[settings.domain].kinds[settings.kind]) settings.kind = "add";
+    if (state === "menu") buildMenu();
+  }
+  async function loadSet(slug) {
+    if (setQuestions[slug]) return;
+    const questions = await apiGet("questions/?filter_val_SetID=" + setIds[slug] + "&order=Position&limit=1000");
+    setQuestions[slug] = questions.map(q => q.type === "tf"
+      // true or false: always PRAWDA on the left, FAŁSZ on the right
+      ? { text: upper(q.text), full: upper(q.full), answer: q.answer, wrong: q.wrong, tf: true }
+      : { text: upper(q.text), full: upper(q.full), answer: q.answer, wrong: q.wrong });
+  }
+  // every question of the set once, in a random order - when they are all done, so is the game
+  const fromDeck = () => deck.pop();
+
+  const saveSettings = () => { try { localStorage.setItem("psiaszkola", JSON.stringify(settings)); } catch (e) { /* ignore */ } };
+
+  // ---------- Sprites ----------
+  // Pan Billy, a Blenheim cavalier king charles spaniel: W/w white, B/b/c chestnut, E/e eyes, N nose, P/p tongue,
+  // K/k his mortarboard, Y/y its tassel, G/g glasses, Q the book's cover and his bow tie (R its knot), F/f the pages, q the lines on them,
+  // M his open mouth.
+  const TEACHER = [
+    "..............KKKKKKKKKKKK..............",
+    "..........KKKKKKKKKKKKKKKKKKKK..........",
+    "......KKKKKKKKKKKKKKKKKKKKKKKKKKKK......",
+    "..........kkkkkkkkkkkkkkkkkkkkY.........",
+    "..............KKKKKKKKKKKK....Y.........",
+    "..............KKKKKKKKKKKK....Y.........",
+    ".............BBBBBBWWWWBBBBB..YY........",
+    "............BBBBBBBWWWWBBBBBB.Yy........",
+    "...........BBBBBBBBWWWWBBBBBBB..........",
+    "......bbb.BBBBBBBBBWWBBBBBBBBBB.bbb.....",
+    ".....bBBBbBGGGGGGGBWWBGGGGGGGBbbBBBb....",
+    "....bBBcBbGgggggggGWWGgggggggGbBcBBBb...",
+    "....bBcBBbGgEEEEggGGGGgEEEEggGbBBcBBb...",
+    "...bBBcBBbGgEEeEggGWWGgEEeEggGbBBcBBBb..",
+    "...bBcBBBbGgEEEEggGWWGgEEEEggGbBBBcBBb..",
+    "...bBBcBBbBGgggggGWWWWGgggggGBbBBcBBBb..",
+    "...bBcBBBbBBGGGGGWWWWWWGGGGGBBbBBBcBBb..",
+    "..bBBBcBBbWWWWWWWWWWWWWWWWWWWWbBBcBBBBb.",
+    "..bBBcBBBbWWWWWWWWNNNNWWWWWWWWbBBBcBBBb.",
+    "..bBBBcBBbWWWWWWWNNNNNNWWWWWWWbBBcBBBBb.",
+    "..bBBcBBBbWWWWWWWWNNNNWWWWWWWWbBBBcBBBb.",
+    "..bBBBcBBbWWWWWWWWWWNWWWWWWWWWbBBcBBBBb.",
+    "..bBBcBBBbWWWWWNWWWWNWWWWNWWWWbBBBcBBBb.",
+    "..bBBBcBBbwWWWWWNNNNPNNNNWWWWwbBBcBBBBb.",
+    "..bBBcBBBBbwWWWWWWWPPPWWWWWWwbBBBBcBBBb.",
+    "..bBBBcBBBBbwwWWWWWPpPWWWWwwbBBBBcBBBBb.",
+    "..bBBcBBBBBBbbwwWWWWPWWWwwbbBBBBBBcBBBb.",
+    "..bBBBcBBBBBBWWbbwwwwwwwbbWWBBBBBcBBBBb.",
+    "...bBBcBBBBBWWWWWWWWWWWWWWWWBBBBcBBBBb..",
+    "...bBBBcBBBWWWWQQQWWWWQQQWWWWBBBcBBBb...",
+    "....bBBcBBWWWWWQQQQRRQQQQWWWWWBBcBBBb...",
+    "....bBBBcBWWWWWQQQQRRQQQQWWWWWBcBBBb....",
+    ".....bBBcWWWWWWQQQWWWWQQQWWWWWWcBBb.....",
+    ".....bBcbWWWWFFFFFFWWFFFFFFWWWWbcBb.....",
+    "......bb.WWWFqqqqqFffFqqqqqFWWW.bb......",
+    "........WWWWFFFFFFFffFFFFFFFWWWW........",
+    ".......WWWWWFqqqqFFffFqqqqqFWWWWW.......",
+    ".......WWWWWWWFFFFFffFFFFFWWWWWWW.......",
+    "......WWWWwWwWqqqqFffFqqqFwWwWWWWW......",
+    "......WWWWWWWWQQQQQQQQQQQQWWWWwWWW......",
+    "......WWWWWWWQQQQQQWWQQQQQQWwwWWWWW.....",
+    ".......WWWWWWWWWwWWWWWWWwWWWWWWWWW......",
+    ".....WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW...",
+    ".....WwWWwWWWWWWWWWWWWWWWWWWWWWWwWWwW...",
+    "......wwwwww..................wwwwww....",
+  ];
+  const TEACHER_HAPPY = [
+    "..............KKKKKKKKKKKK..............",
+    "..........KKKKKKKKKKKKKKKKKKKK..........",
+    "......KKKKKKKKKKKKKKKKKKKKKKKKKKKK......",
+    "..........kkkkkkkkkkkkkkkkkkkkY.........",
+    "..............KKKKKKKKKKKK....Y.........",
+    "..............KKKKKKKKKKKK....Y.........",
+    ".............BBBBBBWWWWBBBBB..YY........",
+    "............BBBBBBBWWWWBBBBBB.Yy........",
+    "...........BBBBBBBBWWWWBBBBBBB..........",
+    "......bbb.BBBBBBBBBWWBBBBBBBBBB.bbb.....",
+    ".....bBBBbBGGGGGGGBWWBGGGGGGGBbbBBBb....",
+    "....bBBcBbGgggggggGWWGgggggggGbBcBBBb...",
+    "....bBcBBbGggEEgggGGGGggEEgggGbBBcBBb...",
+    "...bBBcBBbGgEggEggGWWGgEggEggGbBBcBBBb..",
+    "...bBcBBBbGgggggggGWWGgggggggGbBBBcBBb..",
+    "...bBBcBBbBGgggggGWWWWGgggggGBbBBcBBBb..",
+    "...bBcBBBbBBGGGGGWWWWWWGGGGGBBbBBBcBBb..",
+    "..bBBBcBBbWWWWWWWWWWWWWWWWWWWWbBBcBBBBb.",
+    "..bBBcBBBbWWWWWWWWNNNNWWWWWWWWbBBBcBBBb.",
+    "..bBBBcBBbWWWWWWWNNNNNNWWWWWWWbBBcBBBBb.",
+    "..bBBcBBBbWWWWWWWWNNNNWWWWWWWWbBBBcBBBb.",
+    "..bBBBcBBbWWWWWWWWWWNWWWWWWWWWbBBcBBBBb.",
+    "..bBBcBBBbWWWWWNWWWWNWWWWNWWWWbBBBcBBBb.",
+    "..bBBBcBBbwWWWWWNNNNPNNNNWWWWwbBBcBBBBb.",
+    "..bBBcBBBBbwWWWWWWWPPPWWWWWWwbBBBBcBBBb.",
+    "..bBBBcBBBBbwwWWWWWPpPWWWWwwbBBBBcBBBBb.",
+    "..bBBcBBBBBBbbwwWWWWPWWWwwbbBBBBBBcBBBb.",
+    "..bBBBcBBBBBBWWbbwwwwwwwbbWWBBBBBcBBBBb.",
+    "...bBBcBBBBBWWWWWWWWWWWWWWWWBBBBcBBBBb..",
+    "...bBBBcBBBWWWWQQQWWWWQQQWWWWBBBcBBBb...",
+    "....bBBcBBWWWWWQQQQRRQQQQWWWWWBBcBBBb...",
+    "....bBBBcBWWWWWQQQQRRQQQQWWWWWBcBBBb....",
+    ".....bBBcWWWWWWQQQWWWWQQQWWWWWWcBBb.....",
+    ".....bBcbWWWWFFFFFFWWFFFFFFWWWWbcBb.....",
+    "......bb.WWWFqqqqqFffFqqqqqFWWW.bb......",
+    "........WWWWFFFFFFFffFFFFFFFWWWW........",
+    ".......WWWWWFqqqqFFffFqqqqqFWWWWW.......",
+    ".......WWWWWWWFFFFFffFFFFFWWWWWWW.......",
+    "......WWWWwWwWqqqqFffFqqqFwWwWWWWW......",
+    "......WWWWWWWWQQQQQQQQQQQQWWWWwWWW......",
+    "......WWWWWWWQQQQQQWWQQQQQQWwwWWWWW.....",
+    ".......WWWWWWWWWwWWWWWWWwWWWWWWWWW......",
+    ".....WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW...",
+    ".....WwWWwWWWWWWWWWWWWWWWWWWWWWWwWWwW...",
+    "......wwwwww..................wwwwww....",
+  ];
+  const TEACHER_SAD = [
+    "..............KKKKKKKKKKKK..............",
+    "..........KKKKKKKKKKKKKKKKKKKK..........",
+    "......KKKKKKKKKKKKKKKKKKKKKKKKKKKK......",
+    "..........kkkkkkkkkkkkkkkkkkkkY.........",
+    "..............KKKKKKKKKKKK....Y.........",
+    "..............KKKKKKKKKKKK....Y.........",
+    ".............BBBBBBWWWWBBBBB..YY........",
+    "............BBBBBBBWWWWBBBBBB.Yy........",
+    "...........BBBBBBBBWWWWBBBBBBB..........",
+    "......bbb.BBBBBBBBBWWBBBBBBBBBB.bbb.....",
+    ".....bBBBbBGGGGGGGBWWBGGGGGGGBbbBBBb....",
+    "....bBBcBbGgggggggGWWGgggggggGbBcBBBb...",
+    "....bBcBBbGgggggggGGGGgggggggGbBBcBBb...",
+    "...bBBcBBbGggEEgggGWWGggEEgggGbBBcBBBb..",
+    "...bBcBBBbGgEEEEggGWWGgEEEEggGbBBBcBBb..",
+    "...bBBcBBbBGgggggGWWWWGgggggGBbBBcBBBb..",
+    "...bBcBBBbBBGGGGGWWWWWWGGGGGBBbBBBcBBb..",
+    "..bBBBcBBbWWWWWWWWWWWWWWWWWWWWbBBcBBBBb.",
+    "..bBBcBBBbWWWWWWWWNNNNWWWWWWWWbBBBcBBBb.",
+    "..bBBBcBBbWWWWWWWNNNNNNWWWWWWWbBBcBBBBb.",
+    "..bBBcBBBbWWWWWWWWNNNNWWWWWWWWbBBBcBBBb.",
+    "..bBBBcBBbWWWWWWWWWWNWWWWWWWWWbBBcBBBBb.",
+    "..bBBcBBBbWWWWWWWWWWNWWWWWWWWWbBBBcBBBb.",
+    "..bBBBcBBbwWWWWWNNNNNNNNWWWWWwbBBcBBBBb.",
+    "..bBBcBBBBbwWWWNWWWWWWWWNWWWwbBBBBcBBBb.",
+    "..bBBBcBBBBbwwWWWWWWWWWWWWwwbBBBBcBBBBb.",
+    "..bBBcBBBBBBbbwwWWWWWWWWwwbbBBBBBBcBBBb.",
+    "..bBBBcBBBBBBWWbbwwwwwwwbbWWBBBBBcBBBBb.",
+    "...bBBcBBBBBWWWWWWWWWWWWWWWWBBBBcBBBBb..",
+    "...bBBBcBBBWWWWQQQWWWWQQQWWWWBBBcBBBb...",
+    "....bBBcBBWWWWWQQQQRRQQQQWWWWWBBcBBBb...",
+    "....bBBBcBWWWWWQQQQRRQQQQWWWWWBcBBBb....",
+    ".....bBBcWWWWWWQQQWWWWQQQWWWWWWcBBb.....",
+    ".....bBcbWWWWFFFFFFWWFFFFFFWWWWbcBb.....",
+    "......bb.WWWFqqqqqFffFqqqqqFWWW.bb......",
+    "........WWWWFFFFFFFffFFFFFFFWWWW........",
+    ".......WWWWWFqqqqFFffFqqqqqFWWWWW.......",
+    ".......WWWWWWWFFFFFffFFFFFWWWWWWW.......",
+    "......WWWWwWwWqqqqFffFqqqFwWwWWWWW......",
+    "......WWWWWWWWQQQQQQQQQQQQWWWWwWWW......",
+    "......WWWWWWWQQQQQQWWQQQQQQWwwWWWWW.....",
+    ".......WWWWWWWWWwWWWWWWWwWWWWWWWWW......",
+    ".....WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW...",
+    ".....WwWWwWWWWWWWWWWWWWWWWWWWWWWwWWwW...",
+    "......wwwwww..................wwwwww....",
+  ];
+  const PAL = {
+    W: "#f6f2ea", w: "#d6cdbf", B: "#b5591f", b: "#7a3812", c: "#d98a4a", E: "#1a1010", e: "#ffffff", N: "#2a1a14",
+    P: "#e86a8a", p: "#b8405e", K: "#1c1c2a", k: "#3a3a52", Y: "#ffd800", y: "#c89a00", G: "#2a2a3a", g: "#bfe6ff",
+    Q: "#d63a3a", R: "#8a1e1e", F: "#fff6d8", f: "#e0d4b0", q: "#8a8aa0", M: "#5a1a1a",
+  };
+  const TEACHER_GRIN = [
+    "..............KKKKKKKKKKKK..............",
+    "..........KKKKKKKKKKKKKKKKKKKK..........",
+    "......KKKKKKKKKKKKKKKKKKKKKKKKKKKK......",
+    "..........kkkkkkkkkkkkkkkkkkkkY.........",
+    "..............KKKKKKKKKKKK....Y.........",
+    "..............KKKKKKKKKKKK....Y.........",
+    ".............BBBBBBWWWWBBBBB..YY........",
+    "............BBBBBBBWWWWBBBBBB.Yy........",
+    "...........BBBBBBBBWWWWBBBBBBB..........",
+    "......bbb.BBBBBBBBBWWBBBBBBBBBB.bbb.....",
+    ".....bBBBbBGGGGGGGBWWBGGGGGGGBbbBBBb....",
+    "....bBBcBbGgggggggGWWGgggggggGbBcBBBb...",
+    "....bBcBBbGggEEgggGGGGggEEgggGbBBcBBb...",
+    "...bBBcBBbGgEggEggGWWGgEggEggGbBBcBBBb..",
+    "...bBcBBBbGgggggggGWWGgggggggGbBBBcBBb..",
+    "...bBBcBBbBGgggggGWWWWGgggggGBbBBcBBBb..",
+    "...bBcBBBbBBGGGGGWWWWWWGGGGGBBbBBBcBBb..",
+    "..bBBBcBBbWWWWWWWWWWWWWWWWWWWWbBBcBBBBb.",
+    "..bBBcBBBbWWWWWWWWNNNNWWWWWWWWbBBBcBBBb.",
+    "..bBBBcBBbWWWWWWWNNNNNNWWWWWWWbBBcBBBBb.",
+    "..bBBcBBBbWWWWWWWWNNNNWWWWWWWWbBBBcBBBb.",
+    "..bBBBcBBbWWWWWWWWWWWWWWWWWWWWbBBcBBBBb.",
+    "..bBBcBBBbWWNNNNNNNNNNNNNNNNWWbBBBcBBBb.",
+    "..bBBBcBBbwWNMWWWWWWWWWWWWMNWwbBBcBBBBb.",
+    "..bBBcBBBBbwWNMMMMMMMMMMMMNWwbBBBBcBBBb.",
+    "..bBBBcBBBBbwwNMMPPPPPPMMNwwbBBBBcBBBBb.",
+    "..bBBcBBBBBBbbwwNPPppPPNwwbbBBBBBBcBBBb.",
+    "..bBBBcBBBBBBWWbNNNNNNNNbbWWBBBBBcBBBBb.",
+    "...bBBcBBBBBWWWWWWWWWWWWWWWWBBBBcBBBBb..",
+    "...bBBBcBBBWWWWQQQWWWWQQQWWWWBBBcBBBb...",
+    "....bBBcBBWWWWWQQQQRRQQQQWWWWWBBcBBBb...",
+    "....bBBBcBWWWWWQQQQRRQQQQWWWWWBcBBBb....",
+    ".....bBBcWWWWWWQQQWWWWQQQWWWWWWcBBb.....",
+    ".....bBcbWWWWFFFFFFWWFFFFFFWWWWbcBb.....",
+    "......bb.WWWFqqqqqFffFqqqqqFWWW.bb......",
+    "........WWWWFFFFFFFffFFFFFFFWWWW........",
+    ".......WWWWWFqqqqFFffFqqqqqFWWWWW.......",
+    ".......WWWWWWWFFFFFffFFFFFWWWWWWW.......",
+    "......WWWWwWwWqqqqFffFqqqFwWwWWWWW......",
+    "......WWWWWWWWQQQQQQQQQQQQWWWWwWWW......",
+    "......WWWWWWWQQQQQQWWQQQQQQWwwWWWWW.....",
+    ".......WWWWWWWWWwWWWWWWWwWWWWWWWWW......",
+    ".....WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW...",
+    ".....WwWWwWWWWWWWWWWWWWWWWWWWWWWwWWwW...",
+    "......wwwwww..................wwwwww....",
+  ];
+  const PAW_THUMB = [
+    "....WW........",
+    "...WWWW.......",
+    "...WWWW.......",
+    "...WWWw.......",
+    "...WWWw.......",
+    "..WWWWWWWWW...",
+    ".WWWWWWWWWWW..",
+    ".WWWwwwwwwwWW.",
+    ".WWWWWWWWWWWW.",
+    ".WWWwwwwwwwWW.",
+    ".WWWWWWWWWWWW.",
+    ".WWWwwwwwwwWW.",
+    "..WWWWWWWWWW..",
+    "...BBBBBBBB...",
+    "...BBBBcBBB...",
+    "...BBBBBBBB...",
+  ];
+  const PAW_OK = [
+    ".......WW.WW..",
+    ".......WW.WW..",
+    ".......WW.WW.W",
+    "..WWW..WW.WW.W",
+    ".WW.WW.WW.WWWW",
+    ".W...WWWWWWWWW",
+    ".W...WWWWWWWWW",
+    ".WW.WWWWWWWWW.",
+    "..WWWWWWWWWWW.",
+    "...WWWWWWWWW..",
+    "....WWWWWWW...",
+    "....BBBBBBB...",
+    "....BBBcBBB...",
+    "....BBBBBBB...",
+  ];
+  const OUTLINE = "#0a0a14";
+  function makeSprite(rows, pal, lastRow = rows.length) {
+    rows = rows.slice(0, lastRow);
+    const w = rows[0].length, h = rows.length, c = document.createElement("canvas");
+    c.width = w + 2; c.height = h + 2;
+    const x = c.getContext("2d"), on = (i, j) => pal[rows[j][i]] !== undefined;
+    x.fillStyle = OUTLINE;
+    for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) if (on(i, j)) { x.fillRect(i, j + 1, 3, 1); x.fillRect(i + 1, j, 1, 3); }
+    for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) if (on(i, j)) { x.fillStyle = pal[rows[j][i]]; x.fillRect(i + 1, j + 1, 1, 1); }
+    return c;
+  }
+  // in the game only his head (and the bow tie) shows over the chalkboard's edge
+  const FACES = { normal: makeSprite(TEACHER, PAL, 33), happy: makeSprite(TEACHER_HAPPY, PAL, 33), sad: makeSprite(TEACHER_SAD, PAL, 33),
+                  grin: makeSprite(TEACHER_GRIN, PAL, 33) };
+  const PAWS = { thumb: makeSprite(PAW_THUMB, PAL), ok: makeSprite(PAW_OK, PAL) };
+
+  // ---------- Sound ----------
+  let audio = null, soundOn = true;
+  try { soundOn = localStorage.getItem("psiaszkola-sound") !== "off"; } catch (e) { /* ignore */ }
+  function beep(freq, dur, type = "square", vol = 0.06, slideTo = null, delay = 0) {
+    if (!soundOn) return;
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const t = audio.currentTime + delay, o = audio.createOscillator(), g = audio.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t);
+      if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(audio.destination); o.start(t); o.stop(t + dur + 0.02);
+    } catch (e) { /* no sound */ }
+  }
+  const sfx = {
+    bark()  { beep(620, 0.07, "square", 0.06, 330); beep(700, 0.09, "square", 0.06, 300, 0.11); },
+    wrong() { beep(220, 0.32, "sawtooth", 0.06, 90); },
+    whine() { beep(900, 0.35, "triangle", 0.05, 500); },
+    thud()  { beep(90, 0.12, "triangle", 0.09); beep(60, 0.1, "square", 0.03); },
+    drop()  { beep(900, 0.14, "sine", 0.05, 140); },
+    spawn() { beep(1400, 0.03, "square", 0.02); },
+    start() { [392, 523, 659, 784].forEach((f, i) => beep(f, 0.09, "square", 0.05, null, i * 0.08)); },
+    over()  { [392, 330, 262, 196].forEach((f, i) => beep(f, 0.2, "square", 0.06, null, i * 0.2)); },
+    warn()  { beep(1046, 0.08, "square", 0.04); beep(784, 0.08, "square", 0.04, null, 0.1); },
+  };
+
+  // ---------- DOM ----------
+  const $ = id => document.getElementById(id);
+  const canvas = $("game"), ctx = canvas.getContext("2d");
+  const overlayEl = $("overlay");
+  const px = (x, y, w, h, color) => { ctx.fillStyle = color; ctx.fillRect(x, y, w, h); };
+  const fmtTime = s => { s = Math.floor(s); return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); };
+
+  // ---------- Game state ----------
+  let state = "menu";                   // menu | playing | paused | over
+  let pile = [];                        // the bones that stayed, from the bottom up: { full, how: "wrong" | "missed" }
+  let bone = null;                      // the falling one: { q, left, right, good: "left" | "right", y, mode, lock, flash }
+  let nextIn = 0, score = 0, good = 0, time = 0;
+  let fx = [], crumbs = [], popups = [];
+  let face = "normal", faceTime = 0, say = "", sayColor = "#2a1a10";
+  let recent = [];
+
+  const landY = (h = bone ? bone.h : FB) => TOP + WELL_H - pile.length * PROW - h;
+  function talk(text, mood = "normal", secs = 2.2, color = "#2a1a10") { say = text; face = mood; faceTime = secs; sayColor = color; }
+
+  function newQuestion() {
+    const d = DOMAINS[settings.domain], k = d.kinds[settings.kind];
+    if (k.set) { const q = fromDeck(k.set); recent = [q.text, ...recent].slice(0, 6); return q; }
+    let q = d.gen(settings.kind, settings.level);
+    for (let i = 0; i < 30 && recent.includes(q.text); i++) q = d.gen(settings.kind, settings.level);
+    recent = [q.text, ...recent].slice(0, 6);
+    return q;
+  }
+  function spawn() {
+    const q = newQuestion(), wrong = pick(q.wrong), goodLeft = q.tf ? q.answer === "PRAWDA" : Math.random() < 0.5;
+    bone = { q, left: goodLeft ? q.answer : wrong, right: goodLeft ? wrong : q.answer, good: goodLeft ? "left" : "right",
+             y: TOP, mode: "fall", lock: 0, flash: 0, picked: null };
+    if (fitsSmall(bone)) bone.h = FB;
+    else {
+      // the question at 13 px in one or two lines (or, if it is very long, at 9 px)
+      bone.qSize = 13; bone.qLines = wrapWords(q.text, 13, WELL_W - 30);
+      if (bone.qLines.length > 2) { bone.qSize = 9; bone.qLines = wrapWords(q.text, 9, WELL_W - 30).slice(0, 2); }
+      bone.h = 29 + bone.qLines.length * 13;
+    }
+    if (bone.y >= landY()) { bone.y = landY(); bone.mode = "lock"; bone.lock = LOCK_TIME + 1.4; }
+    sfx.spawn();
+  }
+
+  function answer(side) {
+    if (state !== "playing" || !bone || (bone.mode !== "fall" && bone.mode !== "lock")) return;
+    if (side === bone.good) {
+      score += PTS_GOOD; good++;
+      sfx.bark();
+      fx.push({ bone, t: 0, side });
+      for (let i = 0; i < 26; i++) crumbs.push({
+        x: WELL_X + 8 + Math.random() * (WELL_W - 16), y: bone.y + 2 + Math.random() * (bone.h - 4),
+        vx: (Math.random() - 0.5) * 90, vy: -40 - Math.random() * 80, life: 0.4 + Math.random() * 0.4,
+        color: pick(["#f2e6c8", "#d8c49a", "#3dff6e", "#ffd800"]),
+      });
+      popups.push({ x: side === "left" ? WELL_X + 32 : WELL_X + WELL_W - 32, y: bone.y, text: "+" + PTS_GOOD, life: 1 });
+      const milestone = { 20: "20 DOBRYCH ODPOWIEDZI! KCIUK W GÓRĘ!", 30: "30 DOBRYCH! WSZYSTKO OK!", 40: "40 DOBRYCH! JESTEM BARDZO DUMNY!" }[good];
+      if (milestone) { talk(milestone, "normal", 3, "#1d7a32"); sfx.start(); }
+      else talk(pick(["BRAWO!", "HAU! DOBRZE!", "ŚWIETNIE!", "SUPER!", "TAK JEST!", "MĄDRY PIESEK!"]) + ` +${PTS_GOOD}`, "happy", 1.6, "#1d7a32");
+      bone = null; nextIn = NEXT_DELAY;
+    } else {
+      bone.mode = "wrong"; bone.picked = side; bone.flash = 0.35;
+      sfx.wrong();
+      talk(`OJ! ${bone.q.full}`, "sad", 2.6, "#b02020");
+    }
+    updateHud();
+  }
+  // down arrow: the bone falls to the bottom straight away and stays there, showing the right answer
+  function dropNow() {
+    if (state !== "playing" || !bone || (bone.mode !== "fall" && bone.mode !== "lock")) return;
+    bone.y = landY();
+    sfx.drop();
+    talk(`TO BYŁO: ${bone.q.full}`, "normal", 2.6, "#7a3812");
+    stay("missed");
+  }
+  function stay(how) {
+    pile.push({ full: bone.q.full, how, flash: 0.3 });
+    bone = null; nextIn = NEXT_DELAY;
+    sfx.thud();
+    updateHud();
+    const left = MAX_MISTAKES - pile.length;
+    if (left <= 0) return gameOver();
+    if (left <= 5) { sfx.warn(); if (faceTime < 1) talk(`UWAŻAJ! MIEJSCA NA ${left} ${left === 1 ? "KOŚĆ" : "KOŚCI"}!`, "sad", 2.2, "#b02020"); }
+  }
+
+  function update(dt) {
+    time += dt;
+    faceTime -= dt;
+    if (faceTime <= 0 && face !== "normal") face = "normal";
+    for (const f of fx) f.t += dt;
+    fx = fx.filter(f => f.t < 0.35);
+    for (const c of crumbs) { c.vy += 260 * dt; c.x += c.vx * dt; c.y += c.vy * dt; c.life -= dt; }
+    crumbs = crumbs.filter(c => c.life > 0);
+    for (const p of popups) { p.y -= 20 * dt; p.life -= dt; }
+    popups = popups.filter(p => p.life > 0);
+    for (const p of pile) p.flash -= dt;
+    if (!bone) {
+      if ((nextIn -= dt) <= 0) {
+        if (isSet(settings.kind) && !deck.length) return gameOver(true);
+        spawn();
+        updateHud();
+      }
+      return;
+    }
+    bone.flash -= dt;
+    const target = landY();
+    if (bone.mode === "fall") {
+      bone.y += fallSpeed * dt;
+      if (bone.y >= target) { bone.y = target; bone.mode = "lock"; bone.lock = LOCK_TIME; }
+    } else if (bone.mode === "lock") {
+      if ((bone.lock -= dt) <= 0) { talk(`ZA PÓŹNO! ${bone.q.full}`, "sad", 2.6, "#7a3812"); stay("missed"); }
+    } else if (bone.mode === "wrong") {
+      bone.y = Math.min(target, bone.y + WRONG_SPEED * dt);
+      if (bone.y >= target) stay("wrong");
+    }
+  }
+
+  // ---------- Drawing ----------
+  // A bone w x h, its knobs (two round ends) at both sides: drawn once per size and colour into its own canvas.
+  const boneCache = {};
+  function boneSprite(w, h, fill, shade) {
+    const key = [w, h, fill, shade].join();
+    if (boneCache[key]) return boneCache[key];
+    const c = document.createElement("canvas");
+    c.width = w + 2; c.height = h + 2;
+    const g = c.getContext("2d"), r = Math.min(h / 4 + 0.6, 7), bar0 = Math.min(Math.round(h * 0.18), 3), bar1 = h - 1 - bar0;
+    const inside = (i, j) => {
+      if (j >= bar0 && j <= bar1 && i >= r && i <= w - 1 - r) return true;
+      for (const cx of [r - 0.5, w - r - 0.5]) for (const cy of [r - 0.5, h - r - 0.5]) if ((i - cx) ** 2 + (j - cy) ** 2 <= r * r) return true;
+      return false;
+    };
+    g.fillStyle = OUTLINE;
+    for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) if (inside(i, j)) { g.fillRect(i, j + 1, 3, 1); g.fillRect(i + 1, j, 1, 3); }
+    for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) if (inside(i, j)) {
+      g.fillStyle = j >= h - 3 ? shade : fill;
+      g.fillRect(i + 1, j + 1, 1, 1);
+    }
+    g.fillStyle = "rgba(255,255,255,.4)"; g.fillRect(Math.ceil(r * 2), bar0 + 2, w - Math.ceil(r * 4), 1);
+    return (boneCache[key] = c);
+  }
+  // Text in the canvas, in W x H pixels: a text too wide for its place gets smaller (down to 7 px),
+  // and if even that is too wide, it is squeezed
+  const FONT = 'Nunito, "Segoe UI", Arial, sans-serif';
+  const textW = (t, size) => { ctx.font = `800 ${size}px ${FONT}`; return ctx.measureText(t).width; };
+  function text(t, x, y, color, size = 9, maxW = Infinity) {
+    while (size > 7 && textW(t, size) > maxW) size -= 0.5;
+    const w = textW(t, size);
+    ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = color;
+    if (w <= maxW) { ctx.fillText(t, x, y); return; }
+    ctx.save(); ctx.translate(x, y); ctx.scale(maxW / w, 1); ctx.fillText(t, 0, 0); ctx.restore();
+  }
+  function wrapWords(t, size, maxW) {
+    const lines = [""];
+    for (const w of t.split(" ")) {
+      const line = lines[lines.length - 1] ? lines[lines.length - 1] + " " + w : w;
+      if (lines[lines.length - 1] && textW(line, size) > maxW) lines.push(w); else lines[lines.length - 1] = line;
+    }
+    // two lines of about the same length look better than a long one and a short one
+    if (lines.length === 2) {
+      const words = t.split(" ");
+      let best = lines;
+      for (let i = 1; i < words.length; i++) {
+        const a = words.slice(0, i).join(" "), b = words.slice(i).join(" ");
+        if (textW(a, size) <= maxW && textW(b, size) <= maxW &&
+            Math.max(textW(a, size), textW(b, size)) < Math.max(...best.map(l => textW(l, size)))) best = [a, b];
+      }
+      return best;
+    }
+    return lines;
+  }
+  // a long answer in two lines, broken before a "=" (or "+")
+  function splitLines(t, maxW) {
+    if (textW(t, 12) <= maxW) return [t];
+    let best = null;
+    for (let i = 1; i < t.length; i++) {
+      if (t[i] !== "=" && t[i] !== "+" && t[i] !== " ") continue;
+      const a = t.slice(0, i).trim(), b = t.slice(i).trim(), w = Math.max(textW(a, 8.5), textW(b, 8.5));
+      const score = w + (t[i] === "=" ? 0 : 12);
+      if (!best || score < best.score) best = { score, lines: [a, b] };
+    }
+    return best ? best.lines : [t];
+  }
+  // The usual bone: the answers in small boxes at the ends, the question between them (at 13 px).
+  // When they don't fit, a tall one: the question on top, the answers in two wide boxes under it.
+  const SMALL_BOX = 40, TALL_BOX = 82;
+  const fitsSmall = b => [b.left, b.right].every(a => textW(a, 10) <= SMALL_BOX - 4) &&
+    textW(b.q.text, 10) <= WELL_W - 2 * (11 + SMALL_BOX) - 4;
+  function arrow(x, y, dir, color) {
+    for (let i = 0; i < 4; i++) px(dir < 0 ? x + i : x + 3 - i, y - i, 1, 1 + i * 2, color);
+  }
+  function drawFalling(b, t) {
+    const y = Math.round(b.y), x = WELL_X - 1;
+    const blink = b.mode === "lock" && Math.floor(t * 6) % 2 === 0;
+    const red = b.mode === "wrong";
+    ctx.drawImage(red ? boneSprite(WELL_W, b.h, "#ffb0a0", "#d07a6a") : blink ? boneSprite(WELL_W, b.h, "#fff8e0", "#e8d8b0")
+                      : boneSprite(WELL_W, b.h, "#f2e6c8", "#d2bf98"), x, y - 1);
+    if (b.h !== FB) return drawTallInside(b, y, red);
+    // the two answers in their boxes, the question between them
+    const bw = 40, lx = WELL_X + 11, rx = WELL_X + WELL_W - 11 - bw, my = y + FB / 2;
+    for (const [side, bx, val] of [["left", lx, b.left], ["right", rx, b.right]]) {
+      const chosen = red && b.picked === side;
+      px(bx, y + 4, bw, FB - 8, chosen ? "#d63a3a" : side === "left" ? "#bcd8ff" : "#ffd8a8");
+      px(bx, y + FB - 5, bw, 1, chosen ? "#8a1e1e" : side === "left" ? "#7aa0d8" : "#d8a060");
+      text(val, bx + bw / 2, my + 0.5, chosen ? "#fff" : "#1a1010", 13, bw - 4);
+    }
+    arrow(WELL_X + 3, my, -1, "#7a3812");
+    arrow(WELL_X + WELL_W - 7, my, 1, "#7a3812");
+    text(b.q.text, WELL_X + WELL_W / 2, my + 0.5, "#2a1a10", 13, rx - lx - bw - 4);
+  }
+  function drawTallInside(b, y, red) {
+    b.qLines.forEach((l, i) => text(l, WELL_X + WELL_W / 2, y + 11.5 + i * 13, "#2a1a10", b.qSize, WELL_W - 30));
+    const bw = TALL_BOX, lx = WELL_X + WELL_W / 2 - 4 - bw, rx = WELL_X + WELL_W / 2 + 4, by = y + 6 + b.qLines.length * 13, bh = 19;
+    for (const [side, bx, val] of [["left", lx, b.left], ["right", rx, b.right]]) {
+      const chosen = red && b.picked === side;
+      px(bx, by, bw, bh, chosen ? "#d63a3a" : side === "left" ? "#bcd8ff" : "#ffd8a8");
+      px(bx, by + bh - 1, bw, 1, chosen ? "#8a1e1e" : side === "left" ? "#7aa0d8" : "#d8a060");
+      const lines = splitLines(val, bw - 4), color = chosen ? "#fff" : "#1a1010";
+      if (lines.length === 1) text(val, bx + bw / 2, by + bh / 2 + 0.5, color, 12, bw - 4);
+      else lines.forEach((l, i) => text(l, bx + bw / 2, by + 5 + i * 9, color, 8.5, bw - 4));
+    }
+    arrow(WELL_X + 4, by + bh / 2, -1, "#7a3812");
+    arrow(WELL_X + WELL_W - 8, by + bh / 2, 1, "#7a3812");
+  }
+  const pileY = i => TOP + WELL_H - (i + 1) * PROW;
+  function drawPile() {
+    pile.forEach((p, i) => {
+      const y = pileY(i), flash = p.flash > 0;
+      ctx.drawImage(p.how === "wrong" ? boneSprite(WELL_W, PROW - 1, flash ? "#ffd0c0" : "#c99a88", "#9a6a5a")
+                                      : boneSprite(WELL_W, PROW - 1, flash ? "#f0e8d8" : "#a8a090", "#807868"), WELL_X - 1, y - 1);
+      text(p.full, WELL_X + WELL_W / 2 + 6, y + 6, p.how === "wrong" ? "#4a1010" : "#2a2a2a", 9, WELL_W - 46);
+      // a little X for a wrong answer, a ? for none
+      const mx = WELL_X + 14, c = p.how === "wrong" ? "#b02020" : "#5a5a5a";
+      if (p.how === "wrong") for (let k = 0; k < 5; k++) { px(mx + k, y + 3 + k, 1, 1, c); px(mx + 4 - k, y + 3 + k, 1, 1, c); }
+      else text("?", mx + 2, y + 6, c);
+    });
+  }
+  let bgLayer = null;
+  function background() {
+    const c = document.createElement("canvas"); c.width = W; c.height = H;
+    const g = c.getContext("2d"), P = (x, y, w, h, col) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
+    P(0, 0, W, H, "#120c1c");
+    // the well: dark, a faint line where each bone of the pile will lie, paw prints
+    P(WELL_X - 2, TOP - 1, WELL_W + 4, WELL_H + 3, "#1a1228");
+    for (let r = 0; r < ROWS; r++) P(WELL_X, pileY(r) + PROW - 1, WELL_W, 1, "#20182f");
+    for (let i = 0; i < 26; i++) {
+      const x = WELL_X + 6 + ((i * 53) % (WELL_W - 16)), y = TOP + 8 + ((i * 97) % (WELL_H - 16));
+      g.fillStyle = "#251a38";
+      g.fillRect(x + 1, y + 3, 4, 3); g.fillRect(x, y + 4, 6, 1);
+      g.fillRect(x, y + 1, 1, 2); g.fillRect(x + 2, y, 1, 2); g.fillRect(x + 4, y, 1, 2); g.fillRect(x + 6, y + 1, 1, 2);
+    }
+    // the chalkboard: green, in a wooden frame, with a bit of chalk dust
+    P(0, 0, W, TOP - 2, "#7a4a24"); P(0, TOP - 4, W, 2, "#5a3418");
+    P(3, 3, W - 6, TOP - 9, "#1f4a32");
+    for (let i = 0; i < 40; i++) P(4 + (i * 37) % (W - 10), 4 + (i * 13) % (TOP - 12), 1, 1, "#2f6a48");
+    P(150, TOP - 6, 14, 2, "#f6f2ea"); P(170, TOP - 6, 8, 2, "#ffd8e0");
+    // the floor of the well
+    P(WELL_X - 2, TOP + WELL_H + 1, WELL_W + 4, 3, "#7a4a24");
+    return c;
+  }
+  // What he shows when he isn't reacting to an answer: the more right answers, the happier
+  // (20: thumbs up, 30: OK, 40: a wide smile).
+  const pose = () => good >= 40 ? "grin" : good >= 30 ? "ok" : good >= 20 ? "thumb" : null;
+  function drawBoard(t) {
+    const p = face === "normal" ? pose() : null;
+    const f = FACES[face === "normal" && p === "grin" ? "grin" : face];
+    ctx.drawImage(f, 4, TOP - f.height - 1);
+    if (p === "thumb" || p === "ok") {
+      const paw = PAWS[p], bob = Math.round(Math.sin(t * 4) * 1.2);
+      ctx.drawImage(paw, 41, TOP - paw.height - 4 + bob);
+    }
+    const bx = 60, by = 7, bw = W - bx - 7, bh = 30;
+    px(bx - 1, by - 1, bw + 2, bh + 2, "#000"); px(bx, by, bw, bh, "#f6f2ea");
+    px(bx - 4, by + 13, 4, 3, "#000"); px(bx - 3, by + 14, 3, 1, "#f6f2ea");
+    const words = (say || "").split(" "), lines = [""];
+    ctx.font = `800 9px ${FONT}`;
+    for (const w of words) {
+      const tryLine = lines[lines.length - 1] ? lines[lines.length - 1] + " " + w : w;
+      if (ctx.measureText(tryLine).width > bw - 8 && lines[lines.length - 1]) lines.push(w); else lines[lines.length - 1] = tryLine;
+    }
+    const shown = lines.slice(0, 3);
+    shown.forEach((l, i) => text(l, bx + bw / 2, by + bh / 2 + 0.5 + (i - (shown.length - 1) / 2) * 9.5, sayColor, 9));
+  }
+  function render(t) {
+    // everything is drawn in W x H pixels, twice as big on the canvas (so the text can be sharp at 12 px)
+    ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    if (!bgLayer) bgLayer = background();
+    ctx.drawImage(bgLayer, 0, 0);
+    // the pile getting high: the well's edges pulse red
+    if (pile.length >= ROWS - 5) {
+      const a = 0.35 + 0.25 * Math.sin(t * 6);
+      ctx.fillStyle = `rgba(255, 59, 59, ${a})`;
+      ctx.fillRect(WELL_X - 2, TOP - 1, 2, WELL_H + 2); ctx.fillRect(WELL_X + WELL_W, TOP - 1, 2, WELL_H + 2);
+    }
+    drawBoard(t);
+    ctx.save(); ctx.beginPath(); ctx.rect(0, TOP - 1, W, H - TOP + 1); ctx.clip();
+    drawPile();
+    if (bone) drawFalling(bone, t);
+    for (const f of fx) {
+      // a bone answered right: it flashes green and shrinks to nothing
+      const k = f.t / 0.35, w = Math.round(WELL_W * (1 - k)), y = Math.round(f.bone.y);
+      ctx.globalAlpha = 1 - k * 0.6;
+      ctx.drawImage(boneSprite(WELL_W, f.bone.h, "#9dff9a", "#3dbf5a"), WELL_X - 1 + (WELL_W - w) / 2, y - 1, w + 2, f.bone.h + 2);
+      ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+    for (const c of crumbs) px(Math.round(c.x), Math.round(c.y), 2, 2, c.color);
+    for (const p of popups) {
+      ctx.globalAlpha = Math.min(1, p.life * 2);
+      text(p.text, p.x + 0.7, p.y + 0.7, "#000", 13); text(p.text, p.x, p.y, "#ffd800", 13);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  // ---------- HUD, screens ----------
+  function updateHud() {
+    $("hudScore").textContent = score;
+    $("hudGood").textContent = good;
+    const bad = $("hudBad");
+    bad.textContent = `${pile.length}/${MAX_MISTAKES}`;
+    bad.classList.toggle("bad", pile.length >= MAX_MISTAKES - 5);
+    $("hudTime").textContent = fmtTime(time);
+    // a set of questions: how many are still to come (the one falling now too)
+    $("hudLeftBox").classList.toggle("hidden", !isSet(settings.kind));
+    $("hudLeft").textContent = deck.length + (bone ? 1 : 0);
+  }
+  let overlayAction = null;
+  function showOverlay(html, action) {
+    overlayEl.innerHTML = html; overlayEl.classList.remove("hidden"); overlayAction = action;
+    const p = overlayEl.querySelector("[data-primary]");
+    if (p) { p.addEventListener("click", action); p.focus(); }
+    const m = overlayEl.querySelector("[data-menu]");
+    if (m) m.addEventListener("click", goMenu);
+  }
+  function hideOverlay() { overlayEl.classList.add("hidden"); overlayEl.innerHTML = ""; overlayAction = null; }
+  function showScreen(name) {
+    $("menu").classList.toggle("hidden", name !== "menu");
+    $("gameScreen").classList.toggle("hidden", name !== "game");
+    $("hofScreen").classList.toggle("hidden", name !== "hof");
+    $("wrap").classList.toggle("playing", name === "game");
+  }
+  const kindLabel = () => {
+    const d = DOMAINS[settings.domain];
+    return isSet(settings.kind) ? `${d.name} · ${d.kinds[settings.kind].name}` : `${d.name} · ${d.kinds[settings.kind].name} · ${d.levelHint(settings.level)}`;
+  };
+  function startGame() {
+    pile = []; bone = null; nextIn = 0.8; score = 0; good = 0; time = 0; fx = []; crumbs = []; popups = []; recent = [];
+    const set = isSet(settings.kind) && settings.kind.slice(4);
+    deck = set ? shuffle([...setQuestions[set]]) : [];
+    fallSpeed = set && setFall[set] ? (WELL_H - FB) / setFall[set] : FALL_SPEED;
+    talk("UWAGA, LECI PIERWSZA KOŚĆ! STRZAŁKA W LEWO ALBO W PRAWO", "happy", 3);
+    showScreen("game");
+    updateHud();
+    state = "paused";
+    showOverlay(`<div class="big">PSIA SZKOŁA</div>
+      <div><span class="sub">${kindLabel()}</span></div>
+      <div>DOBRA ODPOWIEDŹ: <span class="sub">+${PTS_GOOD} PUNKTÓW</span> · MIEJSCA NA <span class="sub">${MAX_MISTAKES}</span> KOŚCI</div>
+      ${set ? `<div>ZADAŃ W KARTKÓWCE: <span class="sub">${deck.length}</span></div>` : ""}
+      <div class="dim">◀ ▶ WYBIERASZ ODPOWIEDŹ · ▼ KOŚĆ OD RAZU NA DÓŁ</div>
+      <button class="main-btn" data-primary>START</button>`, play);
+  }
+  function play() { hideOverlay(); if (state !== "over") { state = "playing"; sfx.start(); } }
+  function pause() {
+    if (state !== "playing") return;
+    state = "paused";
+    showOverlay(`<div class="big">PAUZA</div>
+      <div class="btns"><button class="main-btn" data-primary>GRAJ DALEJ</button><button class="main-btn alt" data-menu>MENU</button></div>`,
+      () => { hideOverlay(); state = "playing"; });
+  }
+  // ---------- Hall of fame (shared by everyone - the gry API, /api/v1/scores/) ----------
+  // One list per domain and kind of task ("math-add", ...); score = points, time = whole seconds of the game,
+  // level = the level played (1-10). Opened straight from a file there's no /api next to the page,
+  // so it goes to the server by name.
+  const HOF_GAME = "psiaszkola";
+  const HOF_SIZE = 10;
+  // a set of questions has its own list, "set-<slug>"
+  const catId = (domain, kind) => isSet(kind) ? "set-" + kind.slice(4) : `${domain}-${kind}`;
+  const hofCategories = () => Object.entries(DOMAINS).filter(([, d]) => !d.soon)
+    .flatMap(([dk, d]) => Object.entries(d.kinds).map(([k, x]) => ({ id: catId(dk, k), domain: d, kind: x })));
+  let hof = null;                          // { "math-add": [...], ... } as last fetched; null until then
+  let hofRequest = 0;                      // so a slow response can't redraw a screen the player already left
+  let lastName = "";
+  try { lastName = localStorage.getItem("psiaszkola-name") || ""; } catch (e) { /* ignore */ }
+  const escapeHtml = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const hofTime = e => e.time ?? Infinity;
+  const hofCompare = (a, b) => b.score - a.score || hofTime(a) - hofTime(b) || a.id - b.id;
+  // one list: its best entries, in the order above (sort_key is the server's)
+  const hofList = category => apiGet("scores/?filter_val_Game=" + HOF_GAME + "&filter_val_Category=" + encodeURIComponent(category)
+    + "&order=SortKey&order_direction=asc&limit=" + HOF_SIZE);
+  async function hofLoad() {
+    const categories = hofCategories().map(c => c.id);
+    const lists = await Promise.all(categories.map(hofList));
+    hof = Object.fromEntries(categories.map((c, i) => [c, lists[i]]));
+  }
+  async function hofPost(entry) {          // -> { entry: { id } }
+    const res = await fetch(API_URL + "scores/", {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ game: HOF_GAME, ...entry }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.code || "HTTP " + res.status);
+    return { entry: { id: data.data.id } };
+  }
+  function hofRank(r) {                    // 1-based place this game would take, or 0
+    if (r.score <= 0 || !hof) return 0;
+    const list = hof[r.category];
+    let rank = list.findIndex(e => hofCompare({ score: r.score, time: Math.floor(r.time), id: Infinity }, e) < 0);
+    if (rank === -1) rank = list.length;
+    return rank < HOF_SIZE ? rank + 1 : 0;
+  }
+
+  // The pile is full (or every question of a set was asked - completed): the results, then (if good enough)
+  // a name for the hall of fame.
+  let result = null;
+  function gameOver(completed = false) {
+    state = "over";
+    if (completed) { sfx.start(); talk("WSZYSTKIE ZADANIA! JESTEM Z CIEBIE DUMNY. HAU!", "happy", 999); }
+    else { sfx.over(); talk("KONIEC! ALE BYŁO FAJNIE. HAU!", good ? "happy" : "sad", 999); }
+    updateHud();
+    result = { completed, score, good, all: good + pile.length, time, category: catId(settings.domain, settings.kind),
+               level: isSet(settings.kind) ? null : settings.level,
+               label: kindLabel(), entry: null, hofError: false };
+    const r = result;
+    if (r.score <= 0) { showResult(); return; }
+    showOverlay(`${resultHtml(r)}<div class="blink">ŁADOWANIE SALI SŁAWY...</div>`);
+    hofLoad()
+      .then(() => { if (result === r && state === "over") (hofRank(r) ? showNameEntry() : showResult()); })
+      .catch(() => { if (result === r && state === "over") { r.hofError = true; showResult(); } });
+  }
+  function resultHtml(r) {
+    return `<div class="big">${r.completed ? "KARTKÓWKA SKOŃCZONA!" : "KONIEC GRY!"}</div>
+      ${r.completed ? `<div style="color:var(--green)">BYŁY WSZYSTKIE ZADANIA - BRAWO!</div>` : ""}
+      <div><span class="sub">${r.label}</span></div>
+      <div>PUNKTY: <span style="color:var(--yellow)">${r.score}</span> · CZAS: <span class="sub">${fmtTime(r.time)}</span></div>
+      <div>DOBRYCH ODPOWIEDZI: <span class="sub">${r.good}</span>${r.all ? ` Z <span class="sub">${r.all}</span> (${Math.round(r.good * 100 / r.all)}%)` : ""}</div>`;
+  }
+  function showResult() {
+    const r = result;
+    showOverlay(`${resultHtml(r)}
+      ${r.hofError ? `<div style="color:var(--red)">SALA SŁAWY NIEDOSTĘPNA - BRAK POŁĄCZENIA Z SERWEREM</div>` : ""}
+      <div class="btns"><button class="main-btn" data-primary>JESZCZE RAZ</button><button class="main-btn alt" data-menu>MENU</button>
+      <button class="main-btn alt" data-hof>SALA SŁAWY</button></div>`, () => { hideOverlay(); startGame(); });
+    overlayEl.querySelector("[data-hof]").addEventListener("click", () => showHallOfFame(r.category, r.entry, true));
+  }
+  function showNameEntry() {
+    state = "entry";
+    const r = result;
+    showOverlay(`${resultHtml(r)}
+      <div style="color:var(--yellow)">JESTEŚ W SALI SŁAWY! MIEJSCE #${hofRank(r)}</div>
+      <form class="name-form" id="nameForm" autocomplete="off">
+        <label for="nameInput">WPISZ SWOJE IMIĘ:</label>
+        <input id="nameInput" maxlength="12" spellcheck="false" value="${escapeHtml(lastName)}">
+        <div class="btns"><button class="main-btn" type="submit">ZAPISZ</button>
+        <button class="main-btn alt" type="button" id="btnSkip" hidden>POMIŃ</button></div>
+        <div id="nameError" style="color:var(--red)"></div>
+      </form>`);
+    overlayAction = null;
+    const input = $("nameInput"), form = $("nameForm");
+    setTimeout(() => { input.focus(); input.select(); }, 0);
+    form.onsubmit = async e => {
+      e.preventDefault();
+      const name = input.value.trim().toUpperCase().slice(0, 12) || "UCZEŃ";
+      lastName = name;
+      try { localStorage.setItem("psiaszkola-name", name); } catch (err) { /* ignore */ }
+      const saveBtn = form.querySelector("[type=submit]");
+      saveBtn.disabled = true; saveBtn.textContent = "ZAPISYWANIE...";
+      try {
+        const saved = await hofPost({ name, score: r.score, category: r.category, time: Math.floor(r.time), completed: r.completed,
+                                     ...(r.level ? { level: r.level } : {}) });
+        r.entry = saved.entry;
+      } catch (err) {
+        saveBtn.disabled = false; saveBtn.textContent = "SPRÓBUJ PONOWNIE";
+        $("nameError").textContent = "NIE UDAŁO SIĘ ZAPISAĆ (" + err.message + ")";
+        $("btnSkip").hidden = false;
+        return;
+      }
+      if (state !== "entry" || result !== r) return;
+      showHallOfFame(r.category, r.entry, true);
+    };
+    $("btnSkip").onclick = () => { state = "over"; showResult(); };
+  }
+
+  // The top 10 of one kind of task, with a tab for each kind. After a game it offers another one.
+  function showHallOfFame(cat, highlight, afterGame, fetchFirst = true) {
+    hideOverlay();
+    state = "hof"; bone = null;
+    showScreen("hof");
+    const box = $("hofScreen");
+    const buttons = afterGame && result
+      ? `<div class="btns"><button class="main-btn" id="hofAgain">JESZCZE RAZ</button><button class="main-btn alt" id="hofMenu">MENU</button></div>`
+      : `<div class="btns"><button class="main-btn" id="hofMenu">WRÓĆ</button></div>`;
+    const show = body => {
+      const tabs = hofCategories().map(c =>
+        `<button class="choice${c.id === cat ? " on" : ""}" data-tab="${c.id}"><span class="sym">${escapeHtml(c.kind.sym)}</span> ${escapeHtml(c.kind.name)}</button>`).join("");
+      const d = hofCategories().find(c => c.id === cat).domain;
+      box.innerHTML = `<div class="menu-title">SALA SŁAWY · ${d.name}</div><div class="choices">${tabs}</div>${body}${buttons}`;
+      box.querySelectorAll("[data-tab]").forEach(b => b.addEventListener("click", () => showHallOfFame(b.dataset.tab, highlight, afterGame, !hof)));
+      if ($("hofAgain")) $("hofAgain").onclick = startGame;
+      $("hofMenu").onclick = goMenu;
+    };
+    if (fetchFirst) {
+      const req = ++hofRequest;
+      show(`<div class="blink">ŁADOWANIE...</div>`);
+      const stillHere = () => req === hofRequest && state === "hof";
+      hofLoad()
+        .then(() => { if (stillHere()) showHallOfFame(cat, highlight, afterGame, false); })
+        .catch(err => { if (stillHere()) show(`<div style="color:var(--red)">BRAK POŁĄCZENIA Z SERWEREM (${escapeHtml(err.message)})</div>`); });
+      return;
+    }
+    const medal = ["gold", "silver", "bronze"];
+    const rows = Array.from({ length: HOF_SIZE }, (_, i) => {
+      const e = hof[cat][i];
+      if (!e) return `<tr class="empty"><td class="num">${i + 1}.</td><td class="name">---</td><td class="num">-</td><td class="num">--:--</td><td class="num">-</td><td></td></tr>`;
+      const cls = [medal[i] || "", highlight && e.id === highlight.id ? "me" : ""].join(" ");
+      return `<tr class="${cls}"><td class="num">${i + 1}.</td><td class="name">${escapeHtml(e.name)}</td>
+        <td class="num">${e.score}</td><td class="num">${e.time == null ? "--:--" : fmtTime(e.time)}</td>
+        <td class="num">${e.level == null ? "-" : e.level}</td><td>${e.completed ? `<span class="fin">CAŁA!</span>` : ""}</td></tr>`;
+    }).join("");
+    show(`<table class="hof"><tr><th class="num">#</th><th>IMIĘ</th><th class="num">PUNKTY</th><th class="num">CZAS</th><th class="num">POZIOM</th><th></th></tr>${rows}</table>`);
+  }
+
+  function goMenu() {
+    hideOverlay();
+    state = "menu"; bone = null;
+    showScreen("menu");
+    buildMenu();
+  }
+
+  // ---------- Menu ----------
+  function buildMenu() {
+    const d = DOMAINS[settings.domain];
+    $("domainBtns").innerHTML = Object.entries(DOMAINS).map(([k, x]) =>
+      `<button class="choice${k === settings.domain ? " on" : ""}" data-domain="${k}"${x.soon ? " disabled" : ""}>${x.name}${x.soon ? "<small>WKRÓTCE</small>" : ""}</button>`).join("");
+    $("kindBtns").innerHTML = Object.entries(d.kinds).map(([k, x]) =>
+      `<button class="choice${k === settings.kind ? " on" : ""}" data-kind="${k}"><span class="sym">${x.sym}</span> ${x.name}</button>`).join("");
+    $("levelBtns").innerHTML = Array.from({ length: d.levels }, (_, i) =>
+      `<button class="choice${i + 1 === settings.level ? " on" : ""}" data-level="${i + 1}">${i + 1}</button>`).join("");
+    $("levelHint").textContent = d.levelHint(settings.level);
+    // a set remembered from the last time may not be loaded from the server yet
+    const set = isSet(settings.kind);
+    for (const id of ["levelTitle", "levelBtns"]) $(id).classList.toggle("hidden", set);
+    if (set) $("levelHint").textContent = "ZADANIA Z KARTKÓWKI - WSZYSTKIE PO KOLEI, W LOSOWEJ KOLEJNOŚCI";
+    $("setsHint").textContent = setsState === "loading" ? "ŁADOWANIE KARTKÓWEK..." : setsState === "error" ? "KARTKÓWKI NIEDOSTĘPNE - BRAK POŁĄCZENIA Z SERWEREM" : "";
+  }
+  $("menu").addEventListener("click", e => {
+    const b = e.target.closest("button");
+    if (!b || b.disabled) return;
+    if (b.dataset.domain) { settings.domain = b.dataset.domain; settings.kind = Object.keys(DOMAINS[settings.domain].kinds)[0]; settings.level = 1; }
+    else if (b.dataset.kind) settings.kind = b.dataset.kind;
+    else if (b.dataset.level) settings.level = +b.dataset.level;
+    else return;
+    saveSettings(); buildMenu(); beep(880, 0.04, "square", 0.03);
+  });
+  $("btnPlay").addEventListener("click", async () => {
+    const btn = $("btnPlay");
+    if (isSet(settings.kind)) {
+      btn.disabled = true; btn.textContent = "ŁADOWANIE...";
+      await setsLoaded;
+      const set = isSet(settings.kind) && settings.kind.slice(4);
+      try { if (set) await loadSet(set); } catch (e) { $("setsHint").textContent = "NIE UDAŁO SIĘ POBRAĆ ZADAŃ (" + e.message + ")"; }
+      btn.disabled = false; btn.textContent = "GRAJ";
+      if (!set || !setQuestions[set]) return;
+    }
+    startGame();
+  });
+  $("btnHof").addEventListener("click", () => { result = null; showHallOfFame(catId(settings.domain, settings.kind), null, false); });
+  {
+    const c = $("teacher"), s = makeSprite(TEACHER, PAL);
+    c.width = s.width; c.height = s.height;
+    c.getContext("2d").drawImage(s, 0, 0);
+  }
+
+  // ---------- Input ----------
+  document.addEventListener("keydown", e => {
+    if (e.target.tagName === "INPUT") return;
+    const k = e.key.toLowerCase();
+    if (k === "m") { soundOn = !soundOn; try { localStorage.setItem("psiaszkola-sound", soundOn ? "on" : "off"); } catch (er) { /* ignore */ } return; }
+    if (state === "menu") { if (k === "enter" && document.activeElement === document.body) startGame(); return; }
+    if (overlayAction && (k === "enter" || k === " ")) { e.preventDefault(); overlayAction(); return; }
+    if (state !== "playing") { if (k === "escape" || k === "p") { /* stay paused */ } return; }
+    if (["arrowleft", "arrowright", "arrowdown", "arrowup", " "].includes(k)) e.preventDefault();
+    if (e.repeat) return;
+    if (k === "arrowleft" || k === "a") answer("left");
+    else if (k === "arrowright" || k === "d") answer("right");
+    else if (k === "arrowdown" || k === "s") dropNow();
+    else if (k === "p" || k === "escape") pause();
+  });
+  $("touch").addEventListener("pointerdown", e => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    e.preventDefault();
+    if (b.dataset.act === "left") answer("left");
+    else if (b.dataset.act === "right") answer("right");
+    else dropNow();
+  });
+  // tapping the bone's left or right half answers too
+  canvas.addEventListener("pointerdown", e => {
+    if (state !== "playing" || !bone) return;
+    const r = canvas.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * W;   // in W x H pixels
+    answer(x < W / 2 ? "left" : "right");
+  });
+  document.addEventListener("visibilitychange", () => { if (document.hidden) pause(); });
+
+  // ---------- Main loop ----------
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (state === "playing") { update(dt); $("hudTime").textContent = fmtTime(time); }
+    if (state !== "menu") render(now / 1000);
+    requestAnimationFrame(frame);
+  }
+
+  window.PSY = {
+    DOMAINS, answer, dropNow, startGame, play, get state() { return state; }, get bone() { return bone; }, get pile() { return pile; },
+    get score() { return score; }, get deck() { return deck; }, get fallSpeed() { return fallSpeed; }, landY, ROWS,
+  };
+  const setsLoaded = loadSets();
+  buildMenu();
+  showScreen("menu");
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

@@ -31,3 +31,9 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# The binary of cmd/gry, and local databases (games.db, its -wal and -shm)
+/gry
+*.db
+*.db-shm
+*.db-wal
